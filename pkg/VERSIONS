@@ -1,0 +1,23 @@
+
+** Version 0.05 // August 20, 2013
+ - Fail gracefully when input has NA values
+ - Cross-validation works
+ - standard linear and logistic models with formula in glm_batch
+ - Fixed strange issue with lrgpr() that caused R to crash with nthreads was large
+ 
+
+
+** Version 0.04 // August 7, 2013
+ - Formula evaluation in lrgpr and lrgpr_batch
+
+** Version 0.03a // May 1, 2013
+ - Fixed calculation of Adjusted R-squared to fix an issue where it was greater than 1
+
+** Version 0.03 // April 29, 2013
+ - Fixed problem of non-symmetric variance-covariance matrix, so Wald test's work
+   	 This is now symmetric and is of the same form as that from lm()
+
+ - Fixed calculation of Rsq to use cor() directly
+	 
+ - Split some code in summary.lrgpr() into print.summary.lrgpr(), 
+	so evaluating s = summary(fit) no longer prints to console
