@@ -7,7 +7,6 @@
 #' @param x model fit from \code{\link{lrgpr}}
 #' @param ... other arguments
 #' @S3method print lrgpr
-#' @export
 print.lrgpr <- function( x,...){
 	
 	cat( "\nCall:\n" )
@@ -280,7 +279,6 @@ leverage.lrgpr <- function( object ){
 #' @param hat hat values
 #' @param ... other arguments
 #' @S3method cooks.distance lrgpr
-#' @export
 cooks.distance.lrgpr <- function( model, infl = lm.influence(model, do.coef = FALSE), res=weighted.residuals(model), sd=sqrt(deviance(model)/df.residual(model)), hat = infl$hat,... ){	
 		
 	res^2 / (model$df*sd^2) * model$hii/(1-model$hii)^2 
