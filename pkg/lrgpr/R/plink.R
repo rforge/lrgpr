@@ -39,20 +39,20 @@ read.tfam = function( file ){
 #' @export
 read.fam = read.tfam
 
-#' @export
+# @export
 .pkg.env <- new.env()
 
-#' Read plink TPED file
-#'
-#' Read TPED in 0/1 format into R as a matrix.  A subset of consecutive markers can be read with start_line and nlines    
-#' 
-#' @param file location of TPED file
-#' @param missing instruction for how to deal with missing data: missing='NA' sets all missing values to NA, missing='mean' sets values to the mean value for that marker
-#' @param start_line index of the first line to read, where the indexing starts at 1 
-#' @param nlines number of markers to read after and including start_line.  If nlines=Inf, read entire file starting at start_line. 
-#' @param quiet print information about data processing
-#' @param markerNames array of marker names to be read from the file
-#' @export
+# Read plink TPED file
+#
+# Read TPED in 0/1 format into R as a matrix.  A subset of consecutive markers can be read with start_line and nlines    
+# 
+# @param file location of TPED file
+# @param missing instruction for how to deal with missing data: missing='NA' sets all missing values to NA, missing='mean' sets values to the mean value for that marker
+# @param start_line index of the first line to read, where the indexing starts at 1 
+# @param nlines number of markers to read after and including start_line.  If nlines=Inf, read entire file starting at start_line. 
+# @param quiet print information about data processing
+# @param markerNames array of marker names to be read from the file
+# export
 read.tped = function( file, missing=NA, start_line=1, nlines=Inf, quiet=FALSE, markerNames=NULL){
 	
 	useTPED = TRUE;
@@ -138,7 +138,7 @@ read.tped = function( file, missing=NA, start_line=1, nlines=Inf, quiet=FALSE, m
 	}
 
 	# Remove markers that are all missing
-	frq = alleleFreq( res )
+	frq = getAlleleFreq( res )
 
 	i = which(is.na(frq))
 
@@ -193,16 +193,16 @@ read.tped = function( file, missing=NA, start_line=1, nlines=Inf, quiet=FALSE, m
 	return(list(X=res$X, info=info))
 }
 
-#' Read plink GEN file in OXFORD format
-#'
-#' Read GEN file in OXFORD format into R as a matrix.  A subset of consecutive markers can be read with start_line and nlines    
-#' 
-#' @param file location of GEN file
-#' @param missing instruction for how to deal with missing data: missing='NA' sets all missing values to NA, missing='mean' sets values to the mean value for that marker
-#' @param start_line index of the first line to read, where the indexing starts at 1 
-#' @param nlines number of markers to read after and including start_line.  If nlines=Inf, read entire file starting at start_line. 
-#' @param quiet print information about data processing
-#' @param markerNames array of marker names to be read from the file
-#' @export
+# Read plink GEN file in OXFORD format
+#
+# Read GEN file in OXFORD format into R as a matrix.  A subset of consecutive markers can be read with start_line and nlines    
+# 
+# @param file location of GEN file
+# @param missing instruction for how to deal with missing data: missing='NA' sets all missing values to NA, missing='mean' sets values to the mean value for that marker
+# @param start_line index of the first line to read, where the indexing starts at 1 
+# @param nlines number of markers to read after and including start_line.  If nlines=Inf, read entire file starting at start_line. 
+# @param quiet print information about data processing
+# @param markerNames array of marker names to be read from the file
+# export
 read.gen = read.tped
 

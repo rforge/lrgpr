@@ -7,7 +7,7 @@
 \arguments{
   \item{object}{model fit with \code{\link{lrgpr}}}
 
-  \item{...}{}
+  \item{...}{other arguments}
 }
 \description{
   Returns the variance-covariance matrix of the main

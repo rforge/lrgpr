@@ -608,6 +608,7 @@ lrgprApply <- function( formula, features, decomp, terms, rank=max(length(decomp
 
 		form_mod = as.formula( .mm_replace_query_with( formChar, "SNP", "tmp") )
 		.y = .mm_get_response( form_mod )
+		n_indivs = nrow(as.matrix(.y))
 		#.X = model.matrix.default( form_mod )
 
 		#if( ! is.numeric(.y) && ! is.factor(.y)){

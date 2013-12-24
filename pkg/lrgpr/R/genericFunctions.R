@@ -6,6 +6,7 @@
 #' 
 #' @param x model fit from \code{\link{lrgpr}}
 #' @param ... other arguments
+#' @S3method print lrgpr
 #' @export
 print.lrgpr <- function( x,...){
 	
@@ -278,6 +279,7 @@ leverage.lrgpr <- function( object ){
 #' @param sd standard deviation to use
 #' @param hat hat values
 #' @param ... other arguments
+#' @S3method cooks.distance lrgpr
 #' @export
 cooks.distance.lrgpr <- function( model, infl = lm.influence(model, do.coef = FALSE), res=weighted.residuals(model), sd=sqrt(deviance(model)/df.residual(model)), hat = infl$hat,... ){	
 		
@@ -291,7 +293,7 @@ cooks.distance.lrgpr <- function( model, infl = lm.influence(model, do.coef = FA
 #' Returns the variance-covariance matrix of the main parameters of a fitted model object 
 #' 
 #' @param object model fit with \code{\link{lrgpr}}
-#' @param ... 
+#' @param ... other arguments
 #' @export
 vcov.lrgpr <- function( object,...){
 	object$Sigma
