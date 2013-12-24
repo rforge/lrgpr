@@ -26,4 +26,3 @@ Collate:
     'genericFunctions.R'
     'lrgpr.R'
     'plink.R'
-    'plink_extensions.R'
