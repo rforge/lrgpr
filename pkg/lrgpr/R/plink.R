@@ -39,7 +39,7 @@ read.tfam = function( file ){
 #' @export
 read.fam = read.tfam
 
-# @export
+#' @export
 .pkg.env <- new.env()
 
 # Read plink TPED file
@@ -52,7 +52,7 @@ read.fam = read.tfam
 # @param nlines number of markers to read after and including start_line.  If nlines=Inf, read entire file starting at start_line. 
 # @param quiet print information about data processing
 # @param markerNames array of marker names to be read from the file
-# export
+# @export
 read.tped = function( file, missing=NA, start_line=1, nlines=Inf, quiet=FALSE, markerNames=NULL){
 	
 	useTPED = TRUE;
@@ -203,6 +203,6 @@ read.tped = function( file, missing=NA, start_line=1, nlines=Inf, quiet=FALSE, m
 # @param nlines number of markers to read after and including start_line.  If nlines=Inf, read entire file starting at start_line. 
 # @param quiet print information about data processing
 # @param markerNames array of marker names to be read from the file
-# export
+# @export
 read.gen = read.tped
 

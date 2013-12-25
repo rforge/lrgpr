@@ -6,7 +6,8 @@
 #' 
 #' @param x model fit from \code{\link{lrgpr}}
 #' @param ... other arguments
-#' @S3method print lrgpr
+#@method print lrgpr
+#' @export
 print.lrgpr <- function( x,...){
 	
 	cat( "\nCall:\n" )
@@ -25,6 +26,7 @@ print.lrgpr <- function( x,...){
 #' 
 #' @param x model fit from \code{\link{lrgpr}}
 #' @param ... other arguments
+#@method print.summary lrgpr
 #' @export
 print.summary.lrgpr <- function( x,... ){
 
@@ -83,6 +85,7 @@ print.summary.lrgpr <- function( x,... ){
 #' 
 #' @param object model fit from \code{\link{lrgpr}}
 #' @param ... other arguments
+#@method summary lrgpr
 #' @export
 summary.lrgpr <- function( object,... ){
 
@@ -149,6 +152,7 @@ summary.lrgpr <- function( object,... ){
 #' @param X_test design matrix of covariates for test samples
 #' @param K_test covariance matrix between samples in the test set and training set
 #' @param ... other arguments
+#@method predict lrgpr
 #' @export
 predict.lrgpr <- function( object, X_test=NULL, K_test=NULL,... ){
 
@@ -183,6 +187,7 @@ predict.lrgpr <- function( object, X_test=NULL, K_test=NULL,... ){
 #' @param object model fit with \code{\link{lrgpr}}
 #' @param type the type of residual, but there is only one option here
 #' @param ... other arguments
+#@method residuals lrgpr
 #' @export
 residuals.lrgpr <- function( object, type="working",...){
 	object$residuals
@@ -194,6 +199,7 @@ residuals.lrgpr <- function( object, type="working",...){
 #' 
 #' @param object model fit with \code{\link{lrgpr}}
 #' @param ... other arguments
+#@method coefficients lrgpr
 #' @export
 coefficients.lrgpr <- function( object ){
 	object$coefficients
@@ -205,6 +211,7 @@ coefficients.lrgpr <- function( object ){
 #' 
 #' @param object model fit with \code{\link{lrgpr}}
 #' @param ... other arguments
+#@method df.residual lrgpr
 #' @export
 df.residual.lrgpr <- function( object,... ){
 	# OLS
@@ -220,6 +227,7 @@ df.residual.lrgpr <- function( object,... ){
 #' 
 #' @param object model fit with \code{\link{lrgpr}}
 #' @param ... other arguments
+#@method lm.influence lrgpr
 #' @export
 lm.influence.lrgpr <- function( object,...){
 	list(hat=object$hii)
@@ -231,6 +239,7 @@ lm.influence.lrgpr <- function( object,...){
 #' 
 #' @param model model fit with \code{\link{lrgpr}}
 #' @param ... other arguments
+#@method influence lrgpr
 #' @export
 influence.lrgpr <- function( model,... ){
 	list(hat=model$hii)
@@ -245,6 +254,7 @@ influence.lrgpr <- function( model,... ){
 #' 
 #' @param model model fit with \code{\link{lrgpr}}
 #' @param ... other arguments
+#@method rstandard lrgpr
 #' @export
 rstandard.lrgpr <- function( model,... ){
 	
@@ -261,6 +271,7 @@ rstandard.lrgpr <- function( model,... ){
 #' Basic quantities for regression diagnostics from fit of \code{\link{lrgpr}}
 #' 
 #' @param object model fit with \code{\link{lrgpr}}
+#@method leverage lrgpr
 #' @export
 leverage.lrgpr <- function( object ){
 	object$hii
@@ -273,12 +284,13 @@ leverage.lrgpr <- function( object ){
 #' Basic quantities for regression deletion diagnostics from fit of \code{\link{lrgpr}}
 #' 
 #' @param model model fit with \code{\link{lrgpr}}
-#' @param infl influence structure as returned by \"lm.influence\"
+#' @param infl influence structure as returned by \code{\link{lm.influence}}
 #' @param res residuals
 #' @param sd standard deviation to use
 #' @param hat hat values
 #' @param ... other arguments
-#' @S3method cooks.distance lrgpr
+#@method cooks.distance lrgpr
+# @export
 cooks.distance.lrgpr <- function( model, infl = lm.influence(model, do.coef = FALSE), res=weighted.residuals(model), sd=sqrt(deviance(model)/df.residual(model)), hat = infl$hat,... ){	
 		
 	res^2 / (model$df*sd^2) * model$hii/(1-model$hii)^2 
@@ -292,11 +304,51 @@ cooks.distance.lrgpr <- function( model, infl = lm.influence(model, do.coef = FA
 #' 
 #' @param object model fit with \code{\link{lrgpr}}
 #' @param ... other arguments
+#@method vcov lrgpr
 #' @export
 vcov.lrgpr <- function( object,...){
 	object$Sigma
 }
 
+#' Akaike's Information Criterion (AIC)
+#'
+#' AIC for model fit by \code{\link{lrgpr}}
+#' 
+#' @param object model fit with \code{\link{lrgpr}}
+#' @param ... other arguments
+#' @param k for compotability, not used
+#' @export
+AIC.lrgpr = function(object, ..., k = 2){
+    object$AIC
+ }
+
+#' Bayesian Information Criterion (BIC)
+#'
+#' BIC for model fit by \code{\link{lrgpr}}
+#' 
+#' @param object model fit with \code{\link{lrgpr}}
+#' @param ... other arguments
+#' @export
+BIC.lrgpr = function(object, ...){
+    object$BIC
+ }
+
+#' Extract Log-Likelihood
+#'
+#' Log-Likelihood for model fit by \code{\link{lrgpr}}
+#' 
+#' @param object model fit with \code{\link{lrgpr}}
+#' @param ... other arguments
+#' @export
+logLik.lrgpr = function(object, ...){
+    val <- object$logLik
+    ## Note: zero prior weights have NA working residuals.
+    attr(val, "nobs") <- sum(!is.na(object$residuals))
+    attr(val, "df") <- object$df
+    class(val) <- "logLik"
+    val
+}
+ 
 # This code is not exported
 
 plot.lrgpr_Test <- function( obj,...){
@@ -351,7 +403,10 @@ plot.lrgpr_Test <- function( obj,...){
 #' @param add.smooth logical indicating if a smoother should be added to most plots; see also \"panel\" above.
 #' @param label.pos positioning of labels, for the left half and right half of the graph respectively, for plots 1-3.
 #' @param cex.caption controls the size of \"caption\".
+#'
 #' @seealso \code{plot.lm}
+#'
+#@method plot lrgpr
 #' @export
 plot.lrgpr <- function (x, which=c(1L:3L, 5L), caption=list("Residuals vs Fitted", 
     "Normal Q-Q", "Scale-Location", "Cook's distance", "Residuals vs Leverage", 
@@ -397,8 +452,8 @@ plot.lrgpr <- function (x, which=c(1L:3L, 5L), caption=list("Residuals vs Fitted
         hii <- lm.influence.lrgpr(x, do.coef=FALSE)$hat
         if (any(show[4L:6L])) {
             cook <- if (isGlm) 
-                cooks.distance(x)
-            else cooks.distance(x, sd=s, res=r)
+                cooks.distance.lrgpr(x)
+            else cooks.distance.lrgpr(x, sd=s, res=r)
         }
     }
     if (any(show[2L:3L])) {

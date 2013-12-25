@@ -608,6 +608,7 @@ lrgprApply <- function( formula, features, decomp, terms, rank=max(length(decomp
 
 		form_mod = as.formula( .mm_replace_query_with( formChar, "SNP", "tmp") )
 		.y = .mm_get_response( form_mod )
+
 		n_indivs = nrow(as.matrix(.y))
 		#.X = model.matrix.default( form_mod )
 
@@ -925,7 +926,7 @@ criterion.lrgpr = function( formula, features, order, rank = c(seq(1, 10), seq(2
 #'
 #' @param x list returned by 'criterion.lrgpr'
 #' @param col array of 3 colors 
-#' @param ...  
+#' @param ... other arguments 
 #'
 #' @seealso criterion.lrgpr
 #'
@@ -958,11 +959,11 @@ plot.criterion.lrgpr = function( x, col=rainbow(3),...){
 #' @param x result of cv.lrgpr
 #' @param ylim limits of y-axis
 #' @param xlim limits of x-axis
-#' @param pch  
-#' @param col   
-#' @param main   
-#' @param xlab   
-#' @param ylab   
+#' @param pch pch
+#' @param col col
+#' @param main main
+#' @param xlab xlab  
+#' @param ylab ylab 
 #' @param ... other parameters fed to plot()
 #' 
 #' @export
