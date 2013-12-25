@@ -12,7 +12,7 @@
   \item{model}{model fit with \code{\link{lrgpr}}}
 
   \item{infl}{influence structure as returned by
-  \"lm.influence\"}
+  \code{\link{lm.influence}}}
 
   \item{res}{residuals}
 
