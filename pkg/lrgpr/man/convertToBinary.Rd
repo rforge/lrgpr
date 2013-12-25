@@ -1,0 +1,37 @@
+\name{convertToBinary}
+\alias{convertToBinary}
+\title{Convert ASCII to binary file}
+\usage{
+  convertToBinary(filename, filenameOut, format)
+}
+\arguments{
+  \item{filename}{file to be converted}
+
+  \item{filenameOut}{name of binary file produced}
+
+  \item{format}{specify 'TPED', 'DOSAGE' or 'GEN'}
+}
+\description{
+  `convertToBinary' converts TPED/DOSAGE/GEN files to
+  binary format
+}
+\details{
+  \itemize{ \item{TPED: }{plink file can be in either
+  --recode or --recode12 format} \item{DOSAGE: }{file
+  follows plink format:
+  http://pngu.mgh.harvard.edu/~purcell/plink/dosage.shtml}
+  }
+
+  Example:
+
+  SNP A1 A2 F1 I1 F2 I2 F3 I3
+
+  rs0001 A C 0.98 0.02 1.00 0.00 0.00 0.01
+
+  rs0002 G A 0.00 1.00 0.00 0.00 0.99 0.01
+
+  where the F* values correspond to the dosage values
+
+  \itemize{ \item{GEN: }{file follow OXFORD format} }
+}
+

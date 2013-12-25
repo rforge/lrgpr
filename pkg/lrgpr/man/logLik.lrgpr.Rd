@@ -1,0 +1,15 @@
+\name{logLik.lrgpr}
+\alias{logLik.lrgpr}
+\title{Extract Log-Likelihood}
+\usage{
+  logLik.lrgpr(object, ...)
+}
+\arguments{
+  \item{object}{model fit with \code{\link{lrgpr}}}
+
+  \item{...}{other arguments}
+}
+\description{
+  Log-Likelihood for model fit by \code{\link{lrgpr}}
+}
+
