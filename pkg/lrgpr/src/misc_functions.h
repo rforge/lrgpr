@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <ostream>
 #include <fstream>
 #include <sstream>
 #include <math.h>
@@ -270,8 +271,10 @@ bool isNumeric( const char* pszInput );
  * \param total denominator
  * \param length number of characters in progress bar
  * \param start_time time in seconds that process was started
+ * \return string with progress bar
  */
-void print_progress( int count, int total, int length, time_t start_time = 0);
+string print_progress( int count, int total, int length, time_t start_time = 0);
+
 
 void process_mem_usage(double& vm_usage, double& resident_set);
 
