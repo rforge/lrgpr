@@ -118,7 +118,7 @@ summary(fit)
 fit$p.values
 
 # Visualize fit of the model like for 'lm'
-par(mfrow=c(1,4))
+par(mfrow=c(2,2))
 plot(fit)
 
 # Composite hypothesis test using Wald's test

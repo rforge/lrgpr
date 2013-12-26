@@ -620,7 +620,9 @@ double GLM_penalized_regression(const gsl_vector *Y, const gsl_matrix *t_X, cons
 		}
 
 		if(log_likelihood_prev - log_likelihood < 0){
+			#ifdef PRINT_TO_CONSOLE
 			printf("log_L increased from %10.6f to %10.6f @ hyper_param1 =%10.6f, hyper_param2 =%10.6f\n", log_likelihood_prev, log_likelihood, hyper_param1, hyper_param2);
+			#endif
 			break;
 		}
 

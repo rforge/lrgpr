@@ -156,7 +156,7 @@ set_missing_to_mean = function(A){
 #' fit$p.values
 #'
 #' # Visualize fit of the model like for 'lm'
-#' par(mfrow=c(1,4))
+#' par(mfrow=c(2,2))
 #' plot(fit)
 #'
 #' # Composite hypothesis test using Wald's test
@@ -1193,7 +1193,7 @@ convertToBinary = function( filename, filenameOut, format ){
                separated = FALSE)
 
 	# Save structure in ASCII format
-	dput( new("big.matrix.descriptor", description = ret ), file=paste(filenameOut, "_text", sep=''))
+	#dput( new("big.matrix.descriptor", description = ret ), file=paste(filenameOut, "_text", sep=''))
 
 	# Save structure in BINARY format
 	saveRDS( new("big.matrix.descriptor", description = ret ), file=paste(filenameOut, "_descr", sep=''))
@@ -1203,9 +1203,7 @@ readBinary = function( filename, N ){
 
 	res = .Call("R_readBinary", filename, N, package="lrgpr")
 
-	if( res != 0){
-		stop("File is not correctly formatted")
-	}
+	return( res)
 }
 
 #' Calculate allele frequency
