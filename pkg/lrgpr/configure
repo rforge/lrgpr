@@ -561,6 +561,7 @@ GSL_CFLAGS
 GSL_CONFIG
 BIGMEMORY_IFLAGS
 BH_IFLAGS
+RCPPPROGRESS_IFLAGS
 target_alias
 host_alias
 build_alias
@@ -1707,7 +1708,8 @@ BIGMEMORY_IFLAGS=`${R_HOME}/bin/Rscript -e "cat('-I', tools::file_path_as_absolu
 # Get INCLUDE path for BH package
 BH_IFLAGS=`${R_HOME}/bin/Rscript -e "cat('-I', tools::file_path_as_absolute(base::system.file( package = 'BH')), '/include', sep='' )"`
 
-
+# Get INCLUDE path for RcppProgress package
+RCPPPROGRESS_IFLAGS=`${R_HOME}/bin/Rscript -e "cat('-I', tools::file_path_as_absolute(base::system.file( package = 'RcppProgress')), '/include', sep='' )"`
 
 # Now substitute these variables in src/Makevars.in to create src/Makevars
 

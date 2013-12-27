@@ -1244,3 +1244,22 @@ getMissingCount = function( X, nthreads=detectCores(logical=TRUE)){
 
 	return( missingCount )
 }	
+
+#' EValuate variance for each column
+#' 
+#' @param X matrix where each column is a marker
+#' @param nthreads number of threads to use
+#' @export 
+getAlleleVariance = function( X, nthreads=detectCores(logical=TRUE)){
+
+	if( is.big.matrix(X) ){ 
+		ptr = X@address 
+	}else{
+		ptr = 0
+	}
+
+	# count missing entries for each column
+	alleleVar <- .Call("R_getAlleleVariance", X, ptr, as.integer(nthreads), package="lrgpr")
+
+	return( alleleVar )
+}	

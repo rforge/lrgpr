@@ -1952,3 +1952,22 @@ long gsl_vector_count_missing(gsl_vector *v){
 
 	return count;
 }
+
+gsl_vector *gsl_vector_get_nonmissing(gsl_vector *v){
+
+	long N = gsl_vector_count_missing(v);
+
+	gsl_vector *v_clean = gsl_vector_alloc(N);
+
+	long k = 0;
+
+	for(unsigned int i=0; i<v->size; i++){
+
+		if( isnan(gsl_vector_get(v, i)) || ! isfinite(gsl_vector_get(v, i)) ){	
+
+			gsl_vector_set(v_clean, k++, gsl_vector_get(v, i));
+		}		
+	}
+
+	return v_clean;
+}

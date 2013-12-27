@@ -431,7 +431,7 @@ bool parse_DOSAGE( Rcpp::NumericMatrix *X, const long line_number, const string 
 		//cout << "n_tokens: " << n_tokens << endl;
 		//cout << "n_indivs: " << n_indivs << endl;
 	}else{
-		n_indivs = (*n_tokens - 4) / 2;
+		n_indivs = (*n_tokens - 3) / 2;
 	}
 
 	// Initialize tokenizer
@@ -460,6 +460,16 @@ bool parse_DOSAGE( Rcpp::NumericMatrix *X, const long line_number, const string 
 	
 		float *alleleArray = (float *) malloc( n_indivs*sizeof(float));
 
+		// If malloc failed
+		if( alleleArray == NULL){
+			// Assign values to X
+			for(int i=0; i<n_indivs; i++){			
+				(*X)(i,line_number) = NAN ;
+			}
+
+			return false;
+		}
+
 		///////////////////////////////////
 		// Tokenize until end is reached //
 		///////////////////////////////////
@@ -467,14 +477,16 @@ bool parse_DOSAGE( Rcpp::NumericMatrix *X, const long line_number, const string 
 		int k = 0;
 		// Read single line into alleleArray
 		// INCREMENT BY 2, because other values reflects quality and is always (?) zero
-		for(int i=0; i<=2*n_indivs; i=i+2){		
+		for(int i=0; i<2*n_indivs; i=i+2){		
 
 			pch = strtok (NULL, delimiters);
 
-			//cout << pch << " ";
+			//cout << k << " " << pch << endl;
 
 			// Parsing Error type 2
 			if( pch == NULL ){
+
+				//cout << "pch is NULL: " << i << endl;
 				free( alleleArray );
 				return false;
 			}
@@ -491,6 +503,7 @@ bool parse_DOSAGE( Rcpp::NumericMatrix *X, const long line_number, const string 
 		// if there are remaining tokens on this line
 		// Parsing Error type 3
 		if( pch != NULL ){
+			//Rcpp::Rcout << "Left over: " << pch << endl;
 			free( alleleArray );
 			return false;
 		}
@@ -732,6 +745,8 @@ bool is_dosage_header( const string &line){
 
 RcppExport SEXP R_convertToBinary( SEXP fileName_, SEXP fileNameOut_, SEXP format_, SEXP isZipFile_){
 
+BEGIN_RCPP
+
 	string fileName = Rcpp::as<string>( fileName_ );
 	string fileNameOut = Rcpp::as<string>( fileNameOut_ );
 	string format = Rcpp::as<string>( format_ );
@@ -799,6 +814,28 @@ RcppExport SEXP R_convertToBinary( SEXP fileName_, SEXP fileNameOut_, SEXP forma
 	//file.seekg(0, ios_base::beg);
 
 	file.close();
+
+	// Open file and set it to the proper size 
+	///////////////////////////////////////////
+
+	FILE *fp = fopen( fileNameOut.c_str(), "wb");
+
+	// If file pointer is NULL 
+	if( fp == NULL ) throw std::runtime_error("File could not be opened:\n" + fileNameOut + "\n");
+
+	// int ftruncate(int fd, off_t length);
+	int result = ftruncate( fileno(fp), n_indivs*n_lines*sizeof(double) );
+
+	// If ftruncate fails and does not return 0
+	if( result != 0 ){
+		// close file pointer
+		fclose(fp);
+		throw std::runtime_error("File of desired size could not be allocated:\n" + fileNameOut + "\nsize: " + stringify(n_indivs*n_lines*sizeof(double)) + "\n" );
+	}
+
+	// Write entries to binary file
+	////////////////////////////////
+
 	file.open( fileName.c_str() );
 
 	if( isZipFile ) ifstrm2.push(boost::iostreams::gzip_decompressor());
@@ -806,7 +843,7 @@ RcppExport SEXP R_convertToBinary( SEXP fileName_, SEXP fileNameOut_, SEXP forma
     // run file through the filter stream   
     ifstrm2.push(file);
 
-	int byte_loc = 0;
+	int byte_loc = 0;	
 
 	Rcpp::NumericMatrix X(n_indivs, 1);
 
@@ -816,11 +853,6 @@ RcppExport SEXP R_convertToBinary( SEXP fileName_, SEXP fileNameOut_, SEXP forma
 	vector<string> markerNames;
 
 	double *array = (double *) malloc(n_indivs*sizeof(double));
-
-	FILE *fp = fopen( fileNameOut.c_str(), "wb");
-
-	// int ftruncate(int fd, off_t length);
-	int result = ftruncate( fileno(fp), n_indivs*n_lines*sizeof(double) );
 
 	time_t start_time;
 	time(&start_time);
@@ -872,8 +904,8 @@ RcppExport SEXP R_convertToBinary( SEXP fileName_, SEXP fileNameOut_, SEXP forma
 			// size_t fwrite(const void *ptr, size_t size_of_elements, size_t number_of_elements, FILE *a_file);
 			fwrite( array, sizeof(double), n_indivs, fp);
 
-			if( count % 1000 == 0 ) 
-				print_progress( count, n_lines, 25, start_time);
+			if( count % 10000 == 0 ) 
+				Rcpp::Rcout << print_progress( count, n_lines, 25, start_time);
 
 			count++;
 		}
@@ -897,10 +929,15 @@ RcppExport SEXP R_convertToBinary( SEXP fileName_, SEXP fileNameOut_, SEXP forma
 	delete markerInfo;
 
 	return( ret );
+
+END_RCPP 
+
 }
 
 
 RcppExport SEXP R_readBinary( SEXP fileName_, SEXP N_){
+
+BEGIN_RCPP
 
 	string fileName = Rcpp::as<string>( fileName_ );
 	long N = Rcpp::as<long>( N_ );
@@ -920,6 +957,8 @@ RcppExport SEXP R_readBinary( SEXP fileName_, SEXP N_){
 		ret[i] = array[i];
 	}
 	return( wrap(ret) );
+
+END_RCPP	
 }
 
 /*
