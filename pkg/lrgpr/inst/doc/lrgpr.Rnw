@@ -1,0 +1,294 @@
+%
+% NOTE -- ONLY EDIT THE .Rnw FILE!!!  The .tex file is
+% likely to be overwritten.
+%
+
+% Compile:
+% library( highlight ) 
+% driver <- HighlightWeaveLatex(size='tiny')
+% Sweave('annotate.Rnw', driver = driver ); tools::texi2dvi('annotate.tex', pdf=TRUE)
+
+% Sweave('annotate.Rnw'); tools::texi2dvi('annotate.tex', pdf=TRUE)
+
+
+\documentclass[11pt]{article}
+
+\usepackage{fullpage}
+
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Rmethod}[1]{{\texttt{#1}}}
+
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textit{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+
+\usepackage{hyperref}
+
+%\usepackage[authoryear,round]{natbib}
+\usepackage{times}
+\usepackage{verbatim}
+\usepackage{amsmath, amssymb}
+\newcommand{\proglang}[1]{\textsf{#1}}
+\newcommand{\pkg}[1]{{\fontseries{b}\selectfont #1}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\bibliographystyle{plos2009}
+\usepackage[square, comma, numbers, sort&compress]{natbib}
+%\bibpunct{(}{)}{;}{a}{,}{,}
+
+<<echo=FALSE,print=FALSE>>=
+prettyVersion <- packageDescription("lrgpr")$Version
+prettyDate <- format(Sys.Date(), "%B %e, %Y")
+@
+
+\author{Gabriel E. Hoffman}
+\title{\pkg{lrgpr}: Low Rank Gaussian Process Regression}
+\date{\pkg{lrgpr} version \Sexpr{prettyVersion} as of \Sexpr{prettyDate}}
+
+
+\begin{document}
+\maketitle{}
+
+\abstract{
+  \noindent
+  The \pkg{lrgpr} package provides an interactive \proglang{R} interface for fitting linear mixed models, also known as Gaussian Process Regression, on very large datasets.  The package provides user-friendly interfaces to for the linear mixed model and a computationally efficent extension termed \underline{L}ow \underline{R}ank \underline{G}aussian \underline{P}rocess \underline{R}egression, as well as standard linear and logistic regression models.  \pkg{lrgpr} allows fitting millions of regression models on a desktop computer by using an efficient implementation, parallelization and out-of-core computing for datasets that are too large to fit in main memory.  
+ %The linear model model, also known as Gaussian Process Regression (GPR), is widely used in statistical genetics to account for the confounding effects of kinship and population structure.  .  
+%
+ % Designed to be user-friendly and following the built-in \pkg{glm} interface, 
+}
+
+\section{Overview}
+
+% Remove R prompt ">"
+<<echo=F>>=
+options(prompt = " ")
+options(continue = " ")
+library(lrgpr)
+library(aod)
+@
+
+Genome-wide association studies (GWAS) are a widely used to identify genetic variants that are associated with variation in a phenotype of interest.  Tests of association usually take the form of statistical hypothesis tests in a regression model that accounts for known confounding variables such as sex.  Yet due to complex nature of GWAS datasets, more sophisticated methods are used in order to maintain power while controling the false positive rate.  The linear model model is the state-of-the-art method to account for the confounding effects of kinship and population structure in GWAS analysis, and much recent work as focused on this approach.\\
+\\
+To date, most software for GWAS data has been designed for a ``one-size-fits-all" analysis.  Yet as GWAS datasets have become increasing complex and heterogeneous, there is growing potential for interactive, exploratory data analysis.  The \pkg{lrgpr} package privdes a user-friendly, interactive and computationally efficient analysis framework that faciliates custom exploratory analysis of large GWAS datasets. 
+
+
+\begin{itemize}
+\item glm() / glmApply()
+\item lrgpr() / lrgprApply()
+\item Direct data access through big.matrix
+\item Full rank model is not feasable for large datasets
+\end{itemize}
+
+\section{Using the \texttt{big.matrix} format }
+
+\proglang{R} typically stores all data in memory for fast access.  However, GWAS datasets can easily be too lage to story in memory (i.e. RAM).  For example a dataset with 10,000 individuals and 1,000,000 SNPs would require $\sim80$ Gb to store in \proglang{R} in its standard format (i.e. as a \texttt{double}), and much larger datasets are now very common.  Instead, \pkg{lrgpr} uses \pkg{bigmemory}'s \texttt{big.matrix} format to store a very large dataset in binary form directly on the hard drive and avoid using RAM while still allowing interactive access to the data.  Thus, the \texttt{big.matrix} format allows analysis of arbitrary large datasets on any machine with sufficient hard drive capacity.
+\\
+\\
+Arbitrary data can be converted to \texttt{big.matrix} format using \pkg{bigmemory}'s \texttt{write.big.matrix}.  Large GWAS data can be converted more efficently:
+
+<<echo=T>>=
+# Path to Plink files
+path = system.file(package = 'lrgpr')
+tped_file = paste(path, "/extdata/test.tped", sep="")
+fam_file =  paste(path, "/extdata/test.tfam", sep="")
+@
+
+<<echo=T,results=hide>>=
+# Convert TPED file to binary format
+# Create a binary data file: test.binary
+# 	and a binary file describing this data: test.binary_descr
+convertToBinary(tped_file, "./test.binary", "TPED")
+@
+\noindent
+Supported GWAS data formats include TPED, GEN and DOSAGE.\\
+\\
+Data is loaded into \proglang{R} by pointing a variable at the description file:
+
+<<echo=T>>=
+# attach data by reading the description file
+X <- attach.big.matrix("./test.binary_descr")
+@
+\noindent
+Note that this data is not loaded into memory. Instead \verb|X| points to the location of the data on the hard drive, and the data is loaded into memory when the users asks for it.  The user can treat \verb|X| as a standard \proglang{R} matrix with the caveat that user must be carefull not to load too much data into memory at the same time.  For example, the $10^{th}$ SNP can be accessed seamlessly: 
+
+<<echo=T,results=hide>>=
+# data is only loaded into memory when it is accessed
+X[,10]
+@
+\noindent
+and the user can perform abitrary operations on each column individually without loading the whole dataset at the same time:
+
+<<echo=T,results=hide>>=
+# data is only loaded into memory when it is accessed
+column_means = c()
+
+for(j in 1:ncol(X)){
+	column_means[j] = mean(X[,j])
+}
+@
+\noindent
+Accessing the data in this way creates a standard \proglang{R} \verb|matrix| that can be passed to any function. Thus the user can process \verb|X| as if it were stored in memory; the complexity of storing the data on the hard drive is completely hidden from the user.\\
+\\
+Processing the entire dataset in \proglang{R} can be costly for large datasets, so \pkg{lrgpr} provides functions to report common statistics faster by performing all computations in \proglang{C/C++}:
+
+<<echo=T,results=hide>>=
+# Report allele frequencies using C/C++ backend
+freq = getAlleleFreq(X)
+@
+
+\section{Regression with \proglang{R}'s \texttt{glm}}
+
+\proglang{R} fits generalized linear models using the \verb|glm| function that provides flexability in defining the regression model.  I describe \verb|glm| very briefly here so that I can later describe how \pkg{lrgpr} expands on this functionality.  For example, we can read Plink's FAM file and fit a simple model:
+
+<<echo=T,results=hide>>=
+# Read FAM file
+FAM = read.fam(fam_file)
+y = FAM$phenotype
+sex = FAM$sex
+@
+
+<<echo=T,results=hide>>=
+# Fit a linear model
+fit = glm( y ~ sex )
+@
+\noindent
+We can see the model coefficients statistics:
+<<echo=T,results=hide>>=
+# Simple view
+fit
+@
+<<echo=T,results=hide>>=
+# Expanded view
+summary(fit)
+@
+and plot model diagnostics:
+
+<<>>=
+# Plot diagnostics
+par(mfrow=c(2,2))
+plot(fit)
+@
+
+\noindent
+The user can also specify and perform hypothesis tests on more complex models involving interations:
+<<echo=T,results=hide>>=
+# Fit a linear model
+fit = glm( y ~ sex + X[,10]*X[,100])
+@
+
+<<echo=T,results=hide>>=
+# Composite hypothesis test of additive and interaction terms for the two markers
+# Note that wald.test is from the aod package
+wald.test(vcov(fit), coef(fit), Terms=3:5)
+@
+
+\section{Fitting many regressions with glmApply()}
+
+Analysis of GWAS data involves fitting a regression model for each SNP individually.  The user could write a simple \verb|for| loop that calls the \verb|glm| function, but the computation can be accelerated by doing the calculation in the \proglang{C/C++} backend and reporting the results.\\
+\\
+A standard analysis can be performed with \pkg{lrgpr}'s \verb|glmApply|:
+
+<<echo=T,results=hide>>=
+# Standard GWAS regression analysis
+pValues = glmApply( y ~ SNP + sex, features=X, terms=2)$pValues
+@
+where the \verb|formula| follows standard \verb|glm| syntax, \verb|features| specifies the \verb|big.matrix| or standard \proglang{R} \verb|matrix| with columns as genetic markers, and \verb|terms| specifies which variables from \verb|features| are in the hypothesis test.  Note that \verb|SNP| is a placeholder for each sucessive column in features.\\
+\\
+This code is the same as 
+<<echo=T,results=hide>>=
+pValuesR = c()
+
+for(j in 1:ncol(X)){
+	# fit model
+	fit = glm(y ~ X[,j] + sex)
+
+	# perform hypothesis test
+	pValuesR[j] = wald.test(vcov(fit), coef(fit), Terms=2)$result$chi2[3]
+}
+@
+but calling \verb|glmApply| is simpler and much faster for large datasets.\\
+\\
+Note that \verb|glmApply| can also efficiently fit multivariate regression models with multiple response variables.
+
+\section{Low Rank Gaussian Process Regression with \texttt{lrgpr}}
+
+The \verb|lrgpr| function fits full and low rank linear mixed models and follows the syntax and behavior of \verb|glm|.  The linear mixed model has the form
+\begin{eqnarray*}
+\mathbf y &\sim& \mathcal{N}(\mathbf X \boldsymbol\beta, \mathbf K\sigma^2_a + \mathbf I\sigma^2_e),
+\end{eqnarray*}
+where $\mathbf y \,(n \times 1)$ is the vector of phenotype values, $n$ is the sample size, $\mathbf X \,(n \times c)$ is the design matrix of $c$ fixed effects, $\boldsymbol\beta\,(c \times 1)$ is the vector of coefficients, $\mathbf K \,(n \times n)$ is the genetic similarity matrix, $\mathbf I \,(n \times n)$ is the identity matrix, $\sigma^2_a$ is the magnitude of the genetic variance, $\sigma^2_e$ is the magnitude of the residual variance.  The parameters are estimated by maximizing the log-loglihood using the algorithms of \citep{Lippert2011} and \citet{Listgarten2012}.  
+
+
+The coefficient estimates, $\hat{\boldsymbol\beta}$, and their sample variance, $\hat{\mathbf \Sigma}_{\boldsymbol\beta}$, are  
+\begin{eqnarray*}
+\hat{\boldsymbol\beta} &=& (\mathbf X^T \mathbf C^{-1} \mathbf X)^{-1} \mathbf X^T \mathbf C \mathbf y\\ 
+\hat{\mathbf \Sigma}_{\boldsymbol\beta} &=& (\mathbf X^T \mathbf C^{-1} \mathbf X)^{-1} \sigma^2_a
+\end{eqnarray*}
+when $\sigma^2_a$ and $\sigma^2_e$ are estimated 
+
+where $\mathbf C = (\mathbf K + \mathbf I\frac{\sigma^2_e}{\sigma^2_a})^{-1}$ when $\mathbf K$ is full rank.  Following standard likelihood theory, the Wald test is
+\begin{eqnarray*}
+\hat{\boldsymbol\beta}_h^T \hat{\mathbf \Sigma}_{\boldsymbol\beta}^{-1} \hat{\boldsymbol\beta}_h \sim \chi^2_{|h|}
+\end{eqnarray*}
+where $h$ is specifies the fixed effects being tested and $|h|$ is the number of enties.
+
+
+\subsection{Equations}
+\subsection{Theory}
+\subsection{Code}
+\subsection{Model Diagnostics}
+
+
+\section{Fitting many lrgpr regressions with lrgprApply()}
+
+\section{Selecting the dimensionality of the random effect}
+
+\subsection{Cross-validation}
+\subsection{Model criteria}
+
+\section{Implementation}
+
+The \pkg{lrgpr} package provides an \proglang{R} interface to high performance computational statistics code written in \proglang{C++} that builds off the GNU Scientific Library (GSL).  Linear algebra operations are performed by \proglang{BLAS} and \proglang{LAPACK} and the performance is highly dependent on the library installed on the local machine.  Data is passed from \proglang{R} using \pkg{Rcpp} and \pkg{RcppGSL}.  Parallelization is performed by OpenMP.  Out-of-core processing is faciliated by \pkg{bigmemory}, which stores the full dataset on the hard drive instead of in memory and uses \verb mmap  from the GNU C Library for random data access.
+
+
+
+
+
+<<echo=T,results=hide>>=
+# Specify Plink files
+tped_file = paste(system.file( package = 'lrgpr'), "/extdata/test.tped", sep="")
+fam_File =  paste(system.file( package = 'lrgpr'), "/extdata/test.tfam", sep="")
+@
+
+<<echo=T,results=hide>>=
+# Convert TPED file to binary format
+# Create a binary data file: test.binary
+# 	and a binary file describing this data: test.binary_descr
+convertToBinary(tped_file, "./test.binary", "TPED")
+@
+
+<<echo=T,results=hide>>=
+# attach data by reading the description file
+X <- attach.big.matrix("/data/test_space/test.binary_descr")
+
+FAM = read.tfam( fam_File )
+
+y = FAM$phenotype
+sex = FAM$sex
+
+@
+
+
+% Re-instate R prompt ">"
+<<echo=F>>=
+options(prompt = "> ")
+options(continue = "+ ")
+@
+
+
+\pagebreak
+\singlespace
+\renewcommand\refname{References}
+ \bibliography{library}{\small}
+
+\end{document}
