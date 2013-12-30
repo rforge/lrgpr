@@ -438,7 +438,7 @@ bool gsl_vector_set_missing_mean(gsl_vector *v);
 long gsl_vector_count_missing(gsl_vector *v);
 
 /**
-* \brief Return entries that are not NaN or Inf entries
+* \brief Return entries that are not NaN or Inf entries.  Return NULL if the vector is of size 0
 */
 gsl_vector *gsl_vector_get_nonmissing(gsl_vector *v);
 

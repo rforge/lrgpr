@@ -432,9 +432,11 @@ BEGIN_RCPP
 	time_t start_time;
 	time(&start_time);
 
+	gsl_matrix *X_set = NULL;
+
 	for(int i_set=0; i_set<n_markers; i_set+=setSize){
 
-		gsl_matrix *X_set = fset.getNextChunk();
+		X_set = fset.getNextChunk();
 
 		#pragma omp parallel
 		{
@@ -744,9 +746,11 @@ BEGIN_RCPP
 	time_t start_time;
 	time(&start_time);
 
+	gsl_matrix *X_set = NULL;
+
 	for(int i_set=0; i_set<n_markers; i_set+=setSize){
 
-		gsl_matrix *X_set = fset.getNextChunk();
+		X_set = fset.getNextChunk();
 
 		#pragma omp parallel
 		{
@@ -891,7 +895,7 @@ BEGIN_RCPP
 	NumericMatrix X_loop;
 	featureSet fset;
 
-	long n_markers;
+	long n_markers, n_indivs;
 
 	long setSize = 10000;
 
@@ -901,6 +905,7 @@ BEGIN_RCPP
 		X_loop = NumericMatrix( data_ );
 
 		n_markers = X_loop.ncol();
+		n_indivs = X_loop.nrow();
 
 		setSize = n_markers;
 
@@ -942,11 +947,15 @@ BEGIN_RCPP
 
 	vector<double> alleleFreq(n_markers);
 
+	gsl_matrix *X_set = NULL;
+
 	for(int i_set=0; i_set<n_markers; i_set+=setSize){
 
-		gsl_matrix *X_set = fset.getNextChunk();
+		if( ! standardMatrix ){
+			X_set = fset.getNextChunk();
 
-		long n_indivs = X_set->size2;
+			n_indivs = X_set->size2;
+		}
 
 		#pragma omp parallel
 		{		
@@ -1025,7 +1034,7 @@ BEGIN_RCPP
 	NumericMatrix X_loop;
 	featureSet fset;
 
-	long n_markers;
+	long n_markers, n_indivs;
 
 	long setSize = 10000;
 
@@ -1035,6 +1044,7 @@ BEGIN_RCPP
 		X_loop = NumericMatrix( data_ );
 
 		n_markers = X_loop.ncol();
+		n_indivs = X_loop.nrow();
 
 		setSize = n_markers;
 
@@ -1070,17 +1080,22 @@ BEGIN_RCPP
 
 	long tests_completed = 0;
 	Progress p(0, false);
-	
+
 	time_t start_time;
 	time(&start_time);
 
 	vector<double> alleleFreq(n_markers);
 
+	gsl_matrix *X_set = NULL;
+
 	for(int i_set=0; i_set<n_markers; i_set+=setSize){
 
-		gsl_matrix *X_set = fset.getNextChunk();
+		if( ! standardMatrix ){
+			X_set = fset.getNextChunk();
 
-		double n_indivs = X_set->size2;
+			n_indivs = X_set->size2;
+		}
+
 		long count;
 
 		#pragma omp parallel
@@ -1154,7 +1169,7 @@ BEGIN_RCPP
 	NumericMatrix X_loop;
 	featureSet fset;
 
-	long n_markers;
+	long n_markers, n_indivs;
 
 	long setSize = 10000;
 
@@ -1164,6 +1179,7 @@ BEGIN_RCPP
 		X_loop = NumericMatrix( data_ );
 
 		n_markers = X_loop.ncol();
+		n_indivs = X_loop.nrow();
 
 		setSize = n_markers;
 
@@ -1205,11 +1221,15 @@ BEGIN_RCPP
 
 	vector<double> colVariance(n_markers);
 
+	gsl_matrix *X_set = NULL;
+
 	for(int i_set=0; i_set<n_markers; i_set+=setSize){
 
-		gsl_matrix *X_set = fset.getNextChunk();
+		if( ! standardMatrix ){
+			X_set = fset.getNextChunk();
 
-		long n_indivs = X_set->size2;
+			n_indivs = X_set->size2;
+		}
 
 		#pragma omp parallel
 		{		
@@ -1237,8 +1257,8 @@ BEGIN_RCPP
 				// Compute varaince for non-missing entries
 				gsl_vector *v = gsl_vector_get_nonmissing( marker_j );
 
-				if( v== NULL || v->size == 0 ){
-					colVariance[j+i_set] = 0;
+				if( v == NULL ){
+					colVariance[j+i_set] = -1;
 				}else{
 					colVariance[j+i_set] = gsl_stats_variance( v->data, v->stride, v->size);
 				}

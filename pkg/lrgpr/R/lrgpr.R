@@ -59,6 +59,8 @@ set_missing_to_mean = function(A){
 		}
 	}
 
+	a = gc()
+	
 	return( A)
 }
 

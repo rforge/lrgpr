@@ -1955,15 +1955,18 @@ long gsl_vector_count_missing(gsl_vector *v){
 
 gsl_vector *gsl_vector_get_nonmissing(gsl_vector *v){
 
-	long N = gsl_vector_count_missing(v);
+	long n_missing = gsl_vector_count_missing(v);
 
-	gsl_vector *v_clean = gsl_vector_alloc(N);
+ 	// Return NULL if the vector is of size 0
+	if( n_missing == v->size ) return NULL;
+
+	gsl_vector *v_clean = gsl_vector_alloc(v->size - n_missing);
 
 	long k = 0;
 
 	for(unsigned int i=0; i<v->size; i++){
 
-		if( isnan(gsl_vector_get(v, i)) || ! isfinite(gsl_vector_get(v, i)) ){	
+		if( ! isnan(gsl_vector_get(v, i)) && isfinite(gsl_vector_get(v, i)) ){	
 
 			gsl_vector_set(v_clean, k++, gsl_vector_get(v, i));
 		}		
