@@ -2,6 +2,9 @@
 <!-- This is the project specific website template -->
 <!-- It can be changed as liked or replaced by other content -->
 
+
+<div id="container" style="width:500px">
+
 <?php
 
 $domain=ereg_replace('[^\.]*\.(.*)$','\1',$_SERVER['HTTP_HOST']);
@@ -42,14 +45,30 @@ fclose($handle);
 echo $contents; } ?>
 
 <!-- end of project description -->
+<div id="content" style="background-color:#EEEEEE;height:400px;width:800px;float:left;">
 
-<p> <b> lrgpr: Low Rank Gaussian Process Regression </b> </p>
+	<p> <b> lrgpr: Low Rank Gaussian Process Regression </b> </p>
 
-<p> <a href="./docs/lrgpr.pdf">Documentation</a>. </p>
-<p> <a href="./docs/lrgpr-manual.pdf">Manual</a>. </p>
-<p> Dowload package: <a href="./docs/lrgpr_0.0.1.tar.gz">lrgpr_0.0.1.tar.gz</a> </p>
+	<b>lrgpr</b> is a high-peformance, user-friendly R interface for evaluating linear mixed models. 
 
-<p> <a href="http://<?php echo $domain; ?>/projects/<?php echo $group_name; ?>/">Project summary page</a>. </p>
+	<p> <a href="./docs/lrgpr.pdf">Documentation</a> gives a thorough description of the advantages and applications of <b>lrgpr</b>.</p>
+
+	<p> See the <a href="./docs/lrgpr-manual.pdf">manual</a> for details about available functions.</p>
+
+	<p> Download package: <a href="./docs/lrgpr_0.0.1.tar.gz">lrgpr_0.0.1.tar.gz</a> </p>
+
+	<p> Citation:</p>
+
+	<p>
+	 Hoffman, G.E., Mezey, J.G., Schadt, E.E. 2014. lrgpr: Interactive linear mixed model analysis of genome-wide association studies with composite hypothesis testing and regression diagnostics. In preparation. </p>
+	 </p>
+	 
+	<p> <a href="http://<?php echo $domain; ?>/projects/<?php echo $group_name; ?>/">Project summary page</a> </p>
+
+</div>
+
+<div id="footer" style="background-color:#FFA500;clear:both;text-align:center;"> 
+ </div>
 
 </body>
 </html>
