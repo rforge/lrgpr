@@ -43,7 +43,7 @@ echo $contents; } ?>
 
 <!-- end of project description -->
 
-<p> No content added. </p>
+<p> <b> lrgpr: Low Rank Gaussian Process Regression </b> </p>
 
 <p> <b> Francisco, help!! </b> </p>
 
