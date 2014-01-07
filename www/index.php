@@ -75,6 +75,11 @@ The package also provides simple interfaces for standard linear and logistic reg
 
 <br>
 <br>
+
+<font size=1>
+<p> Contact: gabriel [dot] hoffman [at] mssm.edu </p>
+</font>
+
 <hr />
 
 <font size="1">
