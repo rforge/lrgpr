@@ -45,7 +45,7 @@ echo $contents; } ?>
 
 <p> <b> lrgpr: Low Rank Gaussian Process Regression </b> </p>
 
-<p> <b> Francisco, help!! </b> </p>
+<p> <a href="./docs/lrgpr-manual.pdf">Manual</a>. </p>
 
 <p> The <strong>project summary page</strong> you can find <a href="http://<?php echo $domain; ?>/projects/<?php echo $group_name; ?>/"><strong>here</strong></a>. </p>
 
