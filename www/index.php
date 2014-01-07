@@ -2,9 +2,6 @@
 <!-- This is the project specific website template -->
 <!-- It can be changed as liked or replaced by other content -->
 
-
-<div id="container" style="width:500px">
-
 <?php
 
 $domain=ereg_replace('[^\.]*\.(.*)$','\1',$_SERVER['HTTP_HOST']);
@@ -21,7 +18,8 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
   <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title><?php echo $group_name; ?></title>
-	<link href="http://<?php echo $themeroot; ?>styles/estilo1.css" rel="stylesheet" type="text/css" />
+	<!--<link href="http://<?php echo $themeroot; ?>styles/estilo1.css" rel="stylesheet" type="text/css" /> -->
+	<link href="vegan.css" rel="stylesheet" type="text/css" />
   </head>
 
 <body>
@@ -29,7 +27,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
 <!-- R-Forge Logo -->
 <table border="0" width="100%" cellspacing="0" cellpadding="0">
 <tr><td>
-<a href="http://r-forge.r-project.org/"><img src="http://<?php echo $themeroot; ?>/imagesrf/logo.png" border="0" alt="R-Forge Logo" /> </a> </td> </tr>
+<a href="http://r-forge.r-project.org/"><img src="http://<?php echo $themeroot; ?>/imagesrf/logo.png" border="0" alt="R-Forge Logo" width="20%" /> </a> </td> </tr>
 </table>
 
 
@@ -45,30 +43,45 @@ fclose($handle);
 echo $contents; } ?>
 
 <!-- end of project description -->
-<div id="content" style="background-color:#EEEEEE;height:400px;width:800px;float:left;">
 
-	<p> <b> lrgpr: Low Rank Gaussian Process Regression </b> </p>
+<p> <b> lrgpr: Low Rank Gaussian Process Regression </b> </p>
 
-	<b>lrgpr</b> is a high-peformance, user-friendly R interface for evaluating linear mixed models. 
+<p>
+<b>lrgpr</b> is a high-peformance, user-friendly R interface for evaluating linear mixed models.  This package is designed for interactive, exploratory analysis of large genome-wide assocation studies (GWAS) using linear mixed models to account for the confounding effects of kinship and population structure. 
+</p> 
+<p>
+The package also provides simple interfaces for standard linear and logistic regression models. It allows fitting millions of regression models on a desktop computer by using an efficient implementation, parallelization and out-of-core computing for datasets that are too large to fit in main memory.  
+</p>
 
-	<p> <a href="./docs/lrgpr.pdf">Documentation</a> gives a thorough description of the advantages and applications of <b>lrgpr</b>.</p>
+<ul>
+<li> <a href="./docs/lrgpr.pdf"><strong>Documentation</strong></a>: thorough description of the advantages and applications of <b>lrgpr</b>	</li>
 
-	<p> See the <a href="./docs/lrgpr-manual.pdf">manual</a> for details about available functions.</p>
+<li> <a href="./docs/lrgpr-manual.pdf"><strong>Manual</strong></a>: details about available functions</li>
 
-	<p> Download package: <a href="./docs/lrgpr_0.0.1.tar.gz">lrgpr_0.0.1.tar.gz</a> </p>
+<li> <a href="./docs/lrgpr_0.0.1.tar.gz"><strong>Download package</strong></a>: v0.0.1 </li>
 
-	<p> Citation:</p>
+<li> <a href="http://<?php echo $domain; ?>/projects/<?php echo $group_name; ?>/"><strong>Project summary page</strong></a> </li>
 
-	<p>
-	 Hoffman, G.E., Mezey, J.G., Schadt, E.E. 2014. lrgpr: Interactive linear mixed model analysis of genome-wide association studies with composite hypothesis testing and regression diagnostics. In preparation. </p>
-	 </p>
-	 
-	<p> <a href="http://<?php echo $domain; ?>/projects/<?php echo $group_name; ?>/">Project summary page</a> </p>
+<br>
+<li> <strong>Citation</strong>:</li>
 
-</div>
+ Hoffman, G.E., Mezey, J.G., Schadt, E.E. (2014) lrgpr: Interactive linear mixed model analysis of genome-wide association studies with composite hypothesis testing and regression diagnostics. In preparation. </p>
 
-<div id="footer" style="background-color:#FFA500;clear:both;text-align:center;"> 
- </div>
+<li> <strong>Related work</strong>:</li>
+
+ Hoffman, G.E. (2013) Correcting for Population Structure and Kinship Using the Linear Mixed Model: Theory and Extensions. PLoS ONE 8(10): e75707. <a href="http://www.plosone.org/article/info%3Adoi%2F10.1371%2Fjournal.pone.0075707">doi:10.1371/journal.pone.0075707</a> </p>
+
+</ul>
+
+<br>
+<br>
+<hr />
+
+<font size="1">
+<p>
+Gabriel E. Hoffman.  Updated January, 7, 2014
+</p>
+</font>
 
 </body>
 </html>
