@@ -1,0 +1,26 @@
+/* Follow some style elements of R-Forge */
+
+body{
+    font-size:85%;
+    font-family:"verdana",sans-serif;
+    color:rgb(68,68,68);
+    background-color:rgb(255,255,255);
+    text-align:left;
+    margin: 0.5em 2em;
+}
+h1 {
+    margin:0; 
+}
+h3 {
+    font-size:100%; 
+    margin:0.5em 0;
+}
+a {
+    text-decoration:none; 
+    color:rgb(1, 73, 144); 
+    margin:0.5em 0em;
+}
+a:hover {
+    text-decoration: underline; 
+    color: rgb(247, 0, 0); 
+}
