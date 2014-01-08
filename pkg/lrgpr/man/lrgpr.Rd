@@ -5,7 +5,7 @@
   lrgpr(formula, decomp,
     rank = max(length(decomp$d), length(decomp$values)),
     delta = NULL, nthreads = detectCores(logical = TRUE),
-    W_til = NULL)
+    W_til = NULL, scale = TRUE)
 }
 \arguments{
   \item{formula}{standard linear modeling syntax as used in
@@ -28,8 +28,10 @@
   execution}
 
   \item{W_til}{markers used to construct decomp that should
-  now be remvoe from costruction of decomp.  This is the
+  now be removed from costruction of decomp.  This is the
   proximal contamination term of Listgarten, et al. (2012)}
+
+  \item{scale}{should W_til be scaled and centered}
 }
 \value{
   \item{coefficients}{regression coefficients for each

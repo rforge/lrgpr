@@ -296,7 +296,7 @@ void LRGPR_params::alloc_W( const int W_ncol_ ){
 
 	if( W_ncol != W_ncol_ || ! init_variables_W){
 
-		W_ncol != W_ncol_;
+		W_ncol = W_ncol_;
 
 		// free and alloc variables
 		if( W_til != NULL ) 	gsl_matrix_free( W_til );
@@ -530,9 +530,14 @@ void LRGPR_params::update_Y( const gsl_vector *Y_ ){
 
 void LRGPR_params::update_Wtilde( const gsl_matrix *W_til_ ){
 
+	// W_til_ is empty
+	if( W_til_ == NULL){
+
+		proximalContamination = false;
+
 	// If W_til_ is 1 x 1, do not consider it as a pron-con matrix
 	// If W_til_ has at least 1 column and more than one row
-	if( W_til_->size1 > 1 &&  W_til_->size2 >= 1){
+	}else if( W_til_->size1 > 1 &&  W_til_->size2 >= 1){
 
 		alloc_W( W_til_->size2 );
 

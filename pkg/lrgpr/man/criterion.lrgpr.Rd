@@ -11,7 +11,7 @@
 
   \item{features}{matrix from which the SVD is performed}
 
-  \item{order}{sorted indeces of features.  When rank is
+  \item{order}{sorted indices of features.  When rank is
   10, decomp = svd(X[,order[1:10]])}
 
   \item{rank}{array with elements indicating the number of

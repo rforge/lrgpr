@@ -442,4 +442,14 @@ long gsl_vector_count_missing(gsl_vector *v);
 */
 gsl_vector *gsl_vector_get_nonmissing(gsl_vector *v);
 
+/**
+* \brief For each column in X, set missing values to the column mean
+*/
+void gsl_matrix_set_missing_mean_col( gsl_matrix *X );
+
+/**
+* \brief Set mean to 0 and sample variance to 1
+*/
+void gsl_matrix_center_scale( gsl_matrix *X );
+
 #endif

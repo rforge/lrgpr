@@ -235,12 +235,9 @@ void LRGPR::estimate_beta( const double delta ){
 
 	gsl_blas_dsymv(CblasLower, 1.0, params->Q_XX_value, params->Q_Xy_value, 0.0, params->beta);
 
-
 	//gsl_matrix_print( params->Q_XX_value );
 	//gsl_vector_print( params->Q_Xy_value );
 	//gsl_vector_print( params->beta );
-
-
 }
 
 // crossprod(Xu, obj$inv_s_delta_Xu) + cp_X_low / delta
@@ -588,6 +585,8 @@ gsl_vector *LRGPR::wald_test_all(){
 
 double LRGPR::wald_test( vector<int> terms ){
 
+	double pValue; 
+
 	// Sigma = Omega_XX(delta)
 	gsl_matrix *Sigma = coeff_covariance();	
 	gsl_matrix *Sigma_sub = gsl_matrix_alloc( terms.size(), terms.size() );
@@ -597,17 +596,24 @@ double LRGPR::wald_test( vector<int> terms ){
 	gsl_vector_subset( params->beta, terms, beta_sub );
 
 	// solve(Sigma)
-	gsl_lapack_chol_invert( Sigma_sub );			
+	int result = gsl_lapack_chol_invert( Sigma_sub );			
 
-	// tcrossprod(fit$coefficients[terms], solve(fit$Sigma[terms,terms])) %*% fit$coefficients[terms]
-	double stat = gsl_matrix_quadratic_form_sym( Sigma_sub, beta_sub );
+	if( result == GSL_SUCCESS ){
+		// tcrossprod(fit$coefficients[terms], solve(fit$Sigma[terms,terms])) %*% fit$coefficients[terms]
+		double stat = gsl_matrix_quadratic_form_sym( Sigma_sub, beta_sub );
 
+		// pchisq( stat, df, lower.tail=FALSE)
+		pValue = gsl_cdf_chisq_Q( stat, terms.size() );
+
+	}else{	
+		pValue = NAN;
+	} 
+	
 	gsl_matrix_free( Sigma );
 	gsl_matrix_free( Sigma_sub );
 	gsl_vector_free( beta_sub );
 
-	// pchisq( stat, df, lower.tail=FALSE)
-	return gsl_cdf_chisq_Q( stat, terms.size() );
+	return pValue;
 }
 
 double LRGPR::get_effective_df(){

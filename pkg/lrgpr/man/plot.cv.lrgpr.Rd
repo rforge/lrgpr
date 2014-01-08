@@ -5,8 +5,7 @@
   plot.cv.lrgpr(x,
     ylim = c(min(x$cve - x$cvse), max(x$cve + x$cvse)),
     xlim = range(x$rank), pch = 20, col = "red",
-    main = "Cross validation",
-    xlab = "# of confounding markers used",
+    main = "Cross validation", xlab = "# of markers used",
     ylab = "Cross validation error", ...)
 }
 \arguments{

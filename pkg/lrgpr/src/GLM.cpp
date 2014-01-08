@@ -412,22 +412,24 @@ Beta = tcrossprod(C, X ) %*% Y
 # evaluate the residuals
 R = Y - X%*%Beta
 
+E = crossprod(R)
 
 sqrt( crossprod(Beta[3,,drop=FALSE], solve(C[3,3])) %*% Beta[3,,drop=FALSE] / (sigSq) )
 */
 
 
 /*
-E = crossprod(fit$residuals)
 
-Beta = as.matrix(coef(fit))
+terms = 2
+
+#E = crossprod(fit$residuals)
+
+#Beta = as.matrix(coef(fit))
 
 L = matrix(0, length(terms), nrow(Beta))
 for(j in 1:length(terms)){
 	L[j,terms[j]] = 1
 }
-
-X = model.matrix(fit)
 
 #H = t(L%*%Beta) %*% solve(L %*% solve(crossprod(X)) %*% t(L)) %*% (L %*% Beta)
 
@@ -536,6 +538,8 @@ void GLM_HotellingPillai_test( const gsl_matrix *X, GLM_MV_workspace *work, cons
 		return;
 	}
 
+	//gsl_vector_print(work->lambda);
+
 	// Compute F statistics
 	double F_stat;
 
@@ -557,6 +561,10 @@ void GLM_HotellingPillai_test( const gsl_matrix *X, GLM_MV_workspace *work, cons
 
 	F_stat = (2*n + s +1)/(2*m + s +1) * V / (s-V);
 
+	//cout << "F_stat: " << F_stat << endl;
+	//cout << "s*(2*m+s+1): " << s*(2*m+s+1) << endl;
+	//cout << "s*(2*n+s+1) : " << s*(2*n+s+1)  << endl <<endl;
+
 	//Pillai = pf( F, s*(2*m+s+1), s*(2*n+s+1), lower.tail=FALSE)
 	*Pillai = gsl_cdf_fdist_Q( F_stat,  s*(2*m+s+1), s*(2*n+s+1) );
 
@@ -574,6 +582,10 @@ void GLM_HotellingPillai_test( const gsl_matrix *X, GLM_MV_workspace *work, cons
 
 	//Hotelling = pf( F, p*q, 4+(p*q+2)/(b-1), lower.tail=FALSE)
 	*Hotelling = gsl_cdf_fdist_Q( F_stat, p*q, 4+(p*q+2)/(b-1) );
+
+	//cout << "F_stat: " << F_stat << endl;
+	//cout << "p*q: " << p*q << endl;
+	//cout << "4+(p*q+2)/(b-1): " << 4+(p*q+2)/(b-1)  << endl<<endl;
 
 	// Clean up
 }

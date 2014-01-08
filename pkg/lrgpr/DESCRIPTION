@@ -19,9 +19,10 @@ Depends:
     doParallel,
     formula.tools,
     BH,
-    bigmemory (>= 4.4.7)
+    bigmemory (>= 4.4.7),
+    aod
 LinkingTo: Rcpp, RcppGSL
-URL: 
+URL: http://lrgpr.r-forge.r-project.org/
 License: GPL (>= 2)
 Collate:
     'genericFunctions.R'

@@ -8,6 +8,8 @@
 #include <vector>
 #include <math.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>

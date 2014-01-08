@@ -16,6 +16,7 @@
 #include <omp.h>
 
 #include <iostream>
+#include <algorithm>
 #include <string>
 #include <math.h>
 
@@ -85,17 +86,45 @@ public:
 
 		runningTotal += setSize;
 
-		gsl_matrix *X = gsl_matrix_attach_array(  data, setSize, nrow);
+		gsl_matrix *X = gsl_matrix_attach_array( data, setSize, nrow);
 
-		/*gsl_matrix *X = gsl_matrix_attach_array(  data, setSize, nrow);
-		gsl_matrix_save(X, "X_set.txt");
+		return X;
+	}
 
+	// return X[,idx]
+	gsl_matrix *getFeatures( const vector<int> &idx){
 
-		gsl_matrix *X2 = gsl_matrix_attach_array(  data, nrow, setSize );
-		gsl_matrix_save(X2, "X_set2.txt");
+		if( idx.size() == 0 ) return NULL;  
 
-		exit(1);*/
+		double *X_idx = (double *) malloc(idx.size()*nrow*sizeof(double)); 
 
+		FILE *fd_tmp = fopen(filename.c_str(), "rb");
+
+		int res;
+
+		for(int i=0; i<idx.size(); i++){
+
+			// set file pointer to element idx[i]*nrow
+			res = fseek( fd_tmp, idx[i]*nrow*sizeof(double), SEEK_SET );
+
+			if( res != 0 ) throw runtime_error("fseek error");
+
+			// set X_idx pointer to element idx[i]*nrow
+			res = fread( (void*) (X_idx + i*nrow), sizeof(double), nrow, fd_tmp);
+
+			if( res != nrow ) throw runtime_error("fread error");	
+		}
+		
+		fclose(fd_tmp);
+
+		gsl_matrix *t_X = gsl_matrix_attach_array( X_idx, idx.size(), nrow);
+
+		gsl_matrix *X = gsl_matrix_alloc( t_X->size2, t_X->size1 );
+		gsl_matrix_transpose_memcpy( X, t_X);
+
+		gsl_matrix_free( t_X );
+
+		//gsl_matrix_print(X);	
 
 		return X;
 	}
@@ -129,7 +158,7 @@ class Rexpress {
 		expression 	= expression_;
 		X_data 		= X_data_;
 		env 		= env_;
-		query = "SNP";
+		query = ".lrgpr_tmp";
 		form = Formula(expression);
 
 		// One = rep(1, nrow(X))
@@ -140,17 +169,17 @@ class Rexpress {
 	RcppGSL::matrix<double> get_model_matrix( const int j ){
 
 		// SNP = X[,j]
-		env["SNP"] = X_data(_,j);
+		env[".lrgpr_tmp"] = X_data(_,j);
 
-		Language call( "model.matrix.default", form);	
+		Language call( "model.matrix.default", form, env);	
 		return call.eval( env );
 	}
 
 	RcppGSL::matrix<double> get_model_matrix_clean(){
 
-		env["SNP"] = One;
+		env[".lrgpr_tmp"] = One;
 
-		Language call( "model.matrix.default", form);	
+		Language call( "model.matrix.default", form, env);	
 		return call.eval( env );
 	}
 
@@ -163,29 +192,29 @@ class Rexpress {
 
 		// evaluate formula
 		Formula form2( expressionLocal );
-		Language call2( "model.matrix.default", form2);	
+		Language call2( "model.matrix.default", form2, env);	
 		return call2.eval( env );
 	}
 
 	RcppGSL::vector<double> get_response(){	
 
-		env["SNP"] = One;
+		env[".lrgpr_tmp"] = One;
 
-		Language call( ".mm_get_response", form);
+		Language call( ".mm_get_response", form, env);
 		return call.eval( env ); 
 	}
 
 	RcppGSL::matrix<double> get_response_m(){
 		
-		env["SNP"] = One;
+		env[".lrgpr_tmp"] = One;
 		
-		Language call( ".mm_get_response", form);
+		Language call( ".mm_get_response", form, env);
 		return call.eval( env ); 
 	}
 
 	vector<int> get_loop_terms(){		
 
-		Language call( ".mm_get_terms", form, query);
+		Language call( ".mm_get_terms", form, query, env);
 		NumericVector loopIndex = call.eval( env ); 
 
 		return as<vector<int> >(loopIndex);
@@ -235,13 +264,7 @@ BEGIN_RCPP
 	// Must update W before X
 	if( useProxCon ) lrgpr->update_Wtilde( Wtilde );
 
-	// set missing to mean
-	gsl_vector_view col_view;
-
-	for( unsigned int j=0; j<X->size2; j++){
-		col_view = gsl_matrix_column( (gsl_matrix*)(X), j );
-		gsl_vector_set_missing_mean( &col_view.vector );
-	}		
+	gsl_matrix_set_missing_mean_col( X );
 
 	lrgpr->update_X( X );
 
@@ -274,7 +297,7 @@ BEGIN_RCPP
 										Rcpp::Named("logLik")		= log_L,
 										Rcpp::Named("fitted.values")= Y_hat,
 										Rcpp::Named("alpha")		= alpha,
-										Rcpp::Named("Sigma")		= Sigma,			
+										Rcpp::Named("Sigma")		= Sigma,		
 										Rcpp::Named("hii")			= Hii  );
 	
 	X.free(); 
@@ -317,7 +340,7 @@ BEGIN_RCPP
 	}else if( TYPEOF(data_) == S4SXP ){	
 		standardMatrix = false;
 	}else{		
-		throw "Invalid type for features";
+		throw invalid_argument("Invalid type for features");
 	}
 
 	// Import design matrix
@@ -365,6 +388,7 @@ BEGIN_RCPP
 	// disable nested OpenMP parallelism
 	omp_set_nested(0);
 
+	//cout << "expression: " << as<string>( expression ) << endl;
 	// Process exression, X_loop and env
 	Rexpress expr( as<string>( expression ), X_loop, env );			
 
@@ -376,7 +400,7 @@ BEGIN_RCPP
 	if( n_pheno > 1 && regressType == LOGISTIC ){
 		Y.free();
 	
-		throw "Cannot do multivariate logistic regression\n";
+		throw invalid_argument("Cannot do multivariate logistic regression\n");
 	}
 
 	RcppGSL::matrix<double> Xn = expr.get_model_matrix_null();
@@ -388,7 +412,7 @@ BEGIN_RCPP
 		Y.free();
 		Xn.free();
 	
-		throw "Dimensions of response and design matrix do not match\n";
+		throw invalid_argument("Dimensions of response and design matrix do not match\n");
 	}
 	
 	NumericMatrix pValues;
@@ -409,7 +433,7 @@ BEGIN_RCPP
 		Xn.free();
 		X_clean.free();
 	
-		throw "Element in \"terms\" is out of range";
+		throw range_error("Element in \"terms\" is out of range");		
 	}
 
 	// get indeces of columns that depend on X[,j]
@@ -539,7 +563,7 @@ BEGIN_RCPP
 
 					if( univariate ){
 						// Perform Wald test
-						gsl_vector *pvals = GLM_wald_test( workmv, terms ) ; 
+						gsl_vector *pvals = GLM_wald_test( workmv, terms );
 
 						#pragma omp critical
 		 				for(int k=0; k<n_pheno; k++){
@@ -600,9 +624,40 @@ BEGIN_RCPP
 END_RCPP
 }
 
-RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP env_, SEXP terms_, SEXP EigenVectors_, SEXP EigenValues_, SEXP Wtilde_, SEXP rank_, SEXP delta_, SEXP reEstimateDelta_, SEXP nthreads_){
+vector<int> get_markers_in_window( const string chr_j, const double loc_j, const vector<string> &chrom, const vector<double> &location, const double distance){
 
-BEGIN_RCPP
+	// # get markers on the same chromosome
+	// idx = which( chrom == chr_j )
+	vector<int> idx = which( chrom,  chr_j );
+
+	//print_vector(idx);
+
+	// sort indeces
+	sort(idx.begin(), idx.end());
+
+	//print_vector(idx);
+
+	// # get markers within the window 
+	// idx2 = which( abs(location[idx] - loc_j) <= distance )
+	// return idx[idx2]
+
+	// the vector names are mixed up here due to the differences in C++ vs R
+	vector<int> idx2;
+
+	for(int i=0; i<idx.size(); i++){
+		if( fabs(location[idx[i]] - loc_j) <= distance ){
+			idx2.push_back(idx[i]);
+		}
+	}
+
+	return idx2;
+}
+
+
+
+RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP env_, SEXP terms_, SEXP EigenVectors_, SEXP EigenValues_, SEXP Wtilde_, SEXP rank_,  SEXP chromosome_, SEXP location_, SEXP distance_, SEXP dcmp_features_, SEXP scale_, SEXP delta_, SEXP reEstimateDelta_, SEXP nthreads_){
+
+//BEGIN_RCPP
 		
 	CharacterVector expression( expression_ );
 	Environment env( env_ );
@@ -611,6 +666,11 @@ BEGIN_RCPP
 	RcppGSL::vector<double> eigenValues = EigenValues_; 
 	RcppGSL::matrix<double> Wtilde = Wtilde_; 
 	int rank = as<int>( rank_ );
+	std::vector<string> chromosome = as<std::vector<string> >(chromosome_);
+	std::vector<double> location = as<std::vector<double> >(location_);
+	double distance = as<double>( distance_ );
+	std::vector<int> dcmp_features = as<std::vector<int> >( dcmp_features_ );
+	bool scale = (bool) Rcpp::as<int>( scale_ );
 	double delta_global = as<double>( delta_ );
 	bool reEstimateDelta = Rcpp::as<int>( reEstimateDelta_ );
 	int nthreads = as<int>( nthreads_ );
@@ -630,7 +690,7 @@ BEGIN_RCPP
 	}else if( TYPEOF(data_) == S4SXP ){	
 		standardMatrix = false;
 	}else{		
-		throw "Invalid type for features";
+		throw invalid_argument("Invalid type for features");
 	}
 
 	// Import design matrix
@@ -688,12 +748,14 @@ BEGIN_RCPP
 	if( n_indivs != X_loop.nrow() ){
 		y.free();
 	
-		throw "Dimensions of response and design matrix do not match\n";
+		throw invalid_argument("Dimensions of response and design matrix do not match\n");
 	}
 
 	// If # of samples in W and y is the same
 	bool useProxCon = ( Wtilde->size1 == y->size );
 
+	if( useProxCon && scale) gsl_matrix_center_scale(Wtilde);
+							
 	// X_clean = model.matrix.default( y ~ sex:One + age )
 	// Replace marker with 1's so that design matrix for marker j can be created by multiplcation
 	RcppGSL::matrix<double> X_clean = expr.get_model_matrix_clean(); 
@@ -704,7 +766,7 @@ BEGIN_RCPP
 		y.free();
 		X_clean.free();
 	
-		throw "Element in \"terms\" is out of range";
+		throw range_error("Element in \"terms\" is out of range");
 	}
 
 	gsl_matrix *Xu_clean = gsl_matrix_alloc( eigenVectors->size1, X_clean->size2 );
@@ -743,6 +805,11 @@ BEGIN_RCPP
 
 	std::vector<double> pValues( n_markers );
 
+	// Get map for marker in dcmp_features
+	// map_local = map[dcmp_features,]
+	vector<string> chromosome_local = get_values( chromosome, dcmp_features);
+	vector<double> location_local = get_values( location, dcmp_features); 
+
 	time_t start_time;
 	time(&start_time);
 
@@ -757,9 +824,6 @@ BEGIN_RCPP
 			// Variables local to each thread		
 			LRGPR *lrgpr = new LRGPR( y, eigenVectors, eigenValues, X_clean->size2, useProxCon ? Wtilde->size2 : 0);
 
-			// Must update W before X
-			if( useProxCon ) lrgpr->update_Wtilde( Wtilde );
-
 			gsl_matrix *X = gsl_matrix_alloc( X_clean->size1, X_clean->size2 );
 			gsl_matrix *Xu = gsl_matrix_alloc( eigenVectors->size1, X_clean->size2 );
 
@@ -770,8 +834,16 @@ BEGIN_RCPP
 
 			gsl_vector *marker_j = gsl_vector_alloc( y->size ); 
 
+			gsl_matrix *Wtilde_local = NULL;
+			vector<int> exclude_prev; 
+
+			// Initialize with meaningless data
+			exclude_prev.push_back(-10);
+
 			#pragma omp for schedule(static, batch_size)
 			for(int j=0; j<setSize; j++){		
+
+				//if( j+i_set != 44360-1) continue;
 
 				// if index exceeds n_markers, continue to next interation
 				if(  j+i_set >= n_markers ) continue;
@@ -811,7 +883,89 @@ BEGIN_RCPP
 					gsl_blas_dgemv( CblasNoTrans, 1.0, eigenVectors, &col_view.vector, 0.0, &col_view2.vector );
 				}
 
-				//lrgpr->update_X( X, eigen );
+				// Proximal contamination
+				//////////////////////////
+
+				// Must update W before X
+				if( useProxCon ) lrgpr->update_Wtilde( Wtilde );
+
+				// If a MAP was specified
+				if( chromosome.size() > 1 ){
+
+					vector<int> idx = get_markers_in_window( (string) chromosome[j+i_set], location[j+i_set], chromosome_local, location_local, distance);
+
+					vector<int> exclude = get_values( dcmp_features, idx);
+
+					/*cout << j+i_set <<": " << endl;
+					
+					cout << "idx: " << endl;
+					print_vector(idx);
+
+					cout << "exclude: " << endl;
+					print_vector(exclude);*/
+
+					// If exclude != exclude_prev, Wtilde_local should be updated
+					if( ! equal(exclude.begin(), exclude.end(), exclude_prev.begin()) ){
+
+						if( exclude.size() > 0 ){
+
+							// Wtilde_local = X[,exclude]
+							///////////////////////////////
+
+							if( Wtilde_local != NULL ) gsl_matrix_free( Wtilde_local );
+
+							if( standardMatrix ){
+
+								Wtilde_local = gsl_matrix_alloc( n_indivs, exclude.size());
+
+								for(int a=0; a<n_indivs; a++){
+									for(int b=0; b<exclude.size(); b++){
+										gsl_matrix_set(Wtilde_local, a, b, X_loop(a,exclude[b]));
+									}
+								}
+							}else{		
+								Wtilde_local = fset.getFeatures( exclude );			
+							}
+
+							gsl_matrix_set_missing_mean_col( Wtilde_local );
+
+							if( scale ){
+								gsl_matrix_center_scale(Wtilde_local);
+							}
+
+						}else{
+
+							if( Wtilde_local != NULL ) gsl_matrix_free( Wtilde_local );
+							Wtilde_local = NULL;
+						}
+
+						// Update W_tilde based on marker window
+						// if argument is NULL, proximal contamination is not used
+						///////////////////////////////////
+
+						// If a global Wtilde is given
+						if( useProxCon ){
+							if( Wtilde_local == NULL ){
+								lrgpr->update_Wtilde( Wtilde );
+							}
+							if( Wtilde_local != NULL ){
+
+								gsl_matrix *Wcbind = gsl_matrix_alloc( Wtilde->size1, Wtilde_local->size2 + Wtilde->size2);
+								gsl_matrix_cbind( Wtilde, Wtilde_local, Wcbind);
+
+								lrgpr->update_Wtilde( Wcbind );
+
+								gsl_matrix_free(Wcbind);
+							}
+						}else{						
+							lrgpr->update_Wtilde( Wtilde_local );
+						}
+					}
+
+					// save exclude for next marker
+					exclude_prev = exclude;
+				}
+
 				lrgpr->update_Xu( X, Xu );						
 
 				if( reEstimateDelta ){
@@ -868,7 +1022,7 @@ BEGIN_RCPP
 
 	return( wrap(pValues) );
 
-END_RCPP
+//END_RCPP
 }
 
 
@@ -888,7 +1042,7 @@ BEGIN_RCPP
 	}else if( TYPEOF(data_) == S4SXP ){	
 		standardMatrix = false;
 	}else{		
-		throw "Invalid type for features";
+		throw invalid_argument("Invalid type for features");
 	}
 
 	// Import design matrix
@@ -1027,7 +1181,7 @@ BEGIN_RCPP
 	}else if( TYPEOF(data_) == S4SXP ){	
 		standardMatrix = false;
 	}else{		
-		throw "Invalid type for features";
+		throw invalid_argument("Invalid type for features");
 	}
 
 	// Import design matrix
@@ -1162,7 +1316,7 @@ BEGIN_RCPP
 	}else if( TYPEOF(data_) == S4SXP ){	
 		standardMatrix = false;
 	}else{		
-		throw "Invalid type for features";
+		throw invalid_argument("Invalid type for features");
 	}
 
 	// Import design matrix

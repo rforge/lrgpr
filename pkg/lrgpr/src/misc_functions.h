@@ -366,5 +366,34 @@ bool any_is_na( myType *array, int len){
 }
 
 
+template <class myType, class myType2>
+vector<int> which( const myType &A, const myType2 value ){
+
+	vector<int> idx;
+
+	for(int i=0; i<A.size(); i++){
+		if( A[i] == value ){
+			idx.push_back( i );
+		}
+	}
+	return idx;
+}
+
+template <class myType>
+vector<myType> get_values( const vector<myType> &dcmp_features, const vector<int> &idx){
+
+	vector<myType> result;
+
+	for(int i=0; i<idx.size(); i++){
+		// if there is a negative entry, return an empty vector
+		if( idx[i] < 0){ 
+			return vector<myType>();
+		} 
+		result.push_back( dcmp_features[idx[i]] );
+	}
+
+	return result;
+}
+
 
 #endif

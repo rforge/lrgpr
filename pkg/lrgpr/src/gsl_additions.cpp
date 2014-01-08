@@ -1974,3 +1974,44 @@ gsl_vector *gsl_vector_get_nonmissing(gsl_vector *v){
 
 	return v_clean;
 }
+
+void gsl_matrix_set_missing_mean_col( gsl_matrix *X ){
+
+	// set missing to mean
+	gsl_vector_view col_view;
+
+	for( unsigned int j=0; j<X->size2; j++){
+		col_view = gsl_matrix_column( (gsl_matrix*)(X), j );
+		gsl_vector_set_missing_mean( &col_view.vector );
+	}		
+}
+
+
+void gsl_matrix_center_scale( gsl_matrix *X ){
+	
+	gsl_vector_view v;
+
+	double scaled_norm;
+
+	int n_indivs = X->size1;
+	int n_features = X->size2;
+
+	// for each feature
+	for(int j=0; j<n_features; j++){
+
+		v = gsl_matrix_column(X, j);
+
+		// mean center
+		///////////////
+		
+		// set v = v - mean(v)
+		gsl_vector_add_constant(&v.vector, -1.0 * gsl_vector_sum_elements(&v.vector) / n_indivs );
+
+		// scale so sample variance is 1
+		////////////////////////////////
+
+		scaled_norm = sqrt(n_indivs-1) / gsl_blas_dnrm2(&v.vector);
+
+		gsl_blas_dscal( scaled_norm, &v.vector);
+	}
+}

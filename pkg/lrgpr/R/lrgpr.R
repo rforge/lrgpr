@@ -60,7 +60,7 @@ set_missing_to_mean = function(A){
 	}
 
 	a = gc()
-	
+
 	return( A)
 }
 
@@ -73,7 +73,8 @@ set_missing_to_mean = function(A){
 #' @param rank decomposition is truncated to the first rank eigen-vectors
 #' @param delta ratio of variance components governing the fit of the model.  This should be estimated from a previous evaluation of 'lm' on the same response and eigen-decomposition  
 #' @param nthreads number of threads to use for parallel execution
-#' @param W_til markers used to construct decomp that should now be remvoe from costruction of decomp.  This is the proximal contamination term of Listgarten, et al. (2012)
+#' @param W_til markers used to construct decomp that should now be removed from costruction of decomp.  This is the proximal contamination term of Listgarten, et al. (2012)
+#' @param scale should W_til be scaled and centered
 #' @return
 #' \item{coefficients}{regression coefficients for each covariate}
 #' \item{p.values}{p-values from Wald test of each coefficient}
@@ -165,7 +166,7 @@ set_missing_to_mean = function(A){
 #' # Joint test of coefficients 2:3
 #' wald( fit, terms=2:3)
 #' @export
-lrgpr <- function( formula, decomp, rank=max(length(decomp$d), length(decomp$values)), delta=NULL, nthreads=detectCores(logical=TRUE), W_til=NULL){
+lrgpr <- function( formula, decomp, rank=max(length(decomp$d), length(decomp$values)), delta=NULL, nthreads=detectCores(logical=TRUE), W_til=NULL, scale=TRUE){
 
 	#chisq=FALSE
 	rdf=FALSE # Was false before
@@ -260,6 +261,8 @@ lrgpr <- function( formula, decomp, rank=max(length(decomp$d), length(decomp$val
 	if( is.null(W_til) ) W_til = matrix(0)
 	if( ! is.matrix(W_til) ) W_til = as.matrix(W_til)
 
+	if( ! is.null(W_til) && scale ) W_til = scale(W_til)
+
 	# if decomp is result of eigen()
 	if( is.eigen_decomp(decomp) ){			
 		obj <- .Call("R_lrgpr", y, X, t(decomp$vectors), decomp$values, delta, nthreads, W_til, package="lrgpr")
@@ -326,11 +329,11 @@ setClass("lrgpr")
 #' `wald' performs a multi-dimensional Wald test against H0: beta_i...beta_j = 0 using the estimated coefficients and their variance-covariance matrix
 #'
 #' @param fit result of fitting with 'lrgpr'
-#' @param terms indeces of the coefficients to be tested
+#' @param terms indices of the coefficients to be tested
 #'
 #' @section Details:
-#' The Wald statistic is \deqn{\beta^T \Sigma_\beta \beta \sim \chi^2_k}
-#' where k is the dimension of beta
+#' The Wald statistic is \deqn{\beta_h^T \Sigma_h^{-1} \beta_h \sim \chi^2_{|h|}}
+#' where \deqn{h} specifies the coefficients being tested and \deqn{h} is the number of entries
 #'
 #' @seealso 'lrgpr'
 #' @export
@@ -360,8 +363,9 @@ wald <- function(fit, terms){
 # define local function to extract response with a single function call
 # this is called by C++ code in R_fastGPR_batch
 #' @export
-.mm_get_response <- function(a){
-	as.matrix(model.response(model.frame(a)))
+.mm_get_response <- function(a, env){
+	#cat(as.character(a), "\n")
+	as.matrix(model.response(model.frame(a, env)))
 }
 
 # Get column names of design matrix
@@ -372,13 +376,19 @@ wald <- function(fit, terms){
 }
 
 #' @export
-.mm_get_terms <- function(form, query){
+.mm_get_terms <- function(form, query, env){
 
-	nameArray = colnames(model.matrix.default(form))
+	nameArray = colnames(model.matrix.default(form, env))
 
 	# Find query matching nameArray
 	# convert from R to C indexing
-	idx = unique( c( grep("([:*]*)SNP$", nameArray), grep("^SNP([:*]*)", nameArray)))
+
+	#pat1 = "([:*]*)SNP$"
+	#pat2 = "^SNP([:*]*)"
+	pat1 = paste("([:*]*)", query, "$", sep='')
+	pat2 = paste("^", query, "([:*]*)", sep='')
+
+	idx = unique( c( grep(pat1, nameArray), grep(pat2, nameArray)))
 
 	return( idx -1 )
 }
@@ -530,16 +540,21 @@ is.svd_decomp_symmetric <- function( decomp ){
 #'
 #' `lrgprApply' is used to fit LRGPR/LMM models that account for covariance in response values, but where the scale of the covariance is unknown.  It returns p-values equivalent to the results of lrgpr() and wald(), but is designed to analyze thousands of markers in a single function call.
 #'
-#' @param formula standard linear modeling syntax as used in 'lm'.  SNP is a place holder for the eash successive column of features
-#' @param features a matrix were the statistical model is evaluated with SNP if formula replace by each column successively
+#' @param formula standard linear modeling syntax as used in 'lm'.  SNP is a place holder for the each successive column of features
+#' @param features a matrix where the statistical model is evaluated with SNP if formula replace by each column successively
 #' @param decomp eigen-decomposition produced from eigen(K), where K is the covariance matrix.  Or singular value decomposition svd(features[,1:100]) based on a subset of markers
-#' @param terms indeces of the coefficients to be tested 
+#' @param terms indices of the coefficients to be tested. The indices corresponding to SNP are used if terms is not specified
 #' @param rank decomposition is truncated to the first rank eigen-vectors
-#' @param W_til markers used to construct decomp that should now be remvoe from costruction of decomp.  This is the proximal contamination term of Listgarten, et al. (2012)
+#' @param map p x 2 matrix where each entry corresponds to a marker in features.  First column is the marker names, second columns is the genetic or physical location
+#' @param distance size of the proximal contamination window in units specifed by map. 
+#' @param dcmp_features the indices in features of the markers used to construct dcmp
+#' @param W_til markers used to construct decomp that should now be removed from costruction of decomp.  This is the proximal contamination term of Listgarten, et al. (2012)
+#' @param scale should W_til be scaled and centered 
 #' @param delta ratio of variance components governing the fit of the model.  This should be estimated from a previous evaluation of 'lm' on the same response and eigen-decomposition  
 #' @param reEstimateDelta should delta be re-estimated for every marker. Note: reEstimateDelta=TRUE is much slower
 #' @param nthreads number of to use for parallel execution
-
+#' @param verbose print extra information
+#'
 #' @examples 
 #' 
 #' # Generate data
@@ -559,7 +574,7 @@ is.svd_decomp_symmetric <- function( decomp ){
 #' pValues = lrgprApply( y ~ sex + sex:SNP, features=X, decomp, terms=c(3,4), delta=fit$delta)
 #'
 #' @export
-lrgprApply <- function( formula, features, decomp, terms, rank=max(length(decomp$d), length(decomp$values)), W_til=NULL, delta=NULL, reEstimateDelta=FALSE, nthreads=detectCores(logical = TRUE)){
+lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(length(decomp$d), length(decomp$values)), map=NULL, distance=NULL, dcmp_features=NULL, W_til=NULL, scale=TRUE, delta=NULL, reEstimateDelta=FALSE, nthreads=detectCores(logical = TRUE), verbose=FALSE){
 
 	env = parent.frame()
 
@@ -581,8 +596,9 @@ lrgprApply <- function( formula, features, decomp, terms, rank=max(length(decomp
 	# Argument checking from lrgpr() #
 	##################################
 
-	if( ! is.matrix(features) && ! is.big.matrix(X) ){
+	if( ! is.matrix(features) && ! is.big.matrix(features) ){
 		stop("features must be a matrix or big.matrix")
+		features = as.matrix(features)
 	}	
 	
 	##############
@@ -601,15 +617,20 @@ lrgprApply <- function( formula, features, decomp, terms, rank=max(length(decomp
 		#++++++++++++++++++++++
 
 		# do not fail if featres[,1] has missing entry
-		tmp = features[,1]
-		idx = which(is.na(tmp))
+		.lrgpr_tmp = set_missing_to_mean(features[,1])
+		idx = which(is.na(.lrgpr_tmp))
 
 		if( length(idx) > 0 ){
-			tmp[idx] = rnorm(length(idx))
+			.lrgpr_tmp[idx] = rnorm(length(idx))
 		}
 
-		form_mod = as.formula( .mm_replace_query_with( formChar, "SNP", "tmp") )
-		.y = .mm_get_response( form_mod )
+		assign(".lrgpr_tmp", .lrgpr_tmp, envir = env)
+		
+		form_mod = as.formula( .mm_replace_query_with( formChar, "SNP", ".lrgpr_tmp") )
+		.y = .mm_get_response( form_mod, env)
+
+		# identify indeces that contain the SNP variable
+		terms = grep(".lrgpr_tmp", colnames(model.matrix(form_mod, env)))
 
 		n_indivs = nrow(as.matrix(.y))
 		#.X = model.matrix.default( form_mod )
@@ -642,6 +663,25 @@ lrgprApply <- function( formula, features, decomp, terms, rank=max(length(decomp
 	}
 	if( ! is.eigen_decomp(decomp) && ! is.svd_decomp(decomp)  ){
 		stop("Must specify decomp as the result of eigen() or svd()")
+	}
+	if( ! is.null(map) && ncol(features) != nrow(map) ){
+		stop("ncol(features) must be the same as nrow(map)")
+	}
+	if( ! is.null(map) && ncol(map) != 2 ){
+		stop("map, if specified, must have 2 columns: chromesome, location")
+	}
+	if( ! is.null(map) && ! is.numeric(distance) ){
+		stop("distance must be numeric")
+	}
+	if( ! is.null(map) && length(dcmp_features) == 0 ){
+		stop("Must specify dcmp_features")
+	}
+	if( is.null(map) && length(dcmp_features) != 0 ){
+		stop("Argument dcmp_features is not used when map argument is not set")
+	}
+
+	if( verbose ){
+		cat("terms:", terms, "\n")
 	}
 
 	# if decomp is result of eigen()
@@ -691,12 +731,30 @@ lrgprApply <- function( formula, features, decomp, terms, rank=max(length(decomp
 		ptr = 0
 	}
 
+	if( ! is.null(map) ){
+		chrom = as.character(map[,1])
+		location = as.double(map[,2])
+
+		# only keep entries in dcmp_features that are M= ncol(features)
+		dcmp_features = dcmp_features[which(dcmp_features <= ncol(features))]
+
+		if( length(dcmp_features) == 0){
+			dcmp_features = c(-1)
+		}
+
+	}else{
+		chrom = c("0")
+		location = c(0)
+		distance = 1
+		dcmp_features = c(0)
+	}	
+
 	# if decomp is result of eigen()
 	if( is.svd_decomp(decomp) ){
-		pValues	<- .Call("R_lrgprApply", formChar, features, ptr, env, terms-1, t(decomp$u), decomp$d^2, W_til, as.integer(rank), as.numeric(delta), as.integer(reEstimateDelta), as.integer(nthreads), package="lrgpr")
+		pValues	<- .Call("R_lrgprApply", as.character(form_mod), features, ptr, env, terms-1, t(decomp$u), decomp$d^2, W_til, as.integer(rank), chrom, location, as.double(distance), dcmp_features-1, scale, as.numeric(delta), as.integer(reEstimateDelta), as.integer(nthreads), package="lrgpr")
 	}else{
 		# if decomp is result of eigen()
-		pValues	<- .Call("R_lrgprApply", formChar, features, ptr, env, terms-1, t(decomp$vectors), decomp$values, W_til, as.integer(rank), as.numeric(delta), as.integer(reEstimateDelta), as.integer(nthreads), package="lrgpr")
+		pValues	<- .Call("R_lrgprApply", as.character(form_mod), features, ptr, env, terms-1, t(decomp$vectors), decomp$values, W_til, as.integer(rank), chrom, location, as.double(distance), dcmp_features-1, scale, as.numeric(delta), as.integer(reEstimateDelta), as.integer(nthreads), package="lrgpr")
 	}
 
 	# If varable exists
@@ -704,7 +762,7 @@ lrgprApply <- function( formula, features, decomp, terms, rank=max(length(decomp
 	#if( length(grep( "^SNP_tmp$", ls())) > 1) env[["SNP"]] = SNP_tmp
 
 	# If there was not error generating p-values
-	if( length(pValues) > 0){
+	if( length(pValues) == ncol(features)){
 
 		# assign marker names
 		names(pValues) = colnames(features)
@@ -715,18 +773,19 @@ lrgprApply <- function( formula, features, decomp, terms, rank=max(length(decomp
 
 
 
-#' Fit standard linear or logitic model for many markers
+#' Fit standard linear or logistic model for many markers
 #'
-#' `glmApply' is analogous to 'lrgprApply', but fits standard linear or logitic models for many markers
+#' `glmApply' is analogous to 'lrgprApply', but fits standard linear or logistic models for many markers
 
-#' @param formula standard linear modeling syntax as used in 'lm'.  SNP is a place holder for the eash successive column of features
-#' @param features a matrix were the statistical model is evaluated with SNP if formula replace by each column successively
-#' @param terms indeces of the coefficients to be tested
-#' @param family gaussian() for a continuous response, and binomial() to fit a logit model for a binay response 
+#' @param formula standard linear modeling syntax as used in 'lm'.  SNP is a place holder for the each successive column of features
+#' @param features a matrix where the statistical model is evaluated with SNP if formula replace by each column successively
+#' @param terms indices of the coefficients to be tested.  The indices corresponding to SNP are used if terms is not specified
+#' @param family gaussian() for a continuous response, and binomial() to fit a logit model for a binary response 
 #' @param useMean if TRUE, replace missing entries with column mean.  Otherwise, do not evaluate the model for that column
 #' @param nthreads number of to use for parallel execution
-#' @param univariate perform univariate hypothesis test for each response for each feature in the loop variable
-#' @param multivariate perform multivariate hypothesis test for each response (if more than one) for each feature
+#' @param univariateTest perform univariate hypothesis test for each response for each feature in the loop variable
+#' @param multivariateTest perform multivariate hypothesis test for each response (if more than one) for each feature.  Note that the runtime is cubic in the number of response variables
+#' @param verbose print additional information
 #'
 #' @examples 
 #' 
@@ -740,11 +799,41 @@ lrgprApply <- function( formula, features, decomp, terms, rank=max(length(decomp
 #' # Fit model for all markers 
 #' pValues = glmApply( y ~ sex + sex:SNP, features=X, terms=c(3,4))
 #'
+#'
+#' # Multivariate model
+#' n = 100
+#' p = 1000
+#' m = 10
+#' 
+#' Y = matrix(rnorm(n*m), nrow=n, ncol=m)
+#' X = matrix(rnorm(n*p), nrow=n, ncol=p)
+#' 
+#' res = glmApply( Y ~ SNP, features = X, terms=2, multivariateTest=TRUE)
+#' 
+#' # p-values for univariate hypothesis test of each feature against 
+#' # 	each response
+#' res$pValues
+#' 
+#' # p-values for multivariate hypothesis test of each feature against 
+#' # 	all responses are the same time
+#' # returns the results of the Hotelling and Pillai tests
+#' res$pValues_mv
+#' 
+#' # The multivariate test for X[,1]
+#' res$pValues_mv[1,]
+#' 
+#' # The result is the same as the standard tests in R
+#' fit = manova( Y ~ X[,1])
+#' 
+#' summary(fit, test="Hotelling-Lawley")
+#' summary(fit, test="Pillai")
+#' 
 #' @export
-glmApply <- function( formula, features, terms, family=gaussian(), useMean=FALSE, nthreads=detectCores(logical = TRUE), univariate=TRUE, multivariate=TRUE ){
+glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=TRUE, nthreads=detectCores(logical = TRUE), univariateTest=TRUE, multivariateTest=FALSE, verbose=FALSE ){
 
 	env = parent.frame()
 
+	formula = as.formula(formula)
 	# convert formula to character string
 	formChar = as.character.formula( formula )
 	
@@ -763,15 +852,10 @@ glmApply <- function( formula, features, terms, family=gaussian(), useMean=FALSE
 	
 	if( ! is.na(nthreads) && nthreads < 1 ){
 		stop("nthreads must be positive")
-	}
-	if( length(terms) == 0 ){
-		stop("Must specify terms")
-	}
-	if( length(which( terms <= 0 )) > 0 ){
-		stop(paste("Invalid values for terms:", paste(terms, collapse=', ')))
-	}		
-	if( ! is.matrix(features) && ! is.big.matrix(X) ){
-		stop("features must be a matrix or big.matrix")
+	}	
+	if( ! is.matrix(features) && ! is.big.matrix(features) ){
+		#stop("features must be a matrix or big.matrix")
+		features = as.matrix(features)
 	}	
 
 	result = tryCatch({
@@ -785,17 +869,22 @@ glmApply <- function( formula, features, terms, family=gaussian(), useMean=FALSE
 	   	# Get response from formula to check identity or logistic link
 		#++++++++++++++++++++++
 
-		# do not fail if featres[,1] has missing entry
-		tmp = features[,1]
-		idx = which(is.na(tmp))
+		# do not fail if features[,1] has missing entry
+		.lrgpr_tmp = set_missing_to_mean(features[,1])
+		idx = which(is.na(.lrgpr_tmp))
 
 		if( length(idx) > 0 ){
-			tmp[idx] = rnorm(length(idx))
+			.lrgpr_tmp[idx] = rnorm(length(idx))
 		}
+		
+		assign(".lrgpr_tmp", .lrgpr_tmp, envir = env)
 
-		form_mod = as.formula( .mm_replace_query_with( formChar, "SNP", "tmp") )
-		.y = .mm_get_response( form_mod )
+		form_mod = as.formula( .mm_replace_query_with( formChar, "SNP", ".lrgpr_tmp") )
+		.y = .mm_get_response( form_mod, env)
 		#.X = model.matrix.default( form_mod )
+
+		# identify indeces that contain the SNP variable
+		terms = grep(".lrgpr_tmp", colnames(model.matrix(form_mod, env)))
 
 		#if( ! is.numeric(.y) && ! is.factor(.y)){
 		#	stop("Response is not numeric")
@@ -807,6 +896,17 @@ glmApply <- function( formula, features, terms, family=gaussian(), useMean=FALSE
 	    # restore status to previous state
 		options(na.action=na.status)
 	})	
+
+	if( length(terms) == 0 ){
+		stop("Must specify terms, cannot be determined from formula")
+	}
+	if( length(which( terms <= 0 )) > 0 ){
+		stop(paste("Invalid values for terms:", paste(terms, collapse=', ')))
+	}	
+
+	if( verbose ){
+		cat("terms:", terms, "\n")
+	}
 
 	if( family[2]$link == "logit" && sum(!(.y %in% c(0,1))) > 0 ){
 		stop("A logistic link cannot be applied to this reponse.  Only 0/1 values are allowed")
@@ -822,7 +922,7 @@ glmApply <- function( formula, features, terms, family=gaussian(), useMean=FALSE
 	}
 
 	# run regressions
-	pValList <- .Call("R_glmApply", formChar, features, ptr, env, terms-1, as.integer(nthreads), useMean, sum(family[2]$link == "identity"), univariate, multivariate, package="lrgpr")
+	pValList <- .Call("R_glmApply", as.character(form_mod), features, ptr, env, terms-1, as.integer(nthreads), useMean, sum(family[2]$link == "identity"), univariateTest, multivariateTest, package="lrgpr")
 
 	# If there was no error generating univariate p-values
 	if( length(pValList$pValues) > 0){
@@ -855,7 +955,7 @@ glmApply <- function( formula, features, terms, family=gaussian(), useMean=FALSE
 #'
 #' @param formula standard linear modeling syntax as used in 'lm'
 #' @param features matrix from which the SVD is performed
-#' @param order sorted indeces of features.  When rank is 10, decomp = svd(X[,order[1:10]]) 
+#' @param order sorted indices of features.  When rank is 10, decomp = svd(X[,order[1:10]]) 
 #' @param rank array with elements indicating the number of confounding covariates to be used in the random effect.
 #'
 #' @seealso plot.criterion.lrgpr, cv.lrgpr
@@ -938,8 +1038,8 @@ plot.criterion.lrgpr = function( x, col=rainbow(3),...){
 
 	xvals = as.numeric(rownames(x$criteria))
 
-	par(mar=c(4,4,2,5))
-	plot(1, type='n', xlim=range(xvals), xlab="# of confounding markers used", ylim=ylim, ylab="AIC/BIC scale",  main=bquote(bold(paste("Criterion scores using ", df[e], sep=" "))),...)
+	par(mar=c(4,4,2,4))
+	plot(1, type='n', xlim=range(xvals), xlab="# of markers used", ylim=ylim, ylab="AIC/BIC scale",  main=bquote(bold(paste("Criterion scores using ", df[e], sep=" "))),...)
 
 	points( xvals, x$criteria$AIC, col=col[1], pch=20)
 	points(xvals, x$criteria$BIC, col=col[2], pch=20 )
@@ -969,9 +1069,9 @@ plot.criterion.lrgpr = function( x, col=rainbow(3),...){
 #' @param ... other parameters fed to plot()
 #' 
 #' @export
-plot.cv.lrgpr = function( x, ylim=c(min(x$cve - x$cvse), max(x$cve + x$cvse)), xlim=range(x$rank), pch=20, col="red", main="Cross validation", xlab="# of confounding markers used", ylab = "Cross validation error",...){
+plot.cv.lrgpr = function( x, ylim=c(min(x$cve - x$cvse), max(x$cve + x$cvse)), xlim=range(x$rank), pch=20, col="red", main="Cross validation", xlab="# of markers used", ylab = "Cross validation error",...){
 
-	par(mar=c(4,4,2,5))
+	par(mar=c(4,4,2,4))
 	plot(x$rank, x$cve, ylim=ylim, xlim=xlim, main=bquote(bold( .(main))), xlab=xlab, ylab=ylab, col=col, pch=pch,...)
 
 	error.bar( x$rank, x$cve, x$cvse)
@@ -1003,7 +1103,7 @@ loss.lrgpr <- function(y, yhat, family){
 #'
 #' @param formula standard linear modeling syntax as used in 'lm'
 #' @param features matrix from which the SVD is performed
-#' @param order sorted indeces of features.  When rank is 10, decomp = svd(X[,order[1:10]]) 
+#' @param order sorted indices of features.  When rank is 10, decomp = svd(X[,order[1:10]]) 
 #' @param nfolds number of training sets
 #' @param rank array with elements indicating the number of confounding covariates to be used in the random effect.
 #' @param nthreads number of threads to be used
@@ -1046,6 +1146,9 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 
 	if( length(rank) < 2){
 		stop("rank must have at least 2 elements")		
+	}
+	if( nfolds < 2){
+		stop("nfolds must be >=2")		
 	}
 
 	# sort
@@ -1097,7 +1200,7 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 
 		cat("\rStarting CV fold #", i,"/", nfolds)
 
-		# arrays of train/test indeces
+		# arrays of train/test indices
 		i_train <- which(cv.ind!=i)
 		i_test <- which(cv.ind==i)
 
@@ -1118,7 +1221,7 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 	cvse <- apply(E, 2, sd) / sqrt(n)
 	min <- which.min(cve)
 	
-	structure(list(cve=cve, cvse=cvse, rank=rank, min=min, class="cv.lrgpr"))
+	structure(list(cve=cve, cvse=cvse, rank=rank, min=min, best=min, class="cv.lrgpr"))
 }
 
 #' Convert ASCII to binary file

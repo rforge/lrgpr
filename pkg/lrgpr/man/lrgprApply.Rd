@@ -2,17 +2,20 @@
 \alias{lrgprApply}
 \title{Fit a Low Rank Gaussian Process Regression (LRGPR) / Linear Mixed Model (LMM) for many markers}
 \usage{
-  lrgprApply(formula, features, decomp, terms,
+  lrgprApply(formula, features, decomp, terms = NULL,
     rank = max(length(decomp$d), length(decomp$values)),
-    W_til = NULL, delta = NULL, reEstimateDelta = FALSE,
-    nthreads = detectCores(logical = TRUE))
+    map = NULL, distance = NULL, dcmp_features = NULL,
+    W_til = NULL, scale = TRUE, delta = NULL,
+    reEstimateDelta = FALSE,
+    nthreads = detectCores(logical = TRUE),
+    verbose = FALSE)
 }
 \arguments{
   \item{formula}{standard linear modeling syntax as used in
-  'lm'.  SNP is a place holder for the eash successive
+  'lm'.  SNP is a place holder for the each successive
   column of features}
 
-  \item{features}{a matrix were the statistical model is
+  \item{features}{a matrix where the statistical model is
   evaluated with SNP if formula replace by each column
   successively}
 
@@ -21,14 +24,28 @@
   decomposition svd(features[,1:100]) based on a subset of
   markers}
 
-  \item{terms}{indeces of the coefficients to be tested}
+  \item{terms}{indices of the coefficients to be tested.
+  The indices corresponding to SNP are used if terms is not
+  specified}
 
   \item{rank}{decomposition is truncated to the first rank
   eigen-vectors}
 
+  \item{map}{p x 2 matrix where each entry corresponds to a
+  marker in features.  First column is the marker names,
+  second columns is the genetic or physical location}
+
+  \item{distance}{size of the proximal contamination window
+  in units specifed by map.}
+
+  \item{dcmp_features}{the indices in features of the
+  markers used to construct dcmp}
+
   \item{W_til}{markers used to construct decomp that should
-  now be remvoe from costruction of decomp.  This is the
+  now be removed from costruction of decomp.  This is the
   proximal contamination term of Listgarten, et al. (2012)}
+
+  \item{scale}{should W_til be scaled and centered}
 
   \item{delta}{ratio of variance components governing the
   fit of the model.  This should be estimated from a
@@ -39,6 +56,8 @@
   every marker. Note: reEstimateDelta=TRUE is much slower}
 
   \item{nthreads}{number of to use for parallel execution}
+
+  \item{verbose}{print extra information}
 }
 \description{
   `lrgprApply' is used to fit LRGPR/LMM models that account

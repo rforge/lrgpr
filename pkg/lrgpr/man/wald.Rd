@@ -7,7 +7,7 @@
 \arguments{
   \item{fit}{result of fitting with 'lrgpr'}
 
-  \item{terms}{indeces of the coefficients to be tested}
+  \item{terms}{indices of the coefficients to be tested}
 }
 \description{
   `wald' performs a multi-dimensional Wald test against H0:
@@ -15,8 +15,10 @@
   their variance-covariance matrix
 }
 \section{Details}{
-  The Wald statistic is \deqn{\beta^T \Sigma_\beta \beta
-  \sim \chi^2_k} where k is the dimension of beta
+  The Wald statistic is \deqn{\beta_h^T \Sigma_h^{-1}
+  \beta_h \sim \chi^2_{|h|}} where \deqn{h} specifies the
+  coefficients being tested and \deqn{h} is the number of
+  entries
 }
 \seealso{
   'lrgpr'
