@@ -25,7 +25,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
 <body>
 
 <!-- R-Forge Logo -->
-<table border="0" width="100%" cellspacing="0" cellpadding="0">
+<table border="0" width="60%" cellspacing="0" cellpadding="0">
 <tr><td>
 <a href="http://r-forge.r-project.org/"><img src="http://<?php echo $themeroot; ?>/imagesrf/logo.png" border="0" alt="R-Forge Logo" width="20%" /> </a> </td> </tr>
 </table>
@@ -34,17 +34,22 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
 <!-- get project title  -->
 <!-- own website starts here, the following may be changed as you like -->
 
-<?php if ($handle=fopen('http://'.$domain.'/export/projtitl.php?group_name='.$group_name,'r')){
+<!--<?php if ($handle=fopen('http://'.$domain.'/export/projtitl.php?group_name='.$group_name,'r')){
 $contents = '';
 while (!feof($handle)) {
 	$contents .= fread($handle, 8192);
 }
 fclose($handle);
-echo $contents; } ?>
+echo $contents; } ?> -->
 
 <!-- end of project description -->
 
+
+<!-- Title -->
+
+<font size=4>
 <p> <b> lrgpr: Low Rank Gaussian Process Regression </b> </p>
+</font>
 
 <p>
 <b>lrgpr</b> is a high-peformance, user-friendly R interface for evaluating linear mixed models.  This package is designed for interactive, exploratory analysis of large genome-wide assocation studies (GWAS) using linear mixed models to account for the confounding effects of kinship and population structure. 
