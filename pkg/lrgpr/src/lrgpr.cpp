@@ -583,7 +583,7 @@ gsl_vector *LRGPR::wald_test_all(){
 	return p_values;
 }
 
-double LRGPR::wald_test( vector<int> terms ){
+double LRGPR::wald_test( vector<int> &terms ){
 
 	double pValue; 
 

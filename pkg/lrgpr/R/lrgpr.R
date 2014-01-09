@@ -274,6 +274,8 @@ lrgpr <- function( formula, decomp, rank=max(length(decomp$d), length(decomp$val
 		obj <- .Call("R_lrgpr", y, X, t(decomp$u), decomp$d^2, delta, nthreads, W_til, package="lrgpr")
 	}
 
+	gc()	
+
 	# rename coefficients
 	names(obj$coefficients) <- colnames(X)
 
@@ -757,6 +759,8 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(length(d
 		pValues	<- .Call("R_lrgprApply", as.character(form_mod), features, ptr, env, terms-1, t(decomp$vectors), decomp$values, W_til, as.integer(rank), chrom, location, as.double(distance), dcmp_features-1, scale, as.numeric(delta), as.integer(reEstimateDelta), as.integer(nthreads), package="lrgpr")
 	}
 
+	gc()	
+
 	# If varable exists
 	# Restore value	
 	#if( length(grep( "^SNP_tmp$", ls())) > 1) env[["SNP"]] = SNP_tmp
@@ -924,29 +928,34 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 	# run regressions
 	pValList <- .Call("R_glmApply", as.character(form_mod), features, ptr, env, terms-1, as.integer(nthreads), useMean, sum(family[2]$link == "identity"), univariateTest, multivariateTest, package="lrgpr")
 
-	# If there was no error generating univariate p-values
-	if( length(pValList$pValues) > 0){
-		# assign marker names
-		rownames(pValList$pValues) = colnames(features)
-		#colnames(pValList$pValues) = colnames(.y)
-	}else{
-		pValList$pValues = NULL
-	}
+	gc()
 
-	# If varable exists
-	# Restore value	
-	#if( length(grep( "^SNP_tmp$", ls())) > 1) env$SNP = SNP_tmp
+	if( length(pValList) > 1){
 
-	# If there was no error generating multivariate p-values
-	if( length(pValList$pValues_mv) > 0){
-		# assign marker names
-		rownames(pValList$pValues_mv) = colnames(features)
-		colnames(pValList$pValues_mv) = c("Hotelling", "Pillai");
-	}else{
-		pValList$pValues_mv = NULL
-	}
+		# If there was no error generating univariate p-values
+		if( length(pValList$pValues) > 0){
+			# assign marker names
+			rownames(pValList$pValues) = colnames(features)
+			#colnames(pValList$pValues) = colnames(.y)
+		}else{
+			pValList$pValues = NULL
+		}
 
-	return( pValList )	
+		# If varable exists
+		# Restore value	
+		#if( length(grep( "^SNP_tmp$", ls())) > 1) env$SNP = SNP_tmp
+
+		# If there was no error generating multivariate p-values
+		if( length(pValList$pValues_mv) > 0){
+			# assign marker names
+			rownames(pValList$pValues_mv) = colnames(features)
+			colnames(pValList$pValues_mv) = c("Hotelling", "Pillai");
+		}else{
+			pValList$pValues_mv = NULL
+		}
+
+		return( pValList )
+	}		
 } 
 
 #' Compute AIC/BIC/GCV for lrgpr() model as rank changes
@@ -1327,6 +1336,8 @@ getAlleleFreq = function( X, nthreads=detectCores(logical=TRUE)){
 	# run allele frequency calculations
 	allelefreq <- .Call("R_getAlleleFreq", X, ptr, as.integer(nthreads), package="lrgpr")
 
+	gc()
+
 	return( allelefreq )
 }	
 
@@ -1347,6 +1358,8 @@ getMissingCount = function( X, nthreads=detectCores(logical=TRUE)){
 	# count missing entries for each column
 	missingCount <- .Call("R_getMissingCount", X, ptr, as.integer(nthreads), package="lrgpr")
 
+	gc()
+	
 	return( missingCount )
 }	
 
@@ -1366,5 +1379,7 @@ getAlleleVariance = function( X, nthreads=detectCores(logical=TRUE)){
 	# count missing entries for each column
 	alleleVar <- .Call("R_getAlleleVariance", X, ptr, as.integer(nthreads), package="lrgpr")
 
+	gc()
+	
 	return( alleleVar )
 }	

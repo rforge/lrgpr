@@ -370,9 +370,10 @@ BEGIN_RCPP
 		n_markers = pBigMat->ncol();
 
 		FileBackedBigMatrix *pfbbm = (FileBackedBigMatrix*) pBigMat;
-			string filename = pfbbm->file_name(); 
 
-			string filepath = pfbbm->file_path();
+		string filename = pfbbm->file_name(); 
+		string filepath = pfbbm->file_path();
+		
 		filename = filepath + "/" + filename;
 		//cout << "File: " << filename << endl;
 
@@ -934,7 +935,6 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 							}
 
 						}else{
-
 							if( Wtilde_local != NULL ) gsl_matrix_free( Wtilde_local );
 							Wtilde_local = NULL;
 						}
@@ -988,6 +988,7 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 			gsl_matrix_free( X );
 			gsl_matrix_free( Xu );
 			gsl_vector_free( marker_j );
+			if( Wtilde_local != NULL ) gsl_matrix_free( Wtilde_local );
 
 		} // End parallel
 

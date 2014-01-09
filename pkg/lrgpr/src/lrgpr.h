@@ -62,7 +62,7 @@ public:
 
 	gsl_vector *wald_test_all();
 
-	double wald_test( vector<int> terms );
+	double wald_test( vector<int> &terms );
 
 	double get_effective_df();
 
