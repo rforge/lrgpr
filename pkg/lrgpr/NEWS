@@ -1,0 +1,5 @@
+
+v 0.0.2
+	- Add option to suppress progress bar
+	- Throw error when sub.big.matrix is passed as features.  Only matrix and big.matrix are supported
+
