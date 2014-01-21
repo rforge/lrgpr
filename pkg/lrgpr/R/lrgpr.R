@@ -64,6 +64,20 @@ set_missing_to_mean = function(A){
 	return( A)
 }
 
+#' @export
+.is_supported_lrgpr = function(X){
+
+	supported = FALSE
+
+	if( is.matrix(X) ){
+		supported = TRUE
+	}else if( is.big.matrix(X) && ! is.sub.big.matrix(X) ){
+		supported = TRUE	
+	}
+	
+	return( supported )
+}
+
 #' Fit a Low Rank Gaussian Process Regression (LRGPR) / Linear Mixed Model (LMM)
 #'
 #' `lrgpr' is used to fit LRGPR/LMM models that account for covariance in response values, but where the scale of the covariance is unknown.  Standard linear modeling syntax is used for the model specification in addition to a covariance matrix or its eigen-decomposition.
@@ -602,7 +616,6 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(length(d
 	# where SNPrandom is a random string that doesn't occur in ls()
 	# Then pass this name into R_lrgprApply to be replace for each marker
 
-
 	##################################
 	# Argument checking from lrgpr() #
 	##################################
@@ -612,6 +625,10 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(length(d
 		features = as.matrix(features)
 	}	
 	
+	if( ! .is_supported_lrgpr(features) ){
+		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
+	}
+
 	##############
 	# check data #
 	##############
@@ -867,6 +884,11 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 	if( ! is.na(nthreads) && nthreads < 1 ){
 		stop("nthreads must be positive")
 	}	
+
+	if( ! .is_supported_lrgpr(features) ){
+		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
+	}
+
 	if( ! is.matrix(features) && ! is.big.matrix(features) ){
 		#stop("features must be a matrix or big.matrix")
 		features = as.matrix(features)
@@ -1005,6 +1027,10 @@ criterion.lrgpr = function( formula, features, order, rank = c(seq(1, 10), seq(2
 
 	if( length(rank) < 2){
 		stop("rank must have at least 2 elements")		
+	}
+
+	if( ! .is_supported_lrgpr(features) ){
+		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}
 
 	# sort
@@ -1158,6 +1184,10 @@ loss.lrgpr <- function(y, yhat, family){
 #' @export
 cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), seq(20, 100, by=10), seq(200, 1000, by=100)), nthreads=1 ){
   
+  	if( ! .is_supported_lrgpr(features) ){
+		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
+	}
+
   	mf <- match.call(expand.dots=FALSE)
 	m <- match(c("formula", "data"), names(mf), 0L)
 	mf <- mf[c(1L, m)]
@@ -1342,6 +1372,10 @@ readBinary = function( filename, N ){
 #' @export 
 getAlleleFreq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 
+	if( ! .is_supported_lrgpr(X) ){
+		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
+	}
+
 	if( is.big.matrix(X) ){ 
 		ptr = X@address 
 	}else{
@@ -1365,6 +1399,10 @@ getAlleleFreq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 #' @export 
 getMissingCount = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 
+	if( ! .is_supported_lrgpr(X) ){
+		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
+	}
+
 	if( is.big.matrix(X) ){ 
 		ptr = X@address 
 	}else{
@@ -1386,6 +1424,10 @@ getMissingCount = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE
 #' @param progress show progress bar 
 #' @export 
 getAlleleVariance = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
+
+	if( ! .is_supported_lrgpr(X) ){
+		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
+	}
 
 	if( is.big.matrix(X) ){ 
 		ptr = X@address 
