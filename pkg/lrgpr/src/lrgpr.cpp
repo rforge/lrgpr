@@ -37,9 +37,9 @@ using namespace std;
 // LRGPR //
 ///////////
 
-LRGPR::LRGPR( const gsl_vector *Y_, const gsl_matrix *t_U_, const gsl_vector *eigenValues, const int X_ncol_, const int W_ncol_){
+LRGPR::LRGPR( const gsl_vector *Y_, const gsl_matrix *U_, const gsl_vector *eigenValues, const int X_ncol_, const int W_ncol_){
 
-	params = new LRGPR_params( Y_, t_U_, eigenValues, X_ncol_, W_ncol_);
+	params = new LRGPR_params( Y_, U_, eigenValues, X_ncol_, W_ncol_);
 
 	delta_grid = gsl_vector_seq( -10, 10, 100 );
 
@@ -87,7 +87,7 @@ void LRGPR::fit_mle( double *log_L, double *sig_g, double *sig_e ){
 	params->breakDueToSingularMatrix = false;
 
 	// minimization
-	int status, iter = 0, max_iter = 1000;
+	int status, iter, max_iter = 50;
 	gsl_min_fminimizer *gsl_minimizer;
 
 	// Assigned function and void struct pointer to gsl_function F
@@ -136,27 +136,31 @@ void LRGPR::fit_mle( double *log_L, double *sig_g, double *sig_e ){
 			// initialize minimizer with bounds and guess
 			gsl_min_fminimizer_set (gsl_minimizer, &F, middle, left, right);
 
+			iter = 0;
 			// iterate minimizer until convergence to max iterations reached
 			do{
-			   iter++;
+			   	iter++;
 
-			   // update bounds and guess
-			   status = gsl_min_fminimizer_iterate( gsl_minimizer );
+			   	// update bounds and guess
+			   	status = gsl_min_fminimizer_iterate( gsl_minimizer );
 
-			   // extract new bounds and guess
-			   middle = gsl_min_fminimizer_x_minimum( gsl_minimizer );
-			   left = gsl_min_fminimizer_x_lower( gsl_minimizer );
-			   right = gsl_min_fminimizer_x_upper( gsl_minimizer );
+			  	// extract new bounds and guess
+			  	middle = gsl_min_fminimizer_x_minimum( gsl_minimizer );
+			   	left = gsl_min_fminimizer_x_lower( gsl_minimizer );
+			   	right = gsl_min_fminimizer_x_upper( gsl_minimizer );
 
-			   // assess convergence based on desired error bounds
-			  status = gsl_min_test_interval (left, right, 0.00001, 0.0);
+			   // cout << "iter: " << iter << endl;
+			   // cout << left << " " << middle << " " << right << endl;
 
-			   if( status == GSL_SUCCESS  || iter == max_iter){
+			   	// assess convergence based on desired error bounds
+			 	status = gsl_min_test_interval (left, right, 0.00001, 0.0);
+
+			   	if( status == GSL_SUCCESS  || iter == max_iter){
 
 				   // save values from minimum
 				   log_L_values.push_back( gsl_min_fminimizer_f_minimum( gsl_minimizer ) );
 				   delta_values.push_back(  gsl_min_fminimizer_x_minimum( gsl_minimizer ) );
-			   }
+			   	}
 
 			 } while (status == GSL_CONTINUE && iter < max_iter);
 		}
@@ -457,6 +461,8 @@ inline void LRGPR::Omega_rr(const double delta){
 
 
 double _LRGPR_fxn( const double delta, void *params_arg){
+
+	//cout << "_LRGPR_fxn: " << delta << endl;
 
 	LRGPR *obj = (LRGPR *) params_arg;
 

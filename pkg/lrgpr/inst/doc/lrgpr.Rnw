@@ -103,7 +103,7 @@ On Redhat there should be a similar command using \verb|yum|.  Alternatively, yo
 
 <<eval=FALSE>>=
 pkgs = c("Rcpp", "RcppGSL", "RcppProgress", "MASS", "parallel", "doParallel", 
-"formula.tools", "BH", "bigmemory", "aod")
+"formula.tools", "BH", "bigmemory", "biganalytics", "aod")
 install.packages(pkgs)
 @
 \pkg{lrgpr} requres bigmemory >= v4.4.7, so  install this from R-Forge: 
@@ -118,7 +118,7 @@ Once the dependencies are installed, you can install \pkg{lrgpr}:
 R CMD INSTALL lrgpr_0.0.1.tar.gz
 \end{verbatim}
 
-\subsection{Acceleration linear algebra in \proglang{R}}
+\subsection{Accelerating linear algebra in \proglang{R}}
 
 Linear algebra operations are the bottleneck for \pkg{lrgpr} and many other packages in \proglang{R}.  Compiling \proglang{R} with a good implementation of the \proglang{BLAS} linear algebra library can speed up some operations by >10x, and using a parallel library can further improve performance compared to the standard ``reference \proglang{BLAS}" used by default.  Using the best library for your machine, such as ATLAS (generic), ACML (AMD) or MKL (Intel), is strongly suggested.\\  
 \\

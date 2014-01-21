@@ -1836,7 +1836,7 @@ void gsl_matrix_diagonal_multiply( const gsl_matrix *X, const gsl_vector *w, gsl
 }*/
 
 
-void gsl_matrix_diagonal_quadratic_form( const gsl_matrix *X, const gsl_vector *w, gsl_matrix *&M , gsl_matrix * W_X){
+void gsl_matrix_diagonal_quadratic_form( const gsl_matrix *X, const gsl_vector *w, gsl_matrix *&M, bool preTransposed, gsl_matrix *W_X){
 
 	bool freeBeforeReturn = false;
 	if( W_X == NULL ) freeBeforeReturn = true;
@@ -1847,15 +1847,23 @@ void gsl_matrix_diagonal_quadratic_form( const gsl_matrix *X, const gsl_vector *
 	}*/
 
 	// W_X = W %*% X
-	gsl_matrix_diagonal_multiply( X, w, W_X );
+	gsl_matrix_diagonal_multiply( X, w, W_X, !preTransposed);
 
 	// malloc a new matrix if return pointer is NULL
 	if( M == NULL ){
-		M = gsl_matrix_alloc( X->size2, X->size2 );
+		if( preTransposed ){			
+			M = gsl_matrix_alloc( X->size1, X->size1 );
+		}else{
+			M = gsl_matrix_alloc( X->size2, X->size2 );
+		}
 	}
-
-	// M = t(X) %*% W %*% X
-	gsl_blas_dgemm(CblasTrans,CblasNoTrans, 1.0, X, W_X, 0.0, M);
+	if( preTransposed ){
+		// M = X %*% W %*% t(X)
+		gsl_blas_dgemm(CblasNoTrans,CblasTrans, 1.0, X, W_X, 0.0, M);
+	}else{
+		// M = t(X) %*% W %*% X
+		gsl_blas_dgemm(CblasTrans,CblasNoTrans, 1.0, X, W_X, 0.0, M);
+	}
 
 	if( freeBeforeReturn ){
 		gsl_matrix_free( W_X );

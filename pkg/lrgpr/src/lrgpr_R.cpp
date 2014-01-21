@@ -315,7 +315,7 @@ END_RCPP
 }
 
 
-RcppExport SEXP R_glmApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP env_, SEXP terms_, SEXP nthreads_, SEXP useMean_, SEXP useIdentityLink_, SEXP univariate_, SEXP multivariate_){
+RcppExport SEXP R_glmApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP env_, SEXP terms_, SEXP nthreads_, SEXP useMean_, SEXP useIdentityLink_, SEXP univariate_, SEXP multivariate_, SEXP quiet_){
 
 BEGIN_RCPP
 		
@@ -327,6 +327,7 @@ BEGIN_RCPP
 	bool useIdentityLink = as<int>( useIdentityLink_ );
 	bool univariate = as<int>( univariate_ );
 	bool multivariate = as<int>( multivariate_ );
+	bool quiet = as<int>( quiet_ );
 		
 	regressionType regressType = useIdentityLink ? LINEAR : LOGISTIC;
 
@@ -597,6 +598,7 @@ BEGIN_RCPP
 
 		} // End parallel
 
+		if( ! quiet )
 		Rcpp::Rcout << print_progress( tests_completed, n_markers, 25, start_time);
 
 		// X_set is NULL if fset is empty
@@ -611,7 +613,7 @@ BEGIN_RCPP
 		}
 	} // End set loop
 
-	Rcpp::Rcout << endl;
+	if( ! quiet ) Rcpp::Rcout << endl;
 
 	Y.free();
 	Xn.free();
@@ -656,7 +658,7 @@ vector<int> get_markers_in_window( const string chr_j, const double loc_j, const
 
 
 
-RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP env_, SEXP terms_, SEXP EigenVectors_, SEXP EigenValues_, SEXP Wtilde_, SEXP rank_,  SEXP chromosome_, SEXP location_, SEXP distance_, SEXP dcmp_features_, SEXP scale_, SEXP delta_, SEXP reEstimateDelta_, SEXP nthreads_){
+RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP env_, SEXP terms_, SEXP EigenVectors_, SEXP EigenValues_, SEXP Wtilde_, SEXP rank_,  SEXP chromosome_, SEXP location_, SEXP distance_, SEXP dcmp_features_, SEXP scale_, SEXP delta_, SEXP reEstimateDelta_, SEXP nthreads_, SEXP quiet_){
 
 //BEGIN_RCPP
 		
@@ -675,6 +677,7 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 	double delta_global = as<double>( delta_ );
 	bool reEstimateDelta = Rcpp::as<int>( reEstimateDelta_ );
 	int nthreads = as<int>( nthreads_ );
+	bool quiet = Rcpp::as<int>( quiet_ );
 
 	// Make sure all eigen values are non-negative
 	for(unsigned int i=0; i<eigenValues->size; i++){
@@ -770,10 +773,10 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 		throw range_error("Element in \"terms\" is out of range");
 	}
 
-	gsl_matrix *Xu_clean = gsl_matrix_alloc( eigenVectors->size1, X_clean->size2 );
+	gsl_matrix *Xu_clean = gsl_matrix_alloc( eigenVectors->size2, X_clean->size2 );
 
 	// Xu_clean = crossprod( decomp$vectors, X_clean)
-	gsl_blas_dgemm( CblasNoTrans, CblasNoTrans, 1.0, eigenVectors, X_clean, 0.0, Xu_clean );
+	gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0, eigenVectors, X_clean, 0.0, Xu_clean );
 
 	// get indeces of columns that depend on X[,j]
 	vector<int> loopIndex = expr.get_loop_terms();
@@ -783,22 +786,22 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 	// Fit null model if necessary
 	if( R_IsNA( delta_global ) && ! reEstimateDelta ){
 			
-			double log_L, sig_g, sig_e;
+		double log_L, sig_g, sig_e;
 
-			RcppGSL::matrix<double> X_null = expr.get_model_matrix_null(); 			
+		RcppGSL::matrix<double> X_null = expr.get_model_matrix_null(); 	
 
-			LRGPR *lrgpr = new LRGPR( y, eigenVectors, eigenValues, X_null->size2, useProxCon ? Wtilde->size2 : 0);
+		LRGPR *lrgpr = new LRGPR( y, eigenVectors, eigenValues, X_null->size2, useProxCon ? Wtilde->size2 : 0);
 
-			// Must update W before X
-			if( useProxCon ) lrgpr->update_Wtilde( Wtilde );
-			lrgpr->update_X( X_null );
+		// Must update W before X
+		if( useProxCon ) lrgpr->update_Wtilde( Wtilde );
+		lrgpr->update_X( X_null );
 
-			// Estimate delta
-			lrgpr->fit_mle( &log_L, &sig_g, &sig_e);
-			delta_global = sig_e / sig_g;
+		// Estimate delta
+		lrgpr->fit_mle( &log_L, &sig_g, &sig_e);
+		delta_global = sig_e / sig_g;
 
-			X_null.free();
-			delete lrgpr;
+		X_null.free(); 
+		delete lrgpr;
 	}
 
 	long tests_completed = 0;
@@ -826,7 +829,7 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 			LRGPR *lrgpr = new LRGPR( y, eigenVectors, eigenValues, X_clean->size2, useProxCon ? Wtilde->size2 : 0);
 
 			gsl_matrix *X = gsl_matrix_alloc( X_clean->size1, X_clean->size2 );
-			gsl_matrix *Xu = gsl_matrix_alloc( eigenVectors->size1, X_clean->size2 );
+			gsl_matrix *Xu = gsl_matrix_alloc( eigenVectors->size2, X_clean->size2 );
 
 			gsl_vector_view col_view, col_view2;
 
@@ -881,7 +884,7 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 
 					// Xu[,loopIndex[k]] = crossprod( U, X_design[,loopIndex[k]] * marker_j)
 					col_view2 = gsl_matrix_column( (gsl_matrix*)(Xu), loopIndex[k] );
-					gsl_blas_dgemv( CblasNoTrans, 1.0, eigenVectors, &col_view.vector, 0.0, &col_view2.vector );
+					gsl_blas_dgemv( CblasTrans, 1.0, eigenVectors, &col_view.vector, 0.0, &col_view2.vector );
 				}
 
 				// Proximal contamination
@@ -992,6 +995,7 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 
 		} // End parallel
 
+		if( ! quiet )
 		Rcpp::Rcout << print_progress( tests_completed, n_markers, 25, start_time);
 
 		// X_set is NULL if fset is empty
@@ -1011,7 +1015,7 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 
 	} // End set loop
 
-	Rcpp::Rcout << endl;
+	if( ! quiet ) Rcpp::Rcout << endl;
 
 	y.free();
 	X_clean.free();
@@ -1027,11 +1031,12 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 }
 
 
-RcppExport SEXP R_getAlleleFreq( SEXP data_, SEXP pBigMat_, SEXP nthreads_){
+RcppExport SEXP R_getAlleleFreq( SEXP data_, SEXP pBigMat_, SEXP nthreads_, SEXP quiet_){
 
 BEGIN_RCPP
 
-	int nthreads = as<int>( nthreads_ );
+	int nthreads = as<int>( nthreads_ );	
+	bool quiet = as<int>( quiet_ );
 	
 	bool standardMatrix;
 
@@ -1147,7 +1152,7 @@ BEGIN_RCPP
 
 		} // End parallel
 
-		Rcpp::Rcout << print_progress( tests_completed, n_markers, 25, start_time);
+		if( ! quiet )  Rcpp::Rcout << print_progress( tests_completed, n_markers, 25, start_time);
 
 		// X_set is NULL if fset is empty
 		if( X_set != NULL ) gsl_matrix_free( X_set );
@@ -1158,7 +1163,7 @@ BEGIN_RCPP
 
 	} // End set loop
 
-	Rcpp::Rcout << endl;
+	if( ! quiet ) Rcpp::Rcout << endl;
 
 	return( wrap(alleleFreq) );
 
@@ -1166,11 +1171,12 @@ END_RCPP
 }
 
 
-RcppExport SEXP R_getMissingCount( SEXP data_, SEXP pBigMat_, SEXP nthreads_){
+RcppExport SEXP R_getMissingCount( SEXP data_, SEXP pBigMat_, SEXP nthreads_, SEXP quiet_){
 
 BEGIN_RCPP
 
 	int nthreads = as<int>( nthreads_ );
+	bool quiet = as<int>( quiet_ );
 	
 	bool standardMatrix;
 
@@ -1284,7 +1290,7 @@ BEGIN_RCPP
 
 		} // End parallel
 
-		Rcpp::Rcout << print_progress( tests_completed, n_markers, 25, start_time);
+		if( ! quiet ) Rcpp::Rcout << print_progress( tests_completed, n_markers, 25, start_time);
 
 		// X_set is NULL if fset is empty
 		if( X_set != NULL ) gsl_matrix_free( X_set );
@@ -1294,18 +1300,19 @@ BEGIN_RCPP
 		}
 	} // End set loop
 
-	Rcpp::Rcout << endl;
+	if( ! quiet ) Rcpp::Rcout << endl;
 
 	return( wrap(alleleFreq) );
 
 END_RCPP
 }
 
-RcppExport SEXP R_getAlleleVariance( SEXP data_, SEXP pBigMat_, SEXP nthreads_){
+RcppExport SEXP R_getAlleleVariance( SEXP data_, SEXP pBigMat_, SEXP nthreads_, SEXP quiet_){
 
 BEGIN_RCPP
 
 	int nthreads = as<int>( nthreads_ );
+	bool quiet = as<int>( quiet_ );
 	
 	bool standardMatrix;
 
@@ -1426,7 +1433,7 @@ BEGIN_RCPP
 
 		} // End parallel
 
-		Rcpp::Rcout << print_progress( tests_completed, n_markers, 25, start_time);
+		if( ! quiet ) Rcpp::Rcout << print_progress( tests_completed, n_markers, 25, start_time);
 
 		// X_set is NULL if fset is empty
 		if( X_set != NULL ) gsl_matrix_free( X_set );
@@ -1436,7 +1443,7 @@ BEGIN_RCPP
 		}
 	} // End set loop
 
-	Rcpp::Rcout << endl;
+	if( ! quiet ) Rcpp::Rcout << endl;
 
 	return( wrap(colVariance) );
 

@@ -135,6 +135,8 @@ set_missing_to_mean = function(A){
 #'
 #' Hoffman, G. E. (2013) Correcting for Population Structure and Kinship Using the Linear Mixed Model: Theory and Extensions. _PLoS ONE_ 8(10):e75707
 #' 
+#' Note that degrees freedom and some diagnostic statistics are not currently calculated with W_til is specified.
+#'
 #' @useDynLib lrgpr
 #' @examples 
 #' # Generate random data
@@ -265,13 +267,13 @@ lrgpr <- function( formula, decomp, rank=max(length(decomp$d), length(decomp$val
 
 	# if decomp is result of eigen()
 	if( is.eigen_decomp(decomp) ){			
-		obj <- .Call("R_lrgpr", y, X, t(decomp$vectors), decomp$values, delta, nthreads, W_til, package="lrgpr")
+		obj <- .Call("R_lrgpr", y, X, decomp$vectors, decomp$values, delta, nthreads, W_til, package="lrgpr")
 	}
 
 	# if decomp is result of svd()
 	if( is.svd_decomp(decomp) ){		
 		# if decomp is an svd, then the eigen-values are decomp$d^2
-		obj <- .Call("R_lrgpr", y, X, t(decomp$u), decomp$d^2, delta, nthreads, W_til, package="lrgpr")
+		obj <- .Call("R_lrgpr", y, X, decomp$u, decomp$d^2, delta, nthreads, W_til, package="lrgpr")
 	}
 
 	gc()	
@@ -320,6 +322,12 @@ lrgpr <- function( formula, decomp, rank=max(length(decomp$d), length(decomp$val
 	}
 
 	obj$rank = rank
+
+	# if W_til is defined, then df and hii are not computed correctly
+	if( length(W_til) != 1){
+		obj$hii = NA
+		obj$df = NA
+	}
 
 	return( obj )
 }
@@ -556,6 +564,7 @@ is.svd_decomp_symmetric <- function( decomp ){
 #' @param reEstimateDelta should delta be re-estimated for every marker. Note: reEstimateDelta=TRUE is much slower
 #' @param nthreads number of to use for parallel execution
 #' @param verbose print extra information
+#' @param progress show progress bar 
 #'
 #' @examples 
 #' 
@@ -576,7 +585,7 @@ is.svd_decomp_symmetric <- function( decomp ){
 #' pValues = lrgprApply( y ~ sex + sex:SNP, features=X, decomp, terms=c(3,4), delta=fit$delta)
 #'
 #' @export
-lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(length(decomp$d), length(decomp$values)), map=NULL, distance=NULL, dcmp_features=NULL, W_til=NULL, scale=TRUE, delta=NULL, reEstimateDelta=FALSE, nthreads=detectCores(logical = TRUE), verbose=FALSE){
+lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(length(decomp$d), length(decomp$values)), map=NULL, distance=NULL, dcmp_features=NULL, W_til=NULL, scale=TRUE, delta=NULL, reEstimateDelta=FALSE, nthreads=detectCores(logical = TRUE), verbose=FALSE, progress=TRUE ){
 
 	env = parent.frame()
 
@@ -753,10 +762,10 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(length(d
 
 	# if decomp is result of eigen()
 	if( is.svd_decomp(decomp) ){
-		pValues	<- .Call("R_lrgprApply", as.character(form_mod), features, ptr, env, terms-1, t(decomp$u), decomp$d^2, W_til, as.integer(rank), chrom, location, as.double(distance), dcmp_features-1, scale, as.numeric(delta), as.integer(reEstimateDelta), as.integer(nthreads), package="lrgpr")
+		pValues	<- .Call("R_lrgprApply", as.character(form_mod), features, ptr, env, terms-1, decomp$u, decomp$d^2, W_til, as.integer(rank), chrom, location, as.double(distance), dcmp_features-1, scale, as.numeric(delta), as.integer(reEstimateDelta), as.integer(nthreads), ! progress, package="lrgpr")
 	}else{
 		# if decomp is result of eigen()
-		pValues	<- .Call("R_lrgprApply", as.character(form_mod), features, ptr, env, terms-1, t(decomp$vectors), decomp$values, W_til, as.integer(rank), chrom, location, as.double(distance), dcmp_features-1, scale, as.numeric(delta), as.integer(reEstimateDelta), as.integer(nthreads), package="lrgpr")
+		pValues	<- .Call("R_lrgprApply", as.character(form_mod), features, ptr, env, terms-1, decomp$vectors, decomp$values, W_til, as.integer(rank), chrom, location, as.double(distance), dcmp_features-1, scale, as.numeric(delta), as.integer(reEstimateDelta), as.integer(nthreads), ! progress, package="lrgpr")
 	}
 
 	gc()	
@@ -790,6 +799,7 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(length(d
 #' @param univariateTest perform univariate hypothesis test for each response for each feature in the loop variable
 #' @param multivariateTest perform multivariate hypothesis test for each response (if more than one) for each feature.  Note that the runtime is cubic in the number of response variables
 #' @param verbose print additional information
+#' @param progress show progress bar
 #'
 #' @examples 
 #' 
@@ -833,7 +843,7 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(length(d
 #' summary(fit, test="Pillai")
 #' 
 #' @export
-glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=TRUE, nthreads=detectCores(logical = TRUE), univariateTest=TRUE, multivariateTest=FALSE, verbose=FALSE ){
+glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=TRUE, nthreads=detectCores(logical = TRUE), univariateTest=TRUE, multivariateTest=FALSE, verbose=FALSE, progress=TRUE ){
 
 	env = parent.frame()
 
@@ -862,7 +872,7 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 		features = as.matrix(features)
 	}	
 
-	result = tryCatch({
+	#result = tryCatch({
 		# save status from current state
 		na.status = options("na.action")$na.action
 
@@ -894,12 +904,12 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 		#	stop("Response is not numeric")
 		#}
 
-	}, warning 	= function(w) { warning(w)
-	}, error 	= function(e) { stop(e)
-	}, finally 	= {
+	#}, warning 	= function(w) { warning(w)
+	#}, error 	= function(e) { stop(e)
+	#}, finally 	= {
 	    # restore status to previous state
-		options(na.action=na.status)
-	})	
+	#	options(na.action=na.status)
+	#})	
 
 	if( length(terms) == 0 ){
 		stop("Must specify terms, cannot be determined from formula")
@@ -926,7 +936,7 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 	}
 
 	# run regressions
-	pValList <- .Call("R_glmApply", as.character(form_mod), features, ptr, env, terms-1, as.integer(nthreads), useMean, sum(family[2]$link == "identity"), univariateTest, multivariateTest, package="lrgpr")
+	pValList <- .Call("R_glmApply", as.character(form_mod), features, ptr, env, terms-1, as.integer(nthreads), useMean, sum(family[2]$link == "identity"), univariateTest, multivariateTest, ! progress, package="lrgpr")
 
 	gc()
 
@@ -991,7 +1001,7 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 #' plot.criterion.lrgpr(fit)
 #' 
 #' @export
-criterion.lrgpr = function( formula, features, order, rank = c(seq(1, 10), seq(20, 100, by=10), seq(200, 1000, by=100))){
+criterion.lrgpr = function( formula, features, order, rank = c(seq(1, 10), seq(20, 100, by=10), seq(200, 1000, by=100)) ){
 
 	if( length(rank) < 2){
 		stop("rank must have at least 2 elements")		
@@ -1011,11 +1021,16 @@ criterion.lrgpr = function( formula, features, order, rank = c(seq(1, 10), seq(2
 		return( c(fit$AIC, fit$BIC, fit$GCV, fit$logLik, fit$df) )
 	}
 
+	result = matrix(0, nrow=length(rank), ncol=5)
+
+	for(i in 1:length(rank)){
+		result[i,] = crit_fxn( rank[i] )
+	}
+
 	#registerDoParallel(cores=nthreads)
+	#result = foreach( ncon=rank, .combine='cbind') %do% crit_fxn( ncon )
+	#result = t(result)
 
-	result = foreach( ncon=rank, .combine='cbind') %do% crit_fxn( ncon )
-
-	result = t(result)
 	colnames(result) =  c("AIC", "BIC", "GCV", "logLik", "df")
 	rownames(result) = rank
 	result = as.data.frame(result)
@@ -1266,7 +1281,6 @@ convertToBinary = function( filename, filenameOut, format ){
 
 	if( path.expand(filename) == path.expand(filenameOut) ){
 		stop("Cannot read and write to the same file")
-
 	}
 
 	if( ! file.exists(filename) ){		
@@ -1324,8 +1338,9 @@ readBinary = function( filename, N ){
 #' 
 #' @param X matrix where each column is a marker coded 0,1,2 or with dosage values in this range
 #' @param nthreads number of threads to use
+#' @param progress show progress bar 
 #' @export 
-getAlleleFreq = function( X, nthreads=detectCores(logical=TRUE)){
+getAlleleFreq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 
 	if( is.big.matrix(X) ){ 
 		ptr = X@address 
@@ -1334,7 +1349,7 @@ getAlleleFreq = function( X, nthreads=detectCores(logical=TRUE)){
 	}
 
 	# run allele frequency calculations
-	allelefreq <- .Call("R_getAlleleFreq", X, ptr, as.integer(nthreads), package="lrgpr")
+	allelefreq <- .Call("R_getAlleleFreq", X, ptr, as.integer(nthreads), !progress, package="lrgpr")
 
 	gc()
 
@@ -1346,8 +1361,9 @@ getAlleleFreq = function( X, nthreads=detectCores(logical=TRUE)){
 #' 
 #' @param X matrix where each column is a marker
 #' @param nthreads number of threads to use
+#' @param progress show progress bar 
 #' @export 
-getMissingCount = function( X, nthreads=detectCores(logical=TRUE)){
+getMissingCount = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 
 	if( is.big.matrix(X) ){ 
 		ptr = X@address 
@@ -1356,7 +1372,7 @@ getMissingCount = function( X, nthreads=detectCores(logical=TRUE)){
 	}
 
 	# count missing entries for each column
-	missingCount <- .Call("R_getMissingCount", X, ptr, as.integer(nthreads), package="lrgpr")
+	missingCount <- .Call("R_getMissingCount", X, ptr, as.integer(nthreads), !progress, package="lrgpr")
 
 	gc()
 	
@@ -1367,8 +1383,9 @@ getMissingCount = function( X, nthreads=detectCores(logical=TRUE)){
 #' 
 #' @param X matrix where each column is a marker
 #' @param nthreads number of threads to use
+#' @param progress show progress bar 
 #' @export 
-getAlleleVariance = function( X, nthreads=detectCores(logical=TRUE)){
+getAlleleVariance = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 
 	if( is.big.matrix(X) ){ 
 		ptr = X@address 
@@ -1377,7 +1394,7 @@ getAlleleVariance = function( X, nthreads=detectCores(logical=TRUE)){
 	}
 
 	# count missing entries for each column
-	alleleVar <- .Call("R_getAlleleVariance", X, ptr, as.integer(nthreads), package="lrgpr")
+	alleleVar <- .Call("R_getAlleleVariance", X, ptr, as.integer(nthreads), !progress, package="lrgpr")
 
 	gc()
 	

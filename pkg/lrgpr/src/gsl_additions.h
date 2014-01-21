@@ -401,7 +401,7 @@ void gsl_matrix_diagonal_multiply( gsl_matrix *X, const gsl_vector *w);
  * \return M return by reference t(X) %*% W %*% X and W_X = W %*% X
  */
 
-void gsl_matrix_diagonal_quadratic_form( const gsl_matrix *X, const gsl_vector *w, gsl_matrix *&M , gsl_matrix * W_X = NULL);
+void gsl_matrix_diagonal_quadratic_form( const gsl_matrix *X, const gsl_vector *w, gsl_matrix *&M , bool preTransposed=false, gsl_matrix * W_X = NULL);
 
 /**
  * \brief return a subset of the entries in v that are indicated by sample_index

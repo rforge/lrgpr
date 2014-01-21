@@ -7,7 +7,7 @@ public:
 
 	// only the pointer is copied, and nothing new is malloc'ed, so don't free
 	gsl_vector *s;
-	gsl_matrix *t_U;
+	gsl_matrix *U;
 
 	int n_indivs, X_ncol, W_ncol, rank;
 
@@ -68,7 +68,7 @@ public:
 	gsl_matrix *solve_I_Q_WW;
 
 	// constructor
-	LRGPR_params( const gsl_vector *Y_, const gsl_matrix *t_U_, const gsl_vector *eigenValues, const int X_ncol_, const int W_ncol_ = 0);
+	LRGPR_params( const gsl_vector *Y_, const gsl_matrix *U_, const gsl_vector *eigenValues, const int X_ncol_, const int W_ncol_ = 0);
 
 	void update_X( const gsl_matrix *X_ );
 	void update_Xu( const gsl_matrix *X_, const gsl_matrix *Xu_ );	

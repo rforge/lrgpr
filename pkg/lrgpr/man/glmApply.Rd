@@ -6,7 +6,7 @@
     family = gaussian(), useMean = TRUE,
     nthreads = detectCores(logical = TRUE),
     univariateTest = TRUE, multivariateTest = FALSE,
-    verbose = FALSE)
+    verbose = FALSE, progress = TRUE)
 }
 \arguments{
   \item{formula}{standard linear modeling syntax as used in
@@ -39,6 +39,8 @@
   response variables}
 
   \item{verbose}{print additional information}
+
+  \item{progress}{show progress bar}
 }
 \description{
   `glmApply' is analogous to 'lrgprApply', but fits

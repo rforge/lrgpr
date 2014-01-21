@@ -8,7 +8,7 @@
     W_til = NULL, scale = TRUE, delta = NULL,
     reEstimateDelta = FALSE,
     nthreads = detectCores(logical = TRUE),
-    verbose = FALSE)
+    verbose = FALSE, progress = TRUE)
 }
 \arguments{
   \item{formula}{standard linear modeling syntax as used in
@@ -58,6 +58,8 @@
   \item{nthreads}{number of to use for parallel execution}
 
   \item{verbose}{print extra information}
+
+  \item{progress}{show progress bar}
 }
 \description{
   `lrgprApply' is used to fit LRGPR/LMM models that account

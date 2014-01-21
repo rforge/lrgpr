@@ -149,6 +149,9 @@ wald( fit, terms=2:3)
   Hoffman, G. E. (2013) Correcting for Population Structure
   and Kinship Using the Linear Mixed Model: Theory and
   Extensions. _PLoS ONE_ 8(10):e75707
+
+  Note that degrees freedom and some diagnostic statistics
+  are not currently calculated with W_til is specified.
 }
 \seealso{
   'wald', 'lrgprApply'

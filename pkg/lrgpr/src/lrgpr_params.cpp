@@ -18,7 +18,7 @@
 #endif
 
 // constructor
-LRGPR_params::LRGPR_params( const gsl_vector *Y_, const gsl_matrix *t_U_, const gsl_vector *eigenValues, const int X_ncol_, const int W_ncol_ ){
+LRGPR_params::LRGPR_params( const gsl_vector *Y_, const gsl_matrix *U_, const gsl_vector *eigenValues, const int X_ncol_, const int W_ncol_ ){
 
 	init_as_null();
 
@@ -27,7 +27,7 @@ LRGPR_params::LRGPR_params( const gsl_vector *Y_, const gsl_matrix *t_U_, const 
 	W_ncol 	= W_ncol_;
 
 	s = const_cast<gsl_vector*>( eigenValues );
-	t_U = const_cast<gsl_matrix*>( t_U_ );
+	U = const_cast<gsl_matrix*>( U_ );
 
 	rank = s->size;
 
@@ -47,7 +47,7 @@ LRGPR_params::LRGPR_params( const gsl_vector *Y_, const gsl_matrix *t_U_, const 
 	}
 
 	// Yu = t(U) %*% Y
-	gsl_blas_dgemv( CblasNoTrans, 1.0, t_U, Y, 0.0, Yu );
+	gsl_blas_dgemv( CblasTrans, 1.0, U, Y, 0.0, Yu );
 }
 
 
@@ -443,7 +443,7 @@ void LRGPR_params::update_X( const gsl_matrix *X_ ){
 
 	// Xu = t(U) %*% X
 	//gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0, eigen->U, X, 0.0, Xu );
-	gsl_blas_dgemm( CblasNoTrans, CblasNoTrans, 1.0, t_U, X, 0.0, Xu );
+	gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0, U, X, 0.0, Xu );
 
 	// If low rank model
 	if( this->isLowRank ){
@@ -525,7 +525,7 @@ void LRGPR_params::update_Y( const gsl_vector *Y_ ){
 	gsl_vector_memcpy( Y, Y_);
 
 	// Yu = t(U) %*% Y
-	gsl_blas_dgemv( CblasNoTrans, 1.0, t_U, Y, 0.0, Yu );
+	gsl_blas_dgemv( CblasTrans, 1.0, U, Y, 0.0, Yu );
 }
 
 void LRGPR_params::update_Wtilde( const gsl_matrix *W_til_ ){
@@ -544,7 +544,7 @@ void LRGPR_params::update_Wtilde( const gsl_matrix *W_til_ ){
 		gsl_matrix_memcpy( W_til, W_til_);
 
 		// Wu = t(U) %*% W
-		gsl_blas_dgemm( CblasNoTrans, CblasNoTrans, 1.0, t_U, W_til, 0.0, Wu );
+		gsl_blas_dgemm( CblasTrans, CblasNoTrans, 1.0, U, W_til, 0.0, Wu );
 
 		proximalContamination = true;
 	}
@@ -607,11 +607,11 @@ gsl_vector *LRGPR_params::get_S_alpha_diag( const double delta ){
 		}		
 
 		// this method may be slow.  See LMM_get_S_alpha_diag() instead
-		gsl_matrix *Ua = gsl_matrix_alloc( t_U->size2, t_U->size1 );
-		gsl_matrix *t_Ua = gsl_matrix_alloc( t_U->size1, t_U->size2 );
-		gsl_matrix *U = gsl_matrix_alloc( t_U->size2, t_U->size1 );
+		gsl_matrix *Ua = gsl_matrix_alloc( U->size1, U->size2 );
+		gsl_matrix *t_Ua = gsl_matrix_alloc( U->size2, U->size1 );
+		gsl_matrix *t_U = gsl_matrix_alloc( U->size2, U->size1 );
 
-		gsl_matrix_transpose_memcpy( U, t_U);
+		gsl_matrix_transpose_memcpy( t_U, U);
 
 		gsl_matrix_diagonal_multiply( U, a, Ua, false);
 
@@ -626,7 +626,7 @@ gsl_vector *LRGPR_params::get_S_alpha_diag( const double delta ){
 		gsl_vector_free(a);
 		gsl_matrix_free(Ua);
 		gsl_matrix_free(t_Ua);
-		gsl_matrix_free(U);
+		gsl_matrix_free(t_U);
 
 	}else{
 		H_diag = gsl_vector_calloc( n_indivs );
@@ -649,7 +649,7 @@ double LRGPR_params::get_S_alpha_beta_trace( const double delta ){
 
 		// A = t(Xu) %*% W %*% Xu
 		// W_X = W %*% Xu
-		gsl_matrix *W_X = gsl_matrix_alloc( t_U->size1, X_ncol );
+		gsl_matrix *W_X = gsl_matrix_alloc( U->size2, X_ncol );
 		gsl_matrix *A = gsl_matrix_alloc( X_ncol, X_ncol );
 		gsl_matrix_diagonal_quadratic_form( Xu, ss_delta, A, W_X);
 
@@ -692,8 +692,8 @@ gsl_vector *LRGPR_params::get_S_alpha_beta_diag( const double delta){
 		}
 
 		// M =  t(t_U) %*% W %*% t_U
-		gsl_matrix *M = gsl_matrix_alloc( t_U->size2, t_U->size2);
-		gsl_matrix_diagonal_quadratic_form( t_U, ss_delta, M);
+		gsl_matrix *M = gsl_matrix_alloc( U->size1, U->size1);
+		gsl_matrix_diagonal_quadratic_form( U, ss_delta, M, true);
 
 		////////////
 		// S_beta //
@@ -795,8 +795,8 @@ gsl_vector *LRGPR_params::get_fitted_response( const double delta, gsl_vector *a
 		gsl_vector_set( inv_s_delta, i, gsl_vector_get( s, i )/(gsl_vector_get( s, i ) + delta) );
 	}
 	// M =  t(t_U) %*% W %*% t_U
-	gsl_matrix *M = gsl_matrix_alloc( t_U->size2, t_U->size2);
-	gsl_matrix_diagonal_quadratic_form( t_U, inv_s_delta, M);
+	gsl_matrix *M = gsl_matrix_alloc( U->size1, U->size1);
+	gsl_matrix_diagonal_quadratic_form( U, inv_s_delta, M, true);
 
 	//gsl_vector *alpha = gsl_vector_alloc( Y->size );
 	gsl_blas_dgemv( CblasNoTrans, 1.0, M, Y_X_beta, 0.0, alpha );
