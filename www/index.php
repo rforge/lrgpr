@@ -70,7 +70,7 @@ The package also provides simple interfaces for standard linear and logistic reg
 <br>
 <li> <strong>Citation</strong>:</li>
 
- Hoffman, G.E., Mezey, J.G., Schadt, E.E. (2014) lrgpr: Interactive linear mixed model analysis of genome-wide association studies with composite hypothesis testing and regression diagnostics. In preparation. </p>
+ Hoffman, G.E., Mezey, J.G., Schadt, E.E. (2014) lrgpr: Interactive linear mixed model analysis of genome-wide association studies with composite hypothesis testing and regression diagnostics in R. In preparation. </p>
 
 <li> <strong>Related work</strong>:</li>
 
