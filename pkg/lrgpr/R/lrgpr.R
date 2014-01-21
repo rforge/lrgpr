@@ -64,7 +64,6 @@ set_missing_to_mean = function(A){
 	return( A)
 }
 
-#' @export
 .is_supported_lrgpr = function(X){
 
 	supported = FALSE

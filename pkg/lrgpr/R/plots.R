@@ -14,7 +14,6 @@
 #' @param showNames show column names or list keys in the legend
 #' @param ylim ylim 
 #' @param xlim xlim
-#' @param method method
 #' @param plot make a plot.  If FALSE, returns lamda_GC values without making plot
 #' @param new make a new plot.  If FALSE, overlays QQ over current plot
 #' @param box.lty box line type

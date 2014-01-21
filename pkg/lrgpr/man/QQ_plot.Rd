@@ -35,8 +35,6 @@
 
   \item{xlim}{xlim}
 
-  \item{method}{method}
-
   \item{plot}{make a plot.  If FALSE, returns lamda_GC
   values without making plot}
 
