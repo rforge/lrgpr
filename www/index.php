@@ -59,7 +59,7 @@ The package also provides simple interfaces for standard linear and logistic reg
 </p>
 
 <ul>
-<li> <a href="./docs/lrgpr.pdf"><strong>Tutorial</strong></a>: thorough demonstration of the advantages and applications of <b>lrgpr</b>	</li>
+<li> <a href="./docs/lrgpr.pdf"><strong>Tutorial</strong></a>: thorough demonstration of the functionality and applications of <b>lrgpr</b>	</li>
 
 <li> <a href="./docs/lrgpr-manual.pdf"><strong>Manual</strong></a>: details about available functions</li>
 
