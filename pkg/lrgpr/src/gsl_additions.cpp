@@ -118,7 +118,7 @@ gsl_matrix * gsl_matrix_read( const string &file ){
 
 		#ifdef PRINT_TO_CONSOLE
 		cout << "Does not exist: "<< file <<endl;
-		exit(1);
+		//exit(1);
 		#endif
 	}
 
@@ -141,7 +141,7 @@ gsl_vector * gsl_vector_read( const string &file ){
 	if( ! fileExists( file ) ){
 	#ifdef PRINT_TO_CONSOLE
 		cout << "Does not exist: "<< file <<endl;
-		exit(1);
+		//exit(1);
 	#endif
 	}
 
@@ -153,7 +153,7 @@ gsl_vector * gsl_vector_read( const string &file ){
 		#ifdef PRINT_TO_CONSOLE
 		cout << "Error in file: " << file << endl;
 		cout << "Expected a vector in text format, where either the number of rows or columns is one" << endl;
-		exit(1);
+		//exit(1);
 		#endif
 	}
 
@@ -1064,7 +1064,7 @@ gsl_vector *gsl_matrix_get_diag(gsl_matrix *M){
 	if(M->size1 != M->size2){
 		#ifdef PRINT_TO_CONSOLE
 		cout << "Cannot extract diag of non square matrix" << endl;
-		exit(1);
+		//exit(1);
 		#endif
 	}
 
@@ -1629,7 +1629,7 @@ void gsl_vector_save(const vector<string> &names, const gsl_vector *v, const str
 		cerr << "Cannot save gsl_vector to file, names vector is not the same size..." << endl;
 		cerr << "v->size: " << v->size << endl;
 		cerr << "names.size(): " << names.size() << endl;
-		exit(1);
+		//exit(1);
 		#endif
 	}
 
@@ -1664,7 +1664,7 @@ gsl_vector *gsl_vector_elementwise_product(const gsl_vector *a, const gsl_vector
 	if( a->size != b->size ){
 		#ifdef PRINT_TO_CONSOLE
 		cout << "gsl_vector_elementwise_product: vectors have different sizes" << endl;
-		exit(1);
+		//exit(1);
 		#endif
 	}
 
@@ -1729,7 +1729,7 @@ void gsl_matrix_short_save_TPED(const gsl_matrix_short *X, const string &path){
 				case '?':
 					#ifdef PRINT_TO_CONSOLE
 					cout << "gsl_matrix_short_save_TPED: Invalid genotype value for individual " << i << ": " << gsl_matrix_short_get( X, i, j ) << endl;
-					exit(1);
+					//exit(1);
 					#endif
 					break;
 			}

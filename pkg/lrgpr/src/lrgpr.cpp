@@ -41,7 +41,7 @@ LRGPR::LRGPR( const gsl_vector *Y_, const gsl_matrix *U_, const gsl_vector *eige
 
 	params = new LRGPR_params( Y_, U_, eigenValues, X_ncol_, W_ncol_);
 
-	delta_grid = gsl_vector_seq( -10, 10, 100 );
+	delta_grid = gsl_vector_seq( -12, 12, 110 );
 
 	params->breakDueToSingularMatrix = false;
 }
