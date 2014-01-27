@@ -59,8 +59,6 @@ set_missing_to_mean = function(A){
 		}
 	}
 
-	a = gc()
-
 	return( A)
 }
 
@@ -893,7 +891,7 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 		features = as.matrix(features)
 	}	
 
-	#result = tryCatch({
+	result = tryCatch({
 		# save status from current state
 		na.status = options("na.action")$na.action
 
@@ -925,12 +923,12 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 		#	stop("Response is not numeric")
 		#}
 
-	#}, warning 	= function(w) { warning(w)
-	#}, error 	= function(e) { stop(e)
-	#}, finally 	= {
+	}, warning 	= function(w) { warning(w)
+	}, error 	= function(e) { stop(e)
+	}, finally 	= {
 	    # restore status to previous state
-	#	options(na.action=na.status)
-	#})	
+		options(na.action=na.status)
+	})	
 
 	if( length(terms) == 0 ){
 		stop("Must specify terms, cannot be determined from formula")
