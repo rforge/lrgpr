@@ -63,7 +63,7 @@ The package also provides simple interfaces for standard linear and logistic reg
 
 <li> <a href="./docs/lrgpr-manual.pdf"><strong>Manual</strong></a>: details about available functions</li>
 
-<li> <a href="./docs/lrgpr_0.0.2.tar.gz"><strong>Download package</strong></a>: v0.0.2 </li>
+<li> <a href="./docs/lrgpr_0.0.3.tar.gz"><strong>Download package</strong></a>: v0.0.3 </li>
 
 <li> <a href="http://<?php echo $domain; ?>/projects/<?php echo $group_name; ?>/"><strong>Project summary page</strong></a> </li>
 
@@ -89,7 +89,7 @@ The package also provides simple interfaces for standard linear and logistic reg
 
 <font size="1">
 <p>
-Gabriel E. Hoffman.  Updated January, 7, 2014
+Gabriel E. Hoffman.  Updated January, 27, 2014
 </p>
 </font>
 
