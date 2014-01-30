@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <omp.h>
 
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
@@ -102,7 +103,20 @@ public:
 
 	SNPinfo(){}
 
-	~SNPinfo(){}
+	SNPinfo( const int size){
+		chromosome 			= vector<string>(size);
+		name 				= vector<string>(size);
+		position_genetic 	= vector<double>(size);
+		position_physical 	= vector<double>(size);
+		allele1 			= vector<string>(size);
+		allele2 			= vector<string>(size);
+		imputed 			= vector<bool>(size);
+	}  
+
+	void append( const SNPinfo *info ){
+		chromosome.insert(chromosome.end(), info->chromosome.begin(), info->chromosome.end());
+		name.insert(name.end(), info->name.begin(), info->name.end());
+	}
 
 	void clear(){
 		chromosome.clear();
@@ -129,13 +143,13 @@ long count_tokens(const char *str_in, const char *delimiters){
 	strcpy(str, str_in);
 
 	// Delimiter is either space or tab
-	char *pch = strtok( str, delimiters);
+	char *pch = strtok_r( str, delimiters);
 
 	long count = 0;
 
 	// Tokenize until end is reached
 	while ( pch != NULL )	{
-		pch = strtok (NULL, delimiters);
+		pch = strtok_r (NULL, delimiters);
 
 		count++;
 	}
@@ -177,9 +191,11 @@ bool parse_TPED( Rcpp::NumericMatrix *X, const long line_number, const string &l
 		n_indivs = (*n_tokens - 4) / 2;
 	}
 
+	char *saveptr;
+
 	// Initialize tokenizer
 	// const_cast can be used because the string is not accessed again until a new line is read
-	pch = strtok( const_cast<char *>(line.c_str()), delimiters);
+	pch = strtok_r( const_cast<char *>(line.c_str()), delimiters, &saveptr);
 
 	/////////////////////////
 	// Get first 4 columns //
@@ -188,27 +204,27 @@ bool parse_TPED( Rcpp::NumericMatrix *X, const long line_number, const string &l
 	string chrom, name;
 
 	chrom = string( pch );
-	pch = strtok (NULL, delimiters);
+	pch = strtok_r (NULL, delimiters, &saveptr);
 	
 	name = string( pch );
-	pch = strtok (NULL, delimiters);
+	pch = strtok_r (NULL, delimiters, &saveptr);
 
 	// If markerNames is empty, then continue
 	// or if the name is found in the list, then continue
 	if( markerNames.size() == 0 || is_in_vector( markerNames, name) ){
 	
-		markerInfo->imputed.push_back( false );
-		markerInfo->chromosome.push_back( chrom );
-		markerInfo->name.push_back( name );	
+		markerInfo->imputed[line_number] = ( false );
+		markerInfo->chromosome[line_number] = ( chrom );
+		markerInfo->name[line_number] = ( name );	
 
-		markerInfo->position_genetic.push_back( atof( pch ) );
-		pch = strtok (NULL, delimiters);
+		markerInfo->position_genetic[line_number]  = ( atof( pch ) );
+		pch = strtok_r (NULL, delimiters, &saveptr);
 
-		markerInfo->position_physical.push_back( atof( pch ) );
+		markerInfo->position_physical[line_number] = ( atof( pch ) );
 		
 		char *alleleArray = (char *) malloc( *n_tokens * sizeof(char));
-		if( alleleArray == NULL){	
-			return false;
+		if( alleleArray == NULL){	cout << "Err 1" << endl;
+			return false; 
 		}
 
 		///////////////////////////////////
@@ -218,10 +234,10 @@ bool parse_TPED( Rcpp::NumericMatrix *X, const long line_number, const string &l
 		// Read single line into alleleArray
 		for(int i=0; i<2*n_indivs; i++){		
 
-			pch = strtok (NULL, delimiters);
+			pch = strtok_r (NULL, delimiters, &saveptr);
 
 			// Parsing Error type 2
-			if( pch == NULL ){
+			if( pch == NULL ){ cout << "Err 2" << endl;
 				return false;
 			}
 			alleleArray[i] = pch[0]; // Since pch will be a single character
@@ -229,8 +245,8 @@ bool parse_TPED( Rcpp::NumericMatrix *X, const long line_number, const string &l
 
 		// if there are remaining tokens on this line
 		// Parsing Error type 3
-		if( strtok (NULL, delimiters) != NULL ){	
-			free( alleleArray );		
+		if( strtok_r (NULL, delimiters, &saveptr) != NULL ){	
+			free( alleleArray );	cout << "Err 3" << endl;	
 			return false;
 		}
 
@@ -251,8 +267,8 @@ bool parse_TPED( Rcpp::NumericMatrix *X, const long line_number, const string &l
 			}
 		}
 
-		markerInfo->allele1.push_back( stringify(allele1) );
-		markerInfo->allele2.push_back( stringify(allele2) );
+		markerInfo->allele1[line_number] = ( stringify(allele1) );
+		markerInfo->allele2[line_number] = ( stringify(allele2) );
 
 		// Assign coding
 		int j=0;
@@ -282,7 +298,7 @@ bool parse_TPED( Rcpp::NumericMatrix *X, const long line_number, const string &l
 	}else{
 		// send pch the end of the current line
 		char delim =  '\n';
-		pch = strtok (NULL, &delim);
+		pch = strtok_r (NULL, &delim, &saveptr);
 		pch -= 1;
 	}
 
@@ -318,9 +334,11 @@ bool parse_GEN( Rcpp::NumericMatrix *X, const long line_number, const string &li
 		n_indivs = (*n_tokens - 5) / 3;
 	}
 
+	char *saveptr;
+
 	// Initialize tokenizer
 	// const_cast can be used because the string is not accessed again until a new line is read
-	pch = strtok( const_cast<char *>(line.c_str()), delimiters);
+	pch = strtok_r( const_cast<char *>(line.c_str()), delimiters, &saveptr);
 
 	/////////////////////////
 	// Get first 4 columns //
@@ -329,29 +347,29 @@ bool parse_GEN( Rcpp::NumericMatrix *X, const long line_number, const string &li
 	string name, chrom;
 
 	chrom = string( pch );
-	pch = strtok (NULL, delimiters);
+	pch = strtok_r (NULL, delimiters, &saveptr);
 	
 	name = string( pch );
-	pch = strtok (NULL, delimiters);
+	pch = strtok_r (NULL, delimiters, &saveptr);
 
 	// If markerNames is empty, then continue
 	// or if the name is found in the list, then continue
 	if( markerNames.size() == 0 || is_in_vector( markerNames, name) ){
 	
-		if( chrom == "---") markerInfo->imputed.push_back( true );
-		else  				markerInfo->imputed.push_back( false );
+		if( chrom == "---") markerInfo->imputed[line_number] = ( true );
+		else  				markerInfo->imputed[line_number] = ( false );
 
-		markerInfo->chromosome.push_back( stringify(NA_REAL) );
-		markerInfo->name.push_back( name );	
-		markerInfo->position_genetic.push_back( NA_REAL );
+		markerInfo->chromosome[line_number] = ( stringify(NA_REAL) );
+		markerInfo->name[line_number] = ( name );	
+		markerInfo->position_genetic[line_number] = ( NA_REAL );
 
-		markerInfo->position_physical.push_back( atof( pch ) );
-		pch = strtok (NULL, delimiters);
+		markerInfo->position_physical[line_number] = ( atof( pch ) );
+		pch = strtok_r (NULL, delimiters, &saveptr);
 
-		markerInfo->allele1.push_back( stringify(pch) );
-		pch = strtok (NULL, delimiters);
+		markerInfo->allele1[line_number] = ( stringify(pch) );
+		pch = strtok_r (NULL, delimiters, &saveptr);
 
-		markerInfo->allele2.push_back( stringify(pch) );
+		markerInfo->allele2[line_number] = ( stringify(pch) );
 		
 		float *alleleArray = (float *) malloc( 3*n_indivs*sizeof(float));
 		if( alleleArray == NULL){
@@ -365,7 +383,7 @@ bool parse_GEN( Rcpp::NumericMatrix *X, const long line_number, const string &li
 		// Read single line into alleleArray
 		for(int i=0; i<3*n_indivs; i++){		
 
-			pch = strtok (NULL, delimiters);
+			pch = strtok_r (NULL, delimiters, &saveptr);
 
 			// Parsing Error type 2
 			if( pch == NULL ){
@@ -377,7 +395,7 @@ bool parse_GEN( Rcpp::NumericMatrix *X, const long line_number, const string &li
 
 		// if there are remaining tokens on this line
 		// Parsing Error type 3
-		if( strtok (NULL, delimiters) != NULL ){
+		if( strtok_r (NULL, delimiters, &saveptr) != NULL ){
 			free( alleleArray );
 			return false;
 		}
@@ -400,7 +418,7 @@ bool parse_GEN( Rcpp::NumericMatrix *X, const long line_number, const string &li
 	}else{
 		// send pch the end of the current line
 		char delim =  '\n';
-		pch = strtok (NULL, &delim);
+		pch = strtok_r (NULL, &delim, &saveptr);
 		pch -= 1;
 	}
 
@@ -436,9 +454,11 @@ bool parse_DOSAGE( Rcpp::NumericMatrix *X, const long line_number, const string 
 		n_indivs = (*n_tokens - 3) / 2;
 	}
 
+	char *saveptr;
+
 	// Initialize tokenizer
 	// const_cast can be used because the string is not accessed again until a new line is read
-	pch = strtok( const_cast<char *>(line.c_str()), delimiters);
+	pch = strtok_r( const_cast<char *>(line.c_str()), delimiters, &saveptr);
 	if( pch == NULL) return false;
 
 	/////////////////////////
@@ -446,15 +466,15 @@ bool parse_DOSAGE( Rcpp::NumericMatrix *X, const long line_number, const string 
 	/////////////////////////
 
 	string name = string( pch );
-	markerInfo->name.push_back( name );
+	markerInfo->name[line_number] = ( name );
 
-	pch = strtok (NULL, delimiters);	
+	pch = strtok_r (NULL, delimiters, &saveptr);	
 	if( pch == NULL) return false;	
-	markerInfo->allele1.push_back( string( pch ) );
+	markerInfo->allele1[line_number] = ( string( pch ) );
 
-	pch = strtok (NULL, delimiters);
+	pch = strtok_r (NULL, delimiters, &saveptr);
 	if( pch == NULL) return false;	
-	markerInfo->allele2.push_back( string( pch ) );
+	markerInfo->allele2[line_number] = ( string( pch ) );
 
 	// If markerNames is empty, then continue
 	// or if the name is found in the list, then continue
@@ -481,7 +501,7 @@ bool parse_DOSAGE( Rcpp::NumericMatrix *X, const long line_number, const string 
 		// INCREMENT BY 2, because other values reflects quality and is always (?) zero
 		for(int i=0; i<2*n_indivs; i=i+2){		
 
-			pch = strtok (NULL, delimiters);
+			pch = strtok_r (NULL, delimiters, &saveptr);
 
 			//cout << k << " " << pch << endl;
 
@@ -495,10 +515,10 @@ bool parse_DOSAGE( Rcpp::NumericMatrix *X, const long line_number, const string 
 			alleleArray[k++] = atof(pch); 
 
 			// burn next value
-			pch = strtok (NULL, delimiters);
+			pch = strtok_r (NULL, delimiters, &saveptr);
 		}
 
-		pch = strtok (NULL, delimiters);
+		pch = strtok_r (NULL, delimiters, &saveptr);
 
 		//cout << "\npch: " << (pch) << endl;
 
@@ -520,7 +540,7 @@ bool parse_DOSAGE( Rcpp::NumericMatrix *X, const long line_number, const string 
 	}else{
 		// send pch the end of the current line
 		char delim =  '\n';
-		pch = strtok (NULL, &delim);
+		pch = strtok_r (NULL, &delim, &saveptr);
 		pch -= 1;
 	}
 
@@ -592,7 +612,7 @@ RcppExport SEXP read_tped_gen( SEXP fileName_in, SEXP start_line_in, SEXP nlines
 	Rcpp::NumericMatrix X(n_indivs, nlines);
 
 	bool foundMissingData = false;
-	SNPinfo *markerInfo = new SNPinfo();
+	SNPinfo *markerInfo = new SNPinfo(nlines);
 
 	ifstream file( fileName.c_str());
 
@@ -745,16 +765,21 @@ bool is_dosage_header( const string &line){
 	return result;
 }
 
-RcppExport SEXP R_convertToBinary( SEXP fileName_, SEXP fileNameOut_, SEXP format_, SEXP isZipFile_){
+RcppExport SEXP R_convertToBinary( SEXP fileName_, SEXP fileNameOut_, SEXP format_, SEXP isZipFile_, SEXP nthreads_){
 
-BEGIN_RCPP
+//BEGIN_RCPP
 
 	string fileName = Rcpp::as<string>( fileName_ );
 	string fileNameOut = Rcpp::as<string>( fileNameOut_ );
 	string format = Rcpp::as<string>( format_ );
-	bool isZipFile = (bool) as<int>( isZipFile_ );
+	bool isZipFile = (bool) as<int>( isZipFile_ );	
+	int nthreads = as<int>( nthreads_ );
+
+	omp_set_num_threads( nthreads );
 
 	string line;	
+
+	int batchSize = 10000;
 
 	// Get ASCII file dimensions
 	////////////////////////////
@@ -847,92 +872,128 @@ BEGIN_RCPP
 
 	int byte_loc = 0;	
 
-	Rcpp::NumericMatrix X(n_indivs, 1);
+	Rcpp::NumericMatrix X(n_indivs, batchSize);
 
 	bool foundMissingData = false;
-	SNPinfo *markerInfo = new SNPinfo();
+	SNPinfo markerInfo;
 
 	vector<string> markerNames;
-
-	double *array = (double *) malloc(n_indivs*sizeof(double));
 
 	time_t start_time;
 	time(&start_time);
 
-	bool success = true;
-
 	long count=0;
 
-	while( getline(ifstrm2, line) && success ){	
+	bool isActive = true;
+	bool is_success = true;
 
-		if( format == "DOSAGE" && is_dosage_header(line) ) continue;
+	while( isActive ){
 
-		//for(int k=0; k<40; k++) cout << line[k];
-		//cout << endl;
-		
-		if( format == "TPED" ){
-			
-			success = parse_TPED( &X, 0, line, " \t", &n_tokens, markerInfo, &foundMissingData, markerNames);
+		vector<string> lineArray;
 
-			// Note: parse_TPED returns -1, 0, 1
-			//		so add 1 to concert to 0,1,2 
-			X(_, 0) = X(_, 0) + 1;
+		// get batch
+		for(int k=0; k<batchSize; k++){
 
-		}else if( format == "GEN" ){
+			// If TRUE then continue parsing
+			// If FALSE stop this batch, and don't enter the next batch
+			isActive = getline(ifstrm2, line);
 
-			success = parse_GEN ( &X, 0, line, " \t", &n_tokens, markerInfo, &foundMissingData, markerNames);
+			if( ! isActive ) break;
 
+			if( format == "DOSAGE" && is_dosage_header(line) ) continue;
 
-			// Note: parse_GEN returns -1, 0, 1
-			//		so add 1 to concert to 0,1,2 
-			X(_, 0) = X(_, 0) + 1;
-		
-		}else if( format == "DOSAGE" ){
-
-			success = parse_DOSAGE ( &X, 0, line, " \t", &n_tokens, markerInfo, &foundMissingData, markerNames);
+			lineArray.push_back( line );
 		}
 
-		// If line was parsed sucessfully
-		if( success ){
+		vector<bool> success(lineArray.size());
+		SNPinfo *markerInfo_loc = new SNPinfo(lineArray.size());
 
-			//  Convert to array 
-			for(int i=0; i<n_indivs; i++){
-				array[i] = X(i, 0);
+		// parse batch
+		#pragma omp parallel
+		{
+			bool res;
+
+			#pragma omp for schedule(static, 50)
+			for(int k=0; k<lineArray.size(); k++){
+				
+				if( format == "TPED" ){				
+					res = parse_TPED( &X, k, lineArray[k], " \t", &n_tokens, markerInfo_loc, &foundMissingData, markerNames);
+
+					// Note: parse_TPED returns -1, 0, 1
+					//		so add 1 to concert to 0,1,2 
+					X(_, k) = X(_, k) + 1;
+				}else if( format == "GEN" ){
+					res = parse_GEN ( &X, k, lineArray[k], " \t", &n_tokens, markerInfo_loc, &foundMissingData, markerNames);
+					// Note: parse_GEN returns -1, 0, 1
+					//		so add 1 to concert to 0,1,2 
+					X(_, k) = X(_, k) + 1;
+				
+				}else if( format == "DOSAGE" ){
+					res = parse_DOSAGE ( &X, k, lineArray[k], " \t", &n_tokens, markerInfo_loc, &foundMissingData, markerNames);
+				}
+
+				#pragma omp critical
+				success[k] = res;
 			}
+		}
 
-			// int fseek(FILE *stream, long offset, int whence);
-			fseek( fp, count*n_indivs*sizeof(double), 0);
+		markerInfo.append( markerInfo_loc );
+		delete markerInfo_loc;
 
-			// size_t fwrite(const void *ptr, size_t size_of_elements, size_t number_of_elements, FILE *a_file);
-			fwrite( array, sizeof(double), n_indivs, fp);
+		int chunkSize = MIN(1, lineArray.size());
+
+		double *chunk = (double *) malloc(chunkSize*n_indivs*sizeof(double));
+
+		for(int set=0; set<lineArray.size(); set+=chunkSize){
+
+			// Write to file
+			for(int k=set; k<set+chunkSize; k++){
+				// If line was parsed sucessfully
+				if( ! success[k] ){
+					is_success = false;
+					isActive = false;
+				}
+
+				//  Convert to array 
+				for(int i=0; i<n_indivs; i++){
+					//cout << i+(k-set)*n_indivs <<" " << i << " " << k << " " << X(i, k) << endl;
+					chunk[i+(k-set)*n_indivs] = X(i, k);
+				}
+
+				// int fseek(FILE *stream, long offset, int whence);
+				fseek( fp, count*n_indivs*sizeof(double), 0);
+
+				// size_t fwrite(const void *ptr, size_t size_of_elements, size_t number_of_elements, FILE *a_file);
+				fwrite( chunk, sizeof(double), n_indivs*chunkSize, fp);
+			}	
+
+			count += chunkSize;
 
 			if( count % 10000 == 0 ) 
-				Rcpp::Rcout << print_progress( count, n_lines, 25, start_time);
+				Rcpp::Rcout << print_progress( count, n_lines, 25, start_time);	
 
-			count++;
 		}
-	}
-	
-	if( success ){ 
-		Rcpp::Rcout << print_progress( n_lines, n_lines, 25, start_time);
-		Rcpp::Rcout << endl;
+		free(chunk);
 	}
 
+	
+	Rcpp::Rcout << print_progress( n_lines, n_lines, 25, start_time);
+	Rcpp::Rcout << endl;	
+
+	cout << "Close file" << endl;
 	file.close();
+	cout << "Close fp" << endl;
 	fclose(fp);
-	free( array );
 
 	Rcpp::List ret = Rcpp::List::create(				
-				Rcpp::Named("success")  	= success, 
+				Rcpp::Named("success")  	= is_success, 
 				Rcpp::Named("nrow")  		= n_indivs, 
 				Rcpp::Named("ncol")  		= n_lines, 
-				Rcpp::Named("colNames") 	= wrap(markerInfo->name) );
-
-	delete markerInfo;
+				Rcpp::Named("colNames") 	= wrap(markerInfo.name) );
 
 	return( ret );
 
-END_RCPP 
+//END_RCPP 
 
 }
 

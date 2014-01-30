@@ -1304,7 +1304,7 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 #' }
 #'
 #' @export
-convertToBinary = function( filename, filenameOut, format ){
+convertToBinary = function( filename, filenameOut, format, nthreads=detectCores(logical=TRUE) ){
 
 	if( path.expand(filename) == path.expand(filenameOut) ){
 		stop("Cannot read and write to the same file")
@@ -1324,7 +1324,7 @@ convertToBinary = function( filename, filenameOut, format ){
 		stop("Invalid format: ", format)
 	}
 
-	res = .Call("R_convertToBinary", filename, filenameOut, format, isZipFile, package="lrgpr")
+	res = .Call("R_convertToBinary", filename, filenameOut, format, isZipFile, nthreads, package="lrgpr")
 
 	if( ! res$success ){
 		stop("File is not properly formatted as ", format)
