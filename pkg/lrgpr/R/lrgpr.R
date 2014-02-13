@@ -179,7 +179,7 @@ set_missing_to_mean = function(A){
 #' # Joint test of coefficients 2:3
 #' wald( fit, terms=2:3)
 #' @export
-lrgpr <- function( formula, decomp, rank=max(length(decomp$d), length(decomp$values)), delta=NULL, nthreads=detectCores(logical=TRUE), W_til=NULL, scale=TRUE){
+lrgpr <- function( formula, decomp, rank=max(ncol(decomp$u), ncol(decomp$vectors)), delta=NULL, nthreads=detectCores(logical=TRUE), W_til=NULL, scale=TRUE){
 
 	#chisq=FALSE
 	rdf=FALSE # Was false before
@@ -240,6 +240,7 @@ lrgpr <- function( formula, decomp, rank=max(length(decomp$d), length(decomp$val
 
 		# set rank to not exceed the number of positive eigen-values
 		rank <- min( rank, length(which(decomp$values > 0)) )
+		rank <- min (rank, ncol(decomp$vectors))
 
 		# truncate eigen-spectrum
 		decomp$values = decomp$values[1:rank]
@@ -256,6 +257,7 @@ lrgpr <- function( formula, decomp, rank=max(length(decomp$d), length(decomp$val
 
 		# set rank to not exceed the number of positive eigen-values
 		rank <- min( rank, length(which(decomp$d > 0)) )
+		rank <- min (rank, ncol(decomp$u))
 
 		# truncate eigen-spectrum
 		decomp$d = decomp$d[1:rank]
@@ -597,7 +599,7 @@ is.svd_decomp_symmetric <- function( decomp ){
 #' pValues = lrgprApply( y ~ sex + sex:SNP, features=X, decomp, terms=c(3,4), delta=fit$delta)
 #'
 #' @export
-lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(length(decomp$d), length(decomp$values)), map=NULL, distance=NULL, dcmp_features=NULL, W_til=NULL, scale=TRUE, delta=NULL, reEstimateDelta=FALSE, nthreads=detectCores(logical = TRUE), verbose=FALSE, progress=TRUE ){
+lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(decomp$u), ncol(decomp$vectors)), map=NULL, distance=NULL, dcmp_features=NULL, W_til=NULL, scale=TRUE, delta=NULL, reEstimateDelta=FALSE, nthreads=detectCores(logical = TRUE), verbose=FALSE, progress=TRUE ){
 
 	env = parent.frame()
 
@@ -719,6 +721,7 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(length(d
 
 		# set rank to not exceed the number of positive eigen-values
 		rank <- min( rank, length(which(decomp$values > 0)) )
+		rank <- min (rank, ncol(decomp$vectors))
 
 		# truncate eigen-spectrum
 		decomp$values = decomp$values[1:rank]
@@ -735,6 +738,7 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(length(d
 
 		# set rank to not exceed the number of positive eigen-values
 		rank <- min( rank, length(which(decomp$d > 0)) )
+		rank <- min (rank, ncol(decomp$u))
 
 		# truncate eigen-spectrum
 		decomp$d = decomp$d[1:rank]

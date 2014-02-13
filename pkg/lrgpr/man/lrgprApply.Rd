@@ -3,7 +3,7 @@
 \title{Fit a Low Rank Gaussian Process Regression (LRGPR) / Linear Mixed Model (LMM) for many markers}
 \usage{
   lrgprApply(formula, features, decomp, terms = NULL,
-    rank = max(length(decomp$d), length(decomp$values)),
+    rank = max(ncol(decomp$u), ncol(decomp$vectors)),
     map = NULL, distance = NULL, dcmp_features = NULL,
     W_til = NULL, scale = TRUE, delta = NULL,
     reEstimateDelta = FALSE,

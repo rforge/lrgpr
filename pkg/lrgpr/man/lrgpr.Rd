@@ -3,7 +3,7 @@
 \title{Fit a Low Rank Gaussian Process Regression (LRGPR) / Linear Mixed Model (LMM)}
 \usage{
   lrgpr(formula, decomp,
-    rank = max(length(decomp$d), length(decomp$values)),
+    rank = max(ncol(decomp$u), ncol(decomp$vectors)),
     delta = NULL, nthreads = detectCores(logical = TRUE),
     W_til = NULL, scale = TRUE)
 }
