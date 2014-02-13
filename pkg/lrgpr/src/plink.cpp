@@ -980,9 +980,7 @@ RcppExport SEXP R_convertToBinary( SEXP fileName_, SEXP fileNameOut_, SEXP forma
 	Rcpp::Rcout << print_progress( n_lines, n_lines, 25, start_time);
 	Rcpp::Rcout << endl;	
 
-	cout << "Close file" << endl;
 	file.close();
-	cout << "Close fp" << endl;
 	fclose(fp);
 
 	Rcpp::List ret = Rcpp::List::create(				

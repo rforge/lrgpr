@@ -135,6 +135,120 @@ void GLM_MV_workspace_free(GLM_MV_workspace *work){
 }
 
 
+LM_preproc *LM_preproc_alloc( const gsl_matrix *Y, const gsl_matrix *W){
+
+	LM_preproc *preproc = (LM_preproc *) malloc(sizeof(LM_preproc));
+
+	// SVD
+	// W -> U D V^T
+	///////////////////
+	gsl_matrix *t_U;
+	gsl_vector *d;
+	gsl_matrix *V;
+	gsl_matrix *t_W = gsl_matrix_alloc(W->size2, W->size1);
+	gsl_matrix_transpose_memcpy(t_W, W);
+
+	gsl_lapack_svd( t_W, t_U, d, V);
+
+	// P = W %*% V %*% D^-1
+	////////////////////////
+
+	// V =  V %*% D^-1
+	gsl_vector_view v;
+
+	for(int i=0; i<V->size2; i++){
+		v =  gsl_matrix_column( V, i);
+		gsl_vector_scale(&v.vector, 1/gsl_vector_get(d,i));
+	}
+
+	// P = W %*% (V %*% D^-1)
+	preproc->P = gsl_matrix_alloc(W->size1, W->size2);
+	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, W, V, 0.0, preproc->P);
+
+	// Py = crossprod(P, y)
+	preproc->PY = gsl_matrix_alloc(preproc->P->size2, Y->size2);
+	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, preproc->P, Y, 0.0, preproc->PY);
+
+	// cp_y = crossprod(y)
+	preproc->cp_Y = gsl_matrix_alloc(Y->size2, Y->size2);
+	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, Y, Y, 0.0, preproc->cp_Y);
+
+	// cp_Py = crossprod(Py)
+	preproc->cp_PY = gsl_matrix_alloc(preproc->PY->size2, preproc->PY->size2);
+	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, preproc->PY, preproc->PY, 0.0, preproc->cp_PY);
+
+	gsl_matrix_free( t_U );
+	gsl_matrix_free( V );
+	gsl_matrix_free( t_W );
+	gsl_vector_free( d );
+
+	// covariance terms
+	///////////////////
+
+	preproc->cp_W = gsl_matrix_alloc( W->size2, W->size2);
+	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, W, W, 0.0, preproc->cp_W);
+
+	preproc->W = gsl_matrix_alloc( W->size1, W->size2);
+	gsl_matrix_memcpy(preproc->W, W);
+
+	return preproc;
+}
+
+void LM_preproc_free( LM_preproc * preproc){
+
+	gsl_matrix_free(preproc->P);
+	gsl_matrix_free(preproc->PY);
+	gsl_matrix_free(preproc->cp_Y);
+	gsl_matrix_free(preproc->cp_PY);
+	gsl_matrix_free(preproc->cp_W);
+	gsl_matrix_free(preproc->W);
+}
+
+
+Preproc_workspace *Preproc_workspace_alloc( const gsl_matrix *Y, const int n_snp_terms, LM_preproc * prep){
+
+	Preproc_workspace *preproc = (Preproc_workspace *) malloc(sizeof(Preproc_workspace));
+
+	// Alloc the rest
+	preproc->Beta_sub = gsl_matrix_alloc( n_snp_terms, Y->size2 );
+	preproc->PX = gsl_matrix_alloc(prep->P->size2,n_snp_terms);
+	preproc->cp_X = gsl_matrix_alloc(n_snp_terms,n_snp_terms);
+	preproc->cp_YX = gsl_matrix_alloc(Y->size2,n_snp_terms);
+	preproc->cp_PX = gsl_matrix_alloc(preproc->PX->size2, preproc->PX->size2);
+	preproc->cp_PYPX = gsl_matrix_alloc(prep->PY->size2, preproc->PX->size2);
+	preproc->C = gsl_matrix_alloc( preproc->cp_X->size1, preproc->cp_X->size2);
+	preproc->cp_YX_sub = gsl_matrix_alloc( preproc->cp_YX->size1, preproc->cp_YX->size2);
+	preproc->SSE = gsl_matrix_alloc( Y->size2, Y->size2);
+	preproc->beta_cp_X = gsl_matrix_alloc( preproc->Beta_sub->size2, preproc->cp_X->size2 );
+	preproc->beta_cp_PX = gsl_matrix_alloc( preproc->Beta_sub->size2, preproc->cp_PX->size2 );
+	preproc->XW = gsl_matrix_alloc(n_snp_terms, prep->W->size2);
+	preproc->Sigma = gsl_matrix_alloc(n_snp_terms + prep->W->size2,n_snp_terms + prep->W->size2);
+	preproc->Sigma_sub = gsl_matrix_alloc( preproc->Beta_sub->size1, preproc->Beta_sub->size1);
+
+	return preproc;
+}
+
+void Preproc_workspace_free( Preproc_workspace * preproc){
+	gsl_matrix_free(preproc->Beta_sub);
+	gsl_matrix_free(preproc->PX);
+	gsl_matrix_free(preproc->cp_X);
+	gsl_matrix_free(preproc->cp_YX);
+	gsl_matrix_free(preproc->cp_PX);
+	gsl_matrix_free(preproc->cp_PYPX);
+	gsl_matrix_free(preproc->C);
+	gsl_matrix_free(preproc->cp_YX_sub);
+	gsl_matrix_free(preproc->SSE);
+	gsl_matrix_free(preproc->beta_cp_X);
+	gsl_matrix_free(preproc->beta_cp_PX);
+	gsl_matrix_free(preproc->XW );
+	gsl_matrix_free(preproc->Sigma);
+	gsl_matrix_free(preproc->Sigma_sub);
+}
+
+
+
+
+
 /*
 
 Multiplying crossprod(X, Y) first is 2-4x faster
@@ -265,6 +379,151 @@ void GLM_regression( const gsl_matrix *Y, const gsl_matrix *X, regressionType re
 	if( alloc_work_locally ) GLM_MV_workspace_free( work );
 }
 
+gsl_vector *GLM_regression_preproc( const gsl_matrix *Y, const gsl_matrix *X, GLM_MV_workspace *work, LM_preproc *preproc, Preproc_workspace *preproc_work){
+
+	//cout << "X: " << X->size1 << " x " << X->size2 <<endl;
+	//cout << "P: " << preproc->P->size1 << " x " << preproc->P->size2 <<endl;
+	//cout << "PX: " << preproc_work->PX->size1 << " x " << preproc_work->PX->size2 <<endl;
+
+	// Px = crossprod(P, x)
+	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, preproc->P, X, 0.0, preproc_work->PX);
+
+	// cp_x = crossprod(x)
+	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, X, X, 0.0, preproc_work->cp_X);
+	
+	// cp_yx = crossprod(y,x)
+	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, Y, X, 0.0, preproc_work->cp_YX);
+
+	// cp_Px = crossprod(Px)
+	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, preproc_work->PX, preproc_work->PX, 0.0, preproc_work->cp_PX);
+		
+	// cp_PyPx = crossprod(Py,Px)
+	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, preproc->PY, preproc_work->PX, 0.0, preproc_work->cp_PYPX);
+	
+	// beta = tcrossprod(chol2inv(chol( cp_x - cp_Px)), cp_yx - cp_PyPx)
+	/////////////////////////////////////////////////////////////////////
+
+	gsl_matrix_memcpy(preproc_work->C, preproc_work->cp_X);
+
+	gsl_matrix_memcpy(preproc_work->cp_YX_sub, preproc_work->cp_YX);
+
+	// cp_x  = solve(cp_x - cp_Px)
+	gsl_matrix_sub( preproc_work->C, preproc_work->cp_PX);
+	gsl_lapack_chol_invert( preproc_work->C);
+
+	// cp_yx = cp_yx - cp_PyPx	
+	gsl_matrix_sub( preproc_work->cp_YX_sub, preproc_work->cp_PYPX);
+
+	// Beta = crossprod( cp_yx, cp_PyPx );
+	gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, preproc_work->C, preproc_work->cp_YX_sub, 0.0, preproc_work->Beta_sub);
+
+	// Sum of square error
+	///////////////////////
+
+	// SSE = cp_y_PPy + crossprod(beta, cp_x) %*% beta - crossprod(beta, cp_Px) %*% beta - 2*cp_yx %*% beta + 2*cp_PyPx %*% beta
+
+	// sigma_sq_hat
+	gsl_matrix_memcpy( preproc_work->SSE, preproc->cp_Y);
+	gsl_matrix_sub( preproc_work->SSE, preproc->cp_PY); 
+
+	// crossprod(X %*% beta) = crossprod(beta, cp_x) %*% beta
+
+	// crossprod(beta, cp_x) %*% beta
+	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, preproc_work->Beta_sub, preproc_work->cp_X, 0.0, preproc_work->beta_cp_X);
+
+	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, preproc_work->beta_cp_X, preproc_work->Beta_sub, 1.0, preproc_work->SSE);
+
+	// crossprod(beta, cp_Px) %*% beta
+	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, preproc_work->Beta_sub, preproc_work->cp_PX, 0.0, preproc_work->beta_cp_PX);
+
+	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, -1.0, preproc_work->beta_cp_PX, preproc_work->Beta_sub, 1.0, preproc_work->SSE);
+
+	//- 2*cp_yx %*% beta 
+	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, -2.0, preproc_work->cp_YX, preproc_work->Beta_sub, 1.0, preproc_work->SSE);
+
+	//+ 2*cp_PyPx %*% beta
+	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 2.0, preproc_work->cp_PYPX, preproc_work->Beta_sub, 1.0, preproc_work->SSE);
+
+	// SSE is a square matrix based Y->size2
+	// Can I use gsl_matrix_product_diag() to only compute the diaginal terms
+
+	// Prepare covariance term
+	//////////////////////////
+
+	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, X, preproc->W, 0.0, preproc_work->XW);
+
+	// gsl_matrix_view gsl_matrix_submatrix (gsl_matrix * m, size_t k1, size_t k2, size_t n1, size_t n2)
+
+	gsl_matrix_view Sxx = gsl_matrix_submatrix( preproc_work->Sigma, 0, 0, X->size2, X->size2);
+	gsl_matrix_view Sxw = gsl_matrix_submatrix( preproc_work->Sigma, 0, X->size2, X->size2, preproc->W->size2);
+	gsl_matrix_view Swx = gsl_matrix_submatrix( preproc_work->Sigma, X->size2, 0, preproc->W->size2, X->size2);
+	gsl_matrix_view Sww = gsl_matrix_submatrix( preproc_work->Sigma, X->size2, X->size2, preproc->W->size2, preproc->W->size2);
+
+	gsl_matrix_memcpy( &Sxx.matrix, preproc_work->cp_X);
+	gsl_matrix_memcpy( &Sxw.matrix, preproc_work->XW);
+	gsl_matrix_transpose_memcpy( &Swx.matrix, preproc_work->XW);
+	gsl_matrix_memcpy( &Sww.matrix, preproc->cp_W);
+
+	//gsl_matrix_print(preproc_work->Sigma);
+
+	gsl_lapack_chol_invert( preproc_work->Sigma );
+
+	//gsl_matrix_print(preproc_work->Sigma);
+
+	gsl_matrix_view Sigma_view = gsl_matrix_submatrix( preproc_work->Sigma, 0, 0, X->size2, X->size2);
+	gsl_matrix_memcpy( preproc_work->Sigma_sub, &Sigma_view.matrix);
+
+	gsl_lapack_chol_invert(preproc_work->Sigma_sub);
+	// Hypothesis test
+	//////////////////
+
+	gsl_vector *pValues = gsl_vector_alloc( Y->size2);
+	int n_variables = X->size2 + preproc->P->size2;
+	int n_indivs = Y->size1;
+
+	gsl_vector_view beta;
+
+	for(int k=0; k<preproc_work->Beta_sub->size2; k++){
+
+		//gsl_matrix_print(preproc_work->Beta_sub);
+		//gsl_matrix_print(preproc_work->Sigma_sub);
+
+		beta = gsl_matrix_column( preproc_work->Beta_sub, k);
+
+		double stat = gsl_matrix_quadratic_form_sym( preproc_work->Sigma_sub, &beta.vector);
+
+		//cout << "stat: " << stat << endl;
+		//cout << "sig_e: " << gsl_matrix_get(preproc_work->SSE, k, k) / (n_indivs - n_variables)  << endl;
+
+		stat /= gsl_matrix_get(preproc_work->SSE, k, k) / (n_indivs - n_variables) ;
+
+		//cout << "stat: " << stat << endl;
+		double p_val;
+
+		// For small samples sizes, the Cholesky decomposition 
+		// 		doesn't fail when it is supposed to
+		// But set p-value to NAN if the test statistical is close enoght to zero
+		if( stat < 1e-14 ){
+			p_val = NAN;
+		}else{
+			// If dimension of test is 1
+			if( X->size2 == 1){
+				// Student-t null for normal model
+				// This p-value is exact for finite sample sizes	
+				p_val = 2*gsl_cdf_tdist_Q( sqrt(stat), n_indivs - n_variables);
+			}else{
+				// use chisq for composite test
+				p_val = gsl_cdf_chisq_Q( stat, X->size2 );	
+			}
+
+			//cout << 2*gsl_cdf_tdist_Q( sqrt(stat), n_indivs - n_variables) << " " << gsl_cdf_chisq_Q( stat, n_variables ) << endl;
+		}
+
+		gsl_vector_set(pValues, k, p_val);
+	}
+
+	return pValues;
+}
 
 
 gsl_vector *GLM_wald_test( GLM_MV_workspace *work, const vector<int> & terms){

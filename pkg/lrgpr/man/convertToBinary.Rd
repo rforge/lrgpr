@@ -2,7 +2,8 @@
 \alias{convertToBinary}
 \title{Convert ASCII to binary file}
 \usage{
-  convertToBinary(filename, filenameOut, format)
+  convertToBinary(filename, filenameOut, format,
+    nthreads = detectCores(logical = TRUE))
 }
 \arguments{
   \item{filename}{file to be converted}

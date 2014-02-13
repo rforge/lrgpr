@@ -88,6 +88,12 @@ QQ_plot = function(p_values, col=rainbow(min(length(p_values), ncol(p_values))),
 
 		# remove NA values
 		p_values[[key]] = p_values[[key]][which( ! is.na( p_values[[key]] ))]
+
+		j = which(p_values[[key]] == 0)
+
+		if( length(j) > 0){
+			p_values[[key]][j] = min(p_values[[key]][-j])
+		}
 		
 		#ry = max(ry,range( -log10(p_values[[key]]), finite=TRUE) )
 		ry = max(ry, -log10(min(p_values[[key]])) )

@@ -1,9 +1,12 @@
+v 0.0.4
+  - lrgpr() and lrgprApply() now handle low rank SVD produced by svd()
+  - glmApply2() implements faster linear regression
+  - Backend changes to processing of binary matrix data on harddrive
 
 v 0.0.3
-	- graceful exit from glmApply/lrgprApply when response is empty
-
+  - graceful exit from glmApply/lrgprApply when response is empty
 
 v 0.0.2
-	- Add option to suppress progress bar
-	- Throw error when sub.big.matrix is passed as features.  Only matrix and big.matrix are supported
+  - Add option to suppress progress bar
+  - Throw error when sub.big.matrix is passed as features.  Only matrix and big.matrix are supported
 

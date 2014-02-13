@@ -520,9 +520,9 @@ is.eigen_decomp <- function( decomp ){
 	
 	check = (! is.null(decomp$vectors) ) && (! is.null(decomp$values))
 	
-	if( check ){
-		check = (length(decomp$values) == ncol(decomp$vectors))
-	}
+	#if( check ){
+	#	check = (length(decomp$values) == nrow(decomp$vectors))
+	#}
 
 	return( check )
 }
@@ -532,9 +532,10 @@ is.svd_decomp <- function( decomp ){
 	
 	check = (! is.null(decomp$u) ) && (! is.null(decomp$d) ) && (! is.null(decomp$v))
 	
-	if( check ){
-		check = (length(decomp$d) == ncol(decomp$u))
-	}
+	# This is not satisifed if dcmp is low rank
+	#if( check ){
+	#	check = (length(decomp$d) == ncol(decomp$u))
+	#}
 
 	return( check )
 }
@@ -618,13 +619,12 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(length(d
 	##################################
 
 	if( ! is.matrix(features) && ! is.big.matrix(features) ){
-		stop("features must be a matrix or big.matrix")
 		features = as.matrix(features)
-	}	
-	
+	}
+
 	if( ! .is_supported_lrgpr(features) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
-	}
+	}	
 
 	##############
 	# check data #
@@ -880,15 +880,14 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 	
 	if( ! is.na(nthreads) && nthreads < 1 ){
 		stop("nthreads must be positive")
-	}	
-
-	if( ! .is_supported_lrgpr(features) ){
-		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}
 
 	if( ! is.matrix(features) && ! is.big.matrix(features) ){
-		#stop("features must be a matrix or big.matrix")
 		features = as.matrix(features)
+	}
+
+	if( ! .is_supported_lrgpr(features) ){
+		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
 
 	result = tryCatch({
@@ -987,6 +986,139 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 	}		
 } 
 
+#' Like glmApply, by linear instead of quadratic as a function of the number of covariates
+#' @export
+glmApply2 <- function( formula, features, terms=NULL, family=gaussian(), useMean=TRUE, nthreads=detectCores(logical = TRUE), univariateTest=TRUE, multivariateTest=FALSE, verbose=FALSE, progress=TRUE ){
+
+	env = parent.frame()
+
+	formula = as.formula(formula)
+	# convert formula to character string
+	formChar = as.character.formula( formula )
+	
+	# Save value to restore later
+	# Note that if there is a global SNP variable, AND lrgprApply is called in a subthread, AND another threads accesses SNP, then there will be a RACE CONDITION
+	# If varable exists
+	#if( length(grep( "^SNP$", ls(env))) > 1) SNP_tmp = SNP
+
+	#####################
+	# Argument checking #
+	#####################
+
+	##############
+	# check data #
+	##############
+	
+	if( ! is.na(nthreads) && nthreads < 1 ){
+		stop("nthreads must be positive")
+	}
+
+	if( ! is.matrix(features) && ! is.big.matrix(features) ){
+		features = as.matrix(features)
+	}
+
+	if( ! .is_supported_lrgpr(features) ){
+		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
+	}	
+
+	result = tryCatch({
+		# save status from current state
+		na.status = options("na.action")$na.action
+
+		# Cause failure if y or X contain NA
+		 options(na.action="na.fail")
+		#options(na.action="na.omit")
+
+	   	# Get response from formula to check identity or logistic link
+		#++++++++++++++++++++++
+
+		# do not fail if features[,1] has missing entry
+		.lrgpr_tmp = set_missing_to_mean(features[,1])
+		idx = which(is.na(.lrgpr_tmp))
+
+		if( length(idx) > 0 ){
+			.lrgpr_tmp[idx] = rnorm(length(idx))
+		}
+		
+		assign(".lrgpr_tmp", .lrgpr_tmp, envir = env)
+
+		form_mod = as.formula( .mm_replace_query_with( formChar, "SNP", ".lrgpr_tmp") )
+		.y = .mm_get_response( form_mod, env)
+		#.X = model.matrix.default( form_mod )
+
+		# identify indeces that contain the SNP variable
+		terms = grep(".lrgpr_tmp", colnames(model.matrix(form_mod, env)))
+
+		#if( ! is.numeric(.y) && ! is.factor(.y)){
+		#	stop("Response is not numeric")
+		#}
+
+	}, warning 	= function(w) { warning(w)
+	}, error 	= function(e) { stop(e)
+	}, finally 	= {
+	    # restore status to previous state
+		options(na.action=na.status)
+	})	
+
+	if( length(terms) == 0 ){
+		stop("Must specify terms, cannot be determined from formula")
+	}
+	if( length(which( terms <= 0 )) > 0 ){
+		stop(paste("Invalid values for terms:", paste(terms, collapse=', ')))
+	}	
+
+	if( verbose ){
+		cat("terms:", terms, "\n")
+	}
+
+	if( family[2]$link == "logit" && sum(!(.y %in% c(0,1))) > 0 ){
+		stop("A logistic link cannot be applied to this reponse.  Only 0/1 values are allowed")
+	}
+	if( sum( ! (family[2]$link %in% c("identity", "logit") ) ) > 0 ){
+		stop("Only family values gaussian() and binomial() with canonical links are allowed")
+	}
+
+	if( is.big.matrix(features) ){ 
+		ptr = features@address 
+	}else{
+		ptr = 0
+	}
+
+	# run regressions
+	pValList <- .Call("R_glmApply2", as.character(form_mod), features, ptr, env, terms-1, as.integer(nthreads), useMean, sum(family[2]$link == "identity"), univariateTest, multivariateTest, ! progress, package="lrgpr")
+
+	gc()
+
+	if( length(pValList) > 1){
+
+		# If there was no error generating univariate p-values
+		if( length(pValList$pValues) > 0){
+			# assign marker names
+			rownames(pValList$pValues) = colnames(features)
+			#colnames(pValList$pValues) = colnames(.y)
+		}else{
+			pValList$pValues = NULL
+		}
+
+		# If varable exists
+		# Restore value	
+		#if( length(grep( "^SNP_tmp$", ls())) > 1) env$SNP = SNP_tmp
+
+		# If there was no error generating multivariate p-values
+		if( length(pValList$pValues_mv) > 0){
+			# assign marker names
+			rownames(pValList$pValues_mv) = colnames(features)
+			colnames(pValList$pValues_mv) = c("Hotelling", "Pillai");
+		}else{
+			pValList$pValues_mv = NULL
+		}
+
+		return( pValList )
+	}		
+} 
+
+
+
 #' Compute AIC/BIC/GCV for lrgpr() model as rank changes
 #'
 #' `criterion.lrgpr' evaluate information criteria to select an optimal rank
@@ -1026,9 +1158,13 @@ criterion.lrgpr = function( formula, features, order, rank = c(seq(1, 10), seq(2
 		stop("rank must have at least 2 elements")		
 	}
 
+	if( ! is.matrix(features) && ! is.big.matrix(features) ){
+		features = as.matrix(features)
+	}
+
 	if( ! .is_supported_lrgpr(features) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
-	}
+	}	
 
 	# sort
 	rank = sort(rank)
@@ -1181,9 +1317,13 @@ loss.lrgpr <- function(y, yhat, family){
 #' @export
 cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), seq(20, 100, by=10), seq(200, 1000, by=100)), nthreads=1 ){
   
-  	if( ! .is_supported_lrgpr(features) ){
-		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
+	if( ! is.matrix(features) && ! is.big.matrix(features) ){
+		features = as.matrix(features)
 	}
+
+	if( ! .is_supported_lrgpr(features) ){
+		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
+	}	
 
   	mf <- match.call(expand.dots=FALSE)
 	m <- match(c("formula", "data"), names(mf), 0L)
@@ -1369,9 +1509,13 @@ readBinary = function( filename, N ){
 #' @export 
 getAlleleFreq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 
+	if( ! is.matrix(X) && ! is.big.matrix(X) ){
+		X = as.matrix(X)
+	}
+
 	if( ! .is_supported_lrgpr(X) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
-	}
+	}	
 
 	if( is.big.matrix(X) ){ 
 		ptr = X@address 
@@ -1387,6 +1531,34 @@ getAlleleFreq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 	return( allelefreq )
 }	
 
+#' @export 
+getAlleleFreq2 = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
+
+	if( ! is.matrix(X) && ! is.big.matrix(X) ){
+		X = as.matrix(X)
+	}
+
+	if( ! .is_supported_lrgpr(X) ){
+		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
+	}	
+
+	if( is.big.matrix(X) ){ 
+		ptr = X@address 
+	}else{
+		ptr = 0
+	}
+
+	# run allele frequency calculations
+	allelefreq <- .Call("R_getAlleleFreq2", X, ptr, as.integer(nthreads), !progress, package="lrgpr")
+
+	gc()
+
+	return( allelefreq )
+}	
+
+
+
+
 
 #' Count missing values
 #' 
@@ -1396,9 +1568,13 @@ getAlleleFreq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 #' @export 
 getMissingCount = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 
+	if( ! is.matrix(X) && ! is.big.matrix(X) ){
+		X = as.matrix(X)
+	}
+
 	if( ! .is_supported_lrgpr(X) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
-	}
+	}	
 
 	if( is.big.matrix(X) ){ 
 		ptr = X@address 
@@ -1422,9 +1598,13 @@ getMissingCount = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE
 #' @export 
 getAlleleVariance = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 
+	if( ! is.matrix(X) && ! is.big.matrix(X) ){
+		X = as.matrix(X)
+	}
+
 	if( ! .is_supported_lrgpr(X) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
-	}
+	}	
 
 	if( is.big.matrix(X) ){ 
 		ptr = X@address 

@@ -592,7 +592,7 @@ echo 'BEGIN {' >"$tmp/subs1.awk" &&
 cat >>"$tmp/subs1.awk" <<\_ACAWK &&
 S["LTLIBOBJS"]=""
 S["LIBOBJS"]=""
-S["RCPP_LDFLAGS"]="-L/usr/local/lib/R/library/Rcpp/lib -lRcpp -Wl,-rpath,/usr/local/lib/R/library/Rcpp/lib"
+S["RCPP_LDFLAGS"]=""
 S["GSL_LIBS"]="-L/usr/local/lib -lgsl -lgslcblas -lm"
 S["GSL_CFLAGS"]="-I/usr/local/include"
 S["GSL_CONFIG"]="/usr/local/bin/gsl-config"
