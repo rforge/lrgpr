@@ -41,7 +41,7 @@ LRGPR::LRGPR( const gsl_vector *Y_, const gsl_matrix *U_, const gsl_vector *eige
 
 	params = new LRGPR_params( Y_, U_, eigenValues, X_ncol_, W_ncol_);
 
-	delta_grid = gsl_vector_seq( -12, 12, 110 );
+	delta_grid = gsl_vector_seq( -10, 10, 100 );
 
 	params->breakDueToSingularMatrix = false;
 }
@@ -234,7 +234,6 @@ void LRGPR::estimate_beta( const double delta ){
 	//gsl_vector_print( params->Q_Xy_value );
 
 	// Note: Invert multiply can be done faster with DSYSV or DSYSVX
-
 	gsl_lapack_chol_invert( params->Q_XX_value );
 
 	gsl_blas_dsymv(CblasLower, 1.0, params->Q_XX_value, params->Q_Xy_value, 0.0, params->beta);
@@ -245,7 +244,7 @@ void LRGPR::estimate_beta( const double delta ){
 }
 
 // crossprod(Xu, obj$inv_s_delta_Xu) + cp_X_low / delta
-inline void LRGPR::Q_XX(const double delta){
+void LRGPR::Q_XX(const double delta){
 
 	// crossprod(Xu, obj$inv_s_delta_Xu)
 	gsl_blas_dgemm(CblasTrans,CblasNoTrans, 1.0, params->Xu, params->inv_s_delta_Xu, 0.0, params->Xu_inv_s_delta_Xu);
@@ -388,7 +387,6 @@ inline void LRGPR::Omega_XX(const double delta){
 		// Q_XX(delta, obj) + obj$eval_Q_XW_WW %*% obj$eval_Q_XW
 		gsl_matrix_add( params->Q_XX_value, params->Q_XW_WW_Q_Xw_value );	
 	}	
-
 
 	/*gsl_matrix_print( params->Q_XW_WW_value );
 	gsl_matrix_print( params->Q_XW_value );
@@ -624,4 +622,8 @@ double LRGPR::wald_test( vector<int> &terms ){
 
 double LRGPR::get_effective_df(){
 	return params->get_effective_df( params->delta);
+}
+
+double LRGPR::get_effective_df( const double delta){
+	return params->get_effective_df(delta);
 }

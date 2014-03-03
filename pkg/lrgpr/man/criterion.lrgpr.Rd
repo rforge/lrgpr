@@ -40,7 +40,7 @@ i = order(cor(y, X)^2, decreasing=TRUE)
 # Fit AIC / BIC / GCV based on degrees of freedom
 fit = criterion.lrgpr( y ~ 1, features=X, order=i)
 
-plot.criterion.lrgpr(fit)
+plot(fit)
 }
 \seealso{
   plot.criterion.lrgpr, cv.lrgpr

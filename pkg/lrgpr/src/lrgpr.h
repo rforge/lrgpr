@@ -65,6 +65,7 @@ public:
 	double wald_test( vector<int> &terms );
 
 	double get_effective_df();
+	double get_effective_df(const double delta); // in case params->delta is not set
 
 	// destructor
 	~LRGPR();
@@ -94,7 +95,7 @@ private:
 
 	bool lowrank_preprocessed;
 
-	inline void Q_XX(const double delta);
+	void Q_XX(const double delta);
 	inline void Q_Xy(const double delta);
 	inline void Q_rr(const double delta);
 	inline void Q_XW(const double delta);

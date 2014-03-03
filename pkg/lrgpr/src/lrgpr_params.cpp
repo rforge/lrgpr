@@ -598,7 +598,6 @@ gsl_vector *LRGPR_params::get_S_alpha_diag( const double delta ){
 
 		// H = U %*% diag(s/(s+delta)) %*% t(U)
 		//   = tcrossprod(U %*% diag(sqrt(s/(s+delta))))
-
 		gsl_vector *a = gsl_vector_alloc( s->size );
 
 		// a = sqrt(s/(s+delta))
@@ -609,9 +608,9 @@ gsl_vector *LRGPR_params::get_S_alpha_diag( const double delta ){
 		// this method may be slow.  See LMM_get_S_alpha_diag() instead
 		gsl_matrix *Ua = gsl_matrix_alloc( U->size1, U->size2 );
 		gsl_matrix *t_Ua = gsl_matrix_alloc( U->size2, U->size1 );
-		gsl_matrix *t_U = gsl_matrix_alloc( U->size2, U->size1 );
+		//gsl_matrix *t_U = gsl_matrix_alloc( U->size2, U->size1 );
 
-		gsl_matrix_transpose_memcpy( t_U, U);
+		//gsl_matrix_transpose_memcpy( t_U, U);
 
 		gsl_matrix_diagonal_multiply( U, a, Ua, false);
 
@@ -626,7 +625,7 @@ gsl_vector *LRGPR_params::get_S_alpha_diag( const double delta ){
 		gsl_vector_free(a);
 		gsl_matrix_free(Ua);
 		gsl_matrix_free(t_Ua);
-		gsl_matrix_free(t_U);
+		//gsl_matrix_free(t_U);
 
 	}else{
 		H_diag = gsl_vector_calloc( n_indivs );
@@ -634,6 +633,8 @@ gsl_vector *LRGPR_params::get_S_alpha_diag( const double delta ){
 
 	return H_diag;
 }
+
+#include<iostream>
 
 double LRGPR_params::get_S_alpha_beta_trace( const double delta ){
 	
@@ -649,9 +650,8 @@ double LRGPR_params::get_S_alpha_beta_trace( const double delta ){
 
 		// A = t(Xu) %*% W %*% Xu
 		// W_X = W %*% Xu
-		gsl_matrix *W_X = gsl_matrix_alloc( U->size2, X_ncol );
-		gsl_matrix *A = gsl_matrix_alloc( X_ncol, X_ncol );
-		gsl_matrix_diagonal_quadratic_form( Xu, ss_delta, A, W_X);
+		gsl_matrix *A = gsl_matrix_alloc( X_ncol, X_ncol);
+		gsl_matrix_diagonal_quadratic_form( Xu, ss_delta, A, false);
 
 		gsl_matrix *P = gsl_matrix_alloc( X->size2, X->size2 );
 		gsl_matrix_crossprod( X, P);
@@ -664,7 +664,6 @@ double LRGPR_params::get_S_alpha_beta_trace( const double delta ){
 		trace = gsl_matrix_product_trace( A, P );
 
 		gsl_matrix_free( P );
-		gsl_matrix_free( W_X );
 		gsl_matrix_free( A );
 		gsl_vector_free(ss_delta);
 
@@ -752,6 +751,8 @@ double LRGPR_params::get_effective_df( const double delta ){
 	return df;
 }
 
+#include <iostream>
+
 gsl_vector *LRGPR_params::get_hat_matrix_diag( const double delta ){
 	
 	gsl_vector *S_beta_ii = get_S_beta_diag();
@@ -771,10 +772,8 @@ gsl_vector *LRGPR_params::get_hat_matrix_diag( const double delta ){
 	return Hii;
 }
 
-// Can be done more efficientlly.  See get_S_alpha_diag
 gsl_vector *LRGPR_params::get_fitted_response( const double delta, gsl_vector *alpha){
 	
-	//
 	// alpha = decomp$vectors %*% diag(1/(1+delta/decomp$values), n) %*% crossprod(decomp$vectors, obj$y - X_beta)
 	// Y_hat = alpha + X_beta
 
@@ -792,26 +791,32 @@ gsl_vector *LRGPR_params::get_fitted_response( const double delta, gsl_vector *a
 
 	// diag( W ) = inv_s_delta = diag(s/(s+delta))
 	for( unsigned int i=0; i<s->size; i++){
-		gsl_vector_set( inv_s_delta, i, gsl_vector_get( s, i )/(gsl_vector_get( s, i ) + delta) );
+		//gsl_vector_set( inv_s_delta, i, (gsl_vector_get( s, i ) + delta)/gsl_vector_get( s, i ) );
+		gsl_vector_set( inv_s_delta, i, gsl_vector_get( s, i )/ (gsl_vector_get( s, i ) + delta) );
 	}
-	// M =  t(t_U) %*% W %*% t_U
-	gsl_matrix *M = gsl_matrix_alloc( U->size1, U->size1);
-	gsl_matrix_diagonal_quadratic_form( U, inv_s_delta, M, true);
 
-	//gsl_vector *alpha = gsl_vector_alloc( Y->size );
-	gsl_blas_dgemv( CblasNoTrans, 1.0, M, Y_X_beta, 0.0, alpha );
-	//gsl_blas_dgemv( CblasNoTrans, 1.0, M, Y, 0.0, alpha );
+	// gsl_matrix_diagonal_multiply( const gsl_matrix *X, const gsl_vector *w, gsl_matrix *&W_X, const bool byRow ){
 
+	// M = decomp$vectors %*% diag(1/(1+delta/decomp$values), length(decomp$values))
+	gsl_matrix *M = gsl_matrix_alloc( U->size1, U->size2);
+	gsl_matrix_diagonal_multiply( U, inv_s_delta, M, false);
+
+	// crossprod(decomp$vectors, y - X_beta)
+	gsl_vector *V = gsl_vector_alloc( U->size2);
+	gsl_blas_dgemv( CblasTrans, 1.0, U, Y_X_beta, 0.0, V );
+
+	// alpha = crossprod(M, V)
+	gsl_blas_dgemv( CblasNoTrans, 1.0, M, V, 0.0, alpha );
+
+	// Y_hat = alpha + X_beta
 	gsl_vector *Y_hat = gsl_vector_calloc( Y->size );
 	gsl_vector_add( Y_hat, X_beta);
 	gsl_vector_add( Y_hat, alpha);
 
-	//gsl_vector_print( alpha);
-
 	gsl_vector_free( X_beta );
 	gsl_vector_free( Y_X_beta );
-	//gsl_vector_free( alpha );
 	gsl_matrix_free( M );
+	gsl_vector_free( V );
 
 	return Y_hat;
 }

@@ -6,7 +6,8 @@
     family = gaussian(), useMean = TRUE,
     nthreads = detectCores(logical = TRUE),
     univariateTest = TRUE, multivariateTest = FALSE,
-    verbose = FALSE, progress = TRUE)
+    verbose = FALSE, progress = TRUE, cincl = c(),
+    cexcl = c())
 }
 \arguments{
   \item{formula}{standard linear modeling syntax as used in
@@ -41,6 +42,12 @@
   \item{verbose}{print additional information}
 
   \item{progress}{show progress bar}
+
+  \item{cincl}{column indeces of features to include for
+  analysis}
+
+  \item{cexcl}{column indeces of features to exclude for
+  analysis}
 }
 \description{
   `glmApply' is analogous to 'lrgprApply', but fits

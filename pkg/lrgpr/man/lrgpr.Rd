@@ -4,8 +4,8 @@
 \usage{
   lrgpr(formula, decomp,
     rank = max(ncol(decomp$u), ncol(decomp$vectors)),
-    delta = NULL, nthreads = detectCores(logical = TRUE),
-    W_til = NULL, scale = TRUE)
+    delta = NULL, nthreads = 4, W_til = NULL, scale = TRUE,
+    diagnostic = FALSE)
 }
 \arguments{
   \item{formula}{standard linear modeling syntax as used in
@@ -32,6 +32,9 @@
   proximal contamination term of Listgarten, et al. (2012)}
 
   \item{scale}{should W_til be scaled and centered}
+
+  \item{diagnostic}{compute diagnostic statistics to be
+  used with plot()}
 }
 \value{
   \item{coefficients}{regression coefficients for each
@@ -108,7 +111,7 @@ sex <- as.factor(sample(1:2, n, replace=TRUE))
 decomp <- eigen(K)
 
 # Fit the model
-fit <- lrgpr( y ~ sex + age, decomp)
+fit <- lrgpr( y ~ sex + age, decomp, diagnostic=TRUE)
 
 # Print results
 fit
@@ -151,7 +154,7 @@ wald( fit, terms=2:3)
   Extensions. _PLoS ONE_ 8(10):e75707
 
   Note that degrees freedom and some diagnostic statistics
-  are not currently calculated with W_til is specified.
+  are not currently calculated when W_til is specified.
 }
 \seealso{
   'wald', 'lrgprApply'

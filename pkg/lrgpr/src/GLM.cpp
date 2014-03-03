@@ -422,30 +422,42 @@ gsl_vector *GLM_regression_preproc( const gsl_matrix *Y, const gsl_matrix *X, GL
 
 	// SSE = cp_y_PPy + crossprod(beta, cp_x) %*% beta - crossprod(beta, cp_Px) %*% beta - 2*cp_yx %*% beta + 2*cp_PyPx %*% beta
 
-	// sigma_sq_hat
-	gsl_matrix_memcpy( preproc_work->SSE, preproc->cp_Y);
-	gsl_matrix_sub( preproc_work->SSE, preproc->cp_PY); 
+	//if( 1 ){
+		// sigma_sq_hat
+		gsl_matrix_memcpy( preproc_work->SSE, preproc->cp_Y);
+		gsl_matrix_sub( preproc_work->SSE, preproc->cp_PY); 
 
-	// crossprod(X %*% beta) = crossprod(beta, cp_x) %*% beta
+		// crossprod(X %*% beta) = crossprod(beta, cp_x) %*% beta
 
-	// crossprod(beta, cp_x) %*% beta
-	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, preproc_work->Beta_sub, preproc_work->cp_X, 0.0, preproc_work->beta_cp_X);
+		// crossprod(beta, cp_x) %*% beta
+		gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, preproc_work->Beta_sub, preproc_work->cp_X, 0.0, preproc_work->beta_cp_X);
 
-	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, preproc_work->beta_cp_X, preproc_work->Beta_sub, 1.0, preproc_work->SSE);
+		gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, preproc_work->beta_cp_X, preproc_work->Beta_sub, 1.0, preproc_work->SSE);
 
-	// crossprod(beta, cp_Px) %*% beta
-	gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, preproc_work->Beta_sub, preproc_work->cp_PX, 0.0, preproc_work->beta_cp_PX);
+		// crossprod(beta, cp_Px) %*% beta
+		gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, preproc_work->Beta_sub, preproc_work->cp_PX, 0.0, preproc_work->beta_cp_PX);
 
-	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, -1.0, preproc_work->beta_cp_PX, preproc_work->Beta_sub, 1.0, preproc_work->SSE);
+		gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, -1.0, preproc_work->beta_cp_PX, preproc_work->Beta_sub, 1.0, preproc_work->SSE);
 
-	//- 2*cp_yx %*% beta 
-	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, -2.0, preproc_work->cp_YX, preproc_work->Beta_sub, 1.0, preproc_work->SSE);
+		//- 2*cp_yx %*% beta 
+		gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, -2.0, preproc_work->cp_YX, preproc_work->Beta_sub, 1.0, preproc_work->SSE);
 
-	//+ 2*cp_PyPx %*% beta
-	gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 2.0, preproc_work->cp_PYPX, preproc_work->Beta_sub, 1.0, preproc_work->SSE);
+		//+ 2*cp_PyPx %*% beta
+		gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 2.0, preproc_work->cp_PYPX, preproc_work->Beta_sub, 1.0, preproc_work->SSE);
 
-	// SSE is a square matrix based Y->size2
-	// Can I use gsl_matrix_product_diag() to only compute the diaginal terms
+	//}else{
+
+		// SSE is a square matrix based Y->size2
+		// Can I use gsl_matrix_product_diag() to only compute the diaginal terms
+		//gsl_vector *SSEv = gsl_vector_alloc( preproc->cp_Y->size1 );
+
+
+
+
+
+
+	//}
+
 
 	// Prepare covariance term
 	//////////////////////////

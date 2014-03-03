@@ -1,7 +1,11 @@
 v 0.0.4
+  - specify columns of features to include/exclude from analysis glmApply() and lrgprApply()
   - lrgpr() and lrgprApply() now handle low rank SVD produced by svd()
+  - lrgpr() is MUCH faster for large sample sizes
   - glmApply2() implements faster linear regression
   - Backend changes to processing of binary matrix data on harddrive
+  - Faster cv.lrgpr() and criterion.lrgpr() by not computing right singular vectors
+    - These return objects now compatible with plot()
 
 v 0.0.3
   - graceful exit from glmApply/lrgprApply when response is empty

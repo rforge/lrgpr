@@ -22,7 +22,6 @@
 
 #include <bigmemory/MatrixAccessor.hpp>
 
-
 #include "lrgpr.h"
 #include "gsl_additions.h"
 #include "gsl_lapack.h"
@@ -38,15 +37,16 @@
 using namespace std;
 using namespace Rcpp;
 
-RcppExport SEXP R_lrgpr( SEXP Y_, SEXP X_, SEXP eigenVectors_, SEXP eigenValues_, SEXP delta_, SEXP nthreads_, SEXP Wtilde_){
+RcppExport SEXP R_lrgpr( SEXP Y_, SEXP X_, SEXP eigenVectors_, SEXP eigenValues_, SEXP delta_, SEXP nthreads_, SEXP Wtilde_, SEXP diagnostic_){
 
-BEGIN_RCPP
+//BEGIN_RCPP
 	
 	RcppGSL::matrix<double> X = X_; 
 	RcppGSL::vector<double> y = Y_; 	
 	RcppGSL::matrix<double> eigenVectors = eigenVectors_; 	
 	RcppGSL::vector<double> eigenValues = eigenValues_; 
 	RcppGSL::matrix<double> Wtilde = Wtilde_; 
+	bool diagnostic = (bool) Rcpp::as<int>(diagnostic_);
 
 	// If # of samples in W and y is the same
 	bool useProxCon = ( Wtilde->size1 == y->size );
@@ -55,11 +55,10 @@ BEGIN_RCPP
 	double nthreads = Rcpp::as<double>( nthreads_ );
 
 	if( ! R_IsNA( nthreads ) ){
-		omp_set_num_threads( 1 );
+		omp_set_num_threads( nthreads ); 
 		// Intel paralellism
 		#ifdef INTEL
-		//mkl_set_num_threads( nthreads );	
-		mkl_set_num_threads( 1 );			
+		mkl_set_num_threads( nthreads );	
 		#endif
 		// disable nested OpenMP parallelism
 		omp_set_nested(0);
@@ -70,13 +69,16 @@ BEGIN_RCPP
 		if( gsl_vector_get( eigenValues, i) < 0 )  gsl_vector_set( eigenValues, i, 0);
 	}
 
+	//cout << "Create lrgpr" << endl;
 	LRGPR *lrgpr = new LRGPR( y, eigenVectors, eigenValues, X->size2, useProxCon ? Wtilde->size2 : 0);
 
 	// Must update W before X
 	if( useProxCon ) lrgpr->update_Wtilde( Wtilde );
 
+	//cout << "Scale" << endl;
 	gsl_matrix_set_missing_mean_col( X );
 
+	//cout << "Update X" << endl;	
 	lrgpr->update_X( X );
 
 	double log_L, sig_g, sig_e;
@@ -91,19 +93,33 @@ BEGIN_RCPP
 		lrgpr->fit_fixed_delta( delta, &log_L, &sig_g, &sig_e );
 	}
 
-	RcppGSL::vector<double> alpha = gsl_vector_alloc( y->size );
+	double df;
+	RcppGSL::vector<double> Hii(y->size);
 
-	RcppGSL::vector<double> Hii = lrgpr->get_hat_matrix_diag();
+	if( diagnostic && ! useProxCon){
+		gsl_vector_free(Hii);
+		Hii = lrgpr->get_hat_matrix_diag();	
+		df = gsl_vector_sum_elements( Hii );
+
+	}else{
+		gsl_vector_set_all(Hii, NAN);
+		
+		if( ! useProxCon )	df = lrgpr->get_effective_df();
+		else df = NAN;
+	}
+
+	RcppGSL::vector<double> alpha = gsl_vector_alloc( y->size );
 	RcppGSL::vector<double> Y_hat = lrgpr->get_fitted_response( alpha );
 	RcppGSL::matrix<double> Sigma = lrgpr->coeff_covariance();
 	RcppGSL::vector<double> pValues = lrgpr->wald_test_all();
-	RcppGSL::vector<double> beta = lrgpr->get_beta();		
+	RcppGSL::vector<double> beta = lrgpr->get_beta();	
 
 	Rcpp::List res = Rcpp::List::create(Rcpp::Named("coefficients") = beta,
 										Rcpp::Named("p.values") 	= pValues,
 										Rcpp::Named("sigSq_e") 		= sig_e,
 										Rcpp::Named("sigSq_a") 		= sig_g,
 										Rcpp::Named("delta") 		= delta, 
+										Rcpp::Named("df") 			= df,
 										Rcpp::Named("rank") 		= eigenValues->size,
 										Rcpp::Named("logLik")		= log_L,
 										Rcpp::Named("fitted.values")= Y_hat,
@@ -120,13 +136,19 @@ BEGIN_RCPP
 
 	delete lrgpr;
 
+	Hii.free();
+	alpha.free();
+	Y_hat.free();
+	Sigma.free();
+	pValues.free();
+
 	return res; // return the result list to R
 
-END_RCPP
+//END_RCPP
 }
 
 
-RcppExport SEXP R_glmApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP env_, SEXP terms_, SEXP nthreads_, SEXP useMean_, SEXP useIdentityLink_, SEXP univariate_, SEXP multivariate_, SEXP quiet_){
+RcppExport SEXP R_glmApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP env_, SEXP terms_, SEXP nthreads_, SEXP useMean_, SEXP useIdentityLink_, SEXP univariate_, SEXP multivariate_, SEXP quiet_, SEXP cincl_){
 
 BEGIN_RCPP
 		
@@ -139,10 +161,11 @@ BEGIN_RCPP
 	bool univariate = as<int>( univariate_ );
 	bool multivariate = as<int>( multivariate_ );
 	bool quiet = as<int>( quiet_ );
+	std::vector<int> cincl = as<std::vector<int> >( cincl_ ); 
 		
 	regressionType regressType = useIdentityLink ? LINEAR : LOGISTIC;
 
-	featureBatcher fbatch( data_, pBigMat_, 10000);
+	featureBatcher fbatch( data_, pBigMat_, 10000, cincl);
 
 	// Set threads to 1
 	omp_set_num_threads( nthreads );
@@ -179,13 +202,6 @@ BEGIN_RCPP
 	
 		throw invalid_argument("Dimensions of response and design matrix do not match\n");
 	}
-	
-	NumericMatrix pValues;
-	NumericMatrix pValues_multivariate;
-
-	// Define p-values matrix to be returned, only of the corresponding test is performed
-	if( univariate )  	pValues = NumericMatrix( fbatch.get_N_features(), n_pheno );
-	if( multivariate )  pValues_multivariate = NumericMatrix( fbatch.get_N_features(), 2 );
 
 	// X_clean = model.matrix.default( y ~ sex:One + age )
 	// Replace marker with 1's so that design matrix for marker j can be created by multiplcation
@@ -201,12 +217,33 @@ BEGIN_RCPP
 		throw range_error("Element in \"terms\" is out of range");		
 	}
 
+	// If there are no degrees of freedom left, skip the multivariate test
+	if( n_pheno >= n_indivs - X_clean->size2 ){
+		multivariate = false;
+	}
+
+
+	NumericMatrix pValues;
+	NumericMatrix pValues_multivariate;
+
+	// Define p-values matrix to be returned, only of the corresponding test is performed
+	// Initialize values to NAN
+	if( univariate ){
+		pValues = NumericMatrix( fbatch.get_N_features(), n_pheno );
+		std::fill(pValues.begin(), pValues.end(), NAN);
+	}
+
+	if( multivariate ){
+		pValues_multivariate = NumericMatrix( fbatch.get_N_features(), 2 );
+		std::fill(pValues_multivariate.begin(), pValues_multivariate.end(), NAN);
+	}
+
 	// get indeces of columns that depend on X[,j]
 	vector<int> loopIndex = expr.get_loop_terms();
 	//vector<string> colNames = expr.get_terms();		
 
-	cout << "loopIndex: " << endl;
-	print_vector(loopIndex);
+	//cout << "loopIndex: " << endl;
+	//print_vector(loopIndex);
 
 	//n_markers = MIN(n_markers, 100000);
 
@@ -221,10 +258,14 @@ BEGIN_RCPP
 	time_t start_time;
 	time(&start_time);
 
+	bool useThisChunk;
+
 	for(int i_set=0; i_set<fbatch.get_N_features(); i_set+=fbatch.getBatchSize()){
 
 		// Load data from binary matrix (or do noting if NumericMatrix is used)
-		fbatch.loadNextChunk();
+		useThisChunk = fbatch.loadNextChunk();
+
+		if( ! useThisChunk ) continue;
 
 		#pragma omp parallel
 		{
@@ -257,7 +298,12 @@ BEGIN_RCPP
 			bool isMissing;
 
 			#pragma omp for schedule(static, batch_size)		
-			for(int j=0; j<fbatch.getBatchSize(); j++){		
+			for(int j=0; j<fbatch.getBatchSize(); j++){	
+
+				// If element j+i_set is not include include list, than skip
+				if( ! fbatch.contains_element(j+i_set) ){
+					continue;
+				}
 
 				#pragma omp critical
 				tests_completed++;
@@ -342,7 +388,7 @@ BEGIN_RCPP
 
 		} // End parallel
 
-		if( ! quiet )  Rcpp::Rcout << print_progress( tests_completed, fbatch.get_N_features(), 25, start_time);
+		if( ! quiet )  Rcpp::Rcout << print_progress( tests_completed, fbatch.get_N_features_included(), 25, start_time);
 
 		if( Progress::check_abort() ){
 			Y.free();
@@ -398,7 +444,7 @@ vector<int> get_markers_in_window( const string chr_j, const double loc_j, const
 
 
 
-RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP env_, SEXP terms_, SEXP EigenVectors_, SEXP EigenValues_, SEXP Wtilde_, SEXP rank_,  SEXP chromosome_, SEXP location_, SEXP distance_, SEXP dcmp_features_, SEXP scale_, SEXP delta_, SEXP reEstimateDelta_, SEXP nthreads_, SEXP quiet_){
+RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP env_, SEXP terms_, SEXP EigenVectors_, SEXP EigenValues_, SEXP Wtilde_, SEXP rank_,  SEXP chromosome_, SEXP location_, SEXP distance_, SEXP dcmp_features_, SEXP scale_, SEXP delta_, SEXP reEstimateDelta_, SEXP nthreads_, SEXP quiet_, SEXP cincl_){
 
 //BEGIN_RCPP
 		
@@ -418,13 +464,15 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 	bool reEstimateDelta = Rcpp::as<int>( reEstimateDelta_ );
 	int nthreads = as<int>( nthreads_ );
 	bool quiet = Rcpp::as<int>( quiet_ );
+	std::vector<int> cincl = as<std::vector<int> >( cincl_ );
+
 
 	// Make sure all eigen values are non-negative
 	for(unsigned int i=0; i<eigenValues->size; i++){
 		if( gsl_vector_get( eigenValues, i) < 0 )  gsl_vector_set( eigenValues, i, 0);
 	}
 	
-	featureBatcher fbatch( data_, pBigMat_, 10000);
+	featureBatcher fbatch( data_, pBigMat_, 10000, cincl);
 
 	// Set threads to 1
 	omp_set_num_threads( nthreads );
@@ -502,6 +550,7 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 	Progress p(0, false);
 
 	std::vector<double> pValues( fbatch.get_N_features() );
+	std::fill(pValues.begin(), pValues.end(), NAN);
 
 	// Get map for marker in dcmp_features
 	// map_local = map[dcmp_features,]
@@ -512,11 +561,14 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 	time(&start_time);
 
 	gsl_matrix *X_set = NULL;
+	bool useThisChunk;
 
 	for(int i_set=0; i_set<fbatch.get_N_features(); i_set+=fbatch.getBatchSize()){
 
 		// Load data from binary matrix (or do noting if NumericMatrix is used)
-		fbatch.loadNextChunk();
+		useThisChunk = fbatch.loadNextChunk();
+
+		if( ! useThisChunk ) continue;
 
 		#pragma omp parallel
 		{
@@ -541,6 +593,11 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 
 			#pragma omp for schedule(static, batch_size)		
 			for(int j=0; j<fbatch.getBatchSize(); j++){		
+
+				// If element j+i_set is not include include list, than skip
+				if( ! fbatch.contains_element(j+i_set) ){
+					continue;
+				}
 
 				#pragma omp critical
 				tests_completed++;
@@ -568,7 +625,6 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 				//////////////////////////
 
 				// Must update W before X
-				if( useProxCon ) lrgpr->update_Wtilde( Wtilde );
 
 				// If a MAP was specified
 				if( chromosome.size() > 1 ){
@@ -626,13 +682,16 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 
 								gsl_matrix_free(Wcbind);
 							}
-						}else{						
+						}else{				
+							// this doesn't have to be dont every time		
 							lrgpr->update_Wtilde( Wtilde_local );
 						}
 					}
 
 					// save exclude for next marker
 					exclude_prev = exclude;
+				}else{
+					if( useProxCon ) lrgpr->update_Wtilde( Wtilde );
 				}
 
 				lrgpr->update_Xu( X, Xu );						
@@ -661,7 +720,7 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 
 		} // End parallel
 
-		if( ! quiet )  Rcpp::Rcout << print_progress( tests_completed, fbatch.get_N_features(), 25, start_time);
+		if( ! quiet )  Rcpp::Rcout << print_progress( tests_completed, fbatch.get_N_features_included(), 25, start_time);
 
 		if( Progress::check_abort() ){
 
@@ -692,7 +751,7 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 //END_RCPP
 }
 
-RcppExport SEXP R_glmApply2( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP env_, SEXP terms_, SEXP nthreads_, SEXP useMean_, SEXP useIdentityLink_, SEXP univariate_, SEXP multivariate_, SEXP quiet_){
+RcppExport SEXP R_glmApply2( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP env_, SEXP terms_, SEXP nthreads_, SEXP useMean_, SEXP useIdentityLink_, SEXP univariate_, SEXP multivariate_, SEXP quiet_, SEXP cincl_){
 
 BEGIN_RCPP
 		
@@ -704,11 +763,12 @@ BEGIN_RCPP
 	bool useIdentityLink = as<int>( useIdentityLink_ );
 	bool univariate = as<int>( univariate_ );
 	bool multivariate = as<int>( multivariate_ );
-	bool quiet = as<int>( quiet_ );
+	bool quiet = as<int>( quiet_ );	
+	std::vector<int> cincl = as<std::vector<int> >( cincl_ ); 
 		
 	regressionType regressType = useIdentityLink ? LINEAR : LOGISTIC;
 
-	featureBatcher fbatch( data_, pBigMat_, 10000);
+	featureBatcher fbatch( data_, pBigMat_, 10000, cincl);
 
 	// Set threads to 1
 	omp_set_num_threads( nthreads );
@@ -749,8 +809,17 @@ BEGIN_RCPP
 	NumericMatrix pValues_multivariate;
 
 	// Define p-values matrix to be returned, only of the corresponding test is performed
-	if( univariate )  	pValues = NumericMatrix( fbatch.get_N_features(), n_pheno );
-	if( multivariate )  pValues_multivariate = NumericMatrix( fbatch.get_N_features(), 2 );
+	// Initialize values to NAN
+	if( univariate ){
+		pValues = NumericMatrix( fbatch.get_N_features(), n_pheno );
+		std::fill(pValues.begin(), pValues.end(), NAN);
+	}
+
+	if( multivariate ){
+		pValues_multivariate = NumericMatrix( fbatch.get_N_features(), 2 );
+		std::fill(pValues_multivariate.begin(), pValues_multivariate.end(), NAN);
+	}
+
 
 	// X_clean = model.matrix.default( y ~ sex:One + age )
 	// Replace marker with 1's so that design matrix for marker j can be created by multiplcation
@@ -794,10 +863,14 @@ BEGIN_RCPP
 	time_t start_time;
 	time(&start_time);
 
+	bool useThisChunk;
+
 	for(int i_set=0; i_set<fbatch.get_N_features(); i_set+=fbatch.getBatchSize()){
 
 		// Load data from binary matrix (or do noting if NumericMatrix is used)
-		fbatch.loadNextChunk();
+		useThisChunk = fbatch.loadNextChunk();
+
+		if( ! useThisChunk ) continue;
 
 		#pragma omp parallel
 		{
@@ -833,6 +906,11 @@ BEGIN_RCPP
 
 			#pragma omp for schedule(static, batch_size)			
 			for(int j=0; j<fbatch.getBatchSize(); j++){	
+
+				// If element j+i_set is not include include list, than skip
+				if( ! fbatch.contains_element(j+i_set) ){
+					continue;
+				}
 
 				#pragma omp critical
 				tests_completed++;
@@ -933,7 +1011,7 @@ BEGIN_RCPP
 
 		} // End parallel
 
-		if( ! quiet )  Rcpp::Rcout << print_progress( tests_completed, fbatch.get_N_features(), 25, start_time);
+		if( ! quiet )  Rcpp::Rcout << print_progress( tests_completed, fbatch.get_N_features_included(), 25, start_time);
 
 		if( Progress::check_abort() ){
 			Y.free();

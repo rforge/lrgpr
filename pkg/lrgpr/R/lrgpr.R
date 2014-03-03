@@ -53,6 +53,10 @@ set_missing_to_mean = function(A){
 
 	idx = sapply( 1:ncol(A), function(i){which(is.na(A[,i]))})
 
+	if( ! is.list(idx) ){
+		idx = data.frame(idx)
+	}
+
 	for(i in 1:ncol(A) ){
 		if( length(idx[[i]]) > 0 ){
 			A[idx[[i]],i] = cm[i]
@@ -86,6 +90,7 @@ set_missing_to_mean = function(A){
 #' @param nthreads number of threads to use for parallel execution
 #' @param W_til markers used to construct decomp that should now be removed from costruction of decomp.  This is the proximal contamination term of Listgarten, et al. (2012)
 #' @param scale should W_til be scaled and centered
+#' @param diagnostic compute diagnostic statistics to be used with plot()
 #' @return
 #' \item{coefficients}{regression coefficients for each covariate}
 #' \item{p.values}{p-values from Wald test of each coefficient}
@@ -146,7 +151,8 @@ set_missing_to_mean = function(A){
 #'
 #' Hoffman, G. E. (2013) Correcting for Population Structure and Kinship Using the Linear Mixed Model: Theory and Extensions. _PLoS ONE_ 8(10):e75707
 #' 
-#' Note that degrees freedom and some diagnostic statistics are not currently calculated with W_til is specified.
+#' Note that degrees freedom and some diagnostic statistics are not currently calculated when W_til is specified.
+#'
 #'
 #' @useDynLib lrgpr
 #' @examples 
@@ -160,7 +166,7 @@ set_missing_to_mean = function(A){
 #' decomp <- eigen(K)
 #'
 #' # Fit the model
-#' fit <- lrgpr( y ~ sex + age, decomp) 
+#' fit <- lrgpr( y ~ sex + age, decomp, diagnostic=TRUE) 
 #'
 #' # Print results
 #' fit
@@ -179,7 +185,7 @@ set_missing_to_mean = function(A){
 #' # Joint test of coefficients 2:3
 #' wald( fit, terms=2:3)
 #' @export
-lrgpr <- function( formula, decomp, rank=max(ncol(decomp$u), ncol(decomp$vectors)), delta=NULL, nthreads=detectCores(logical=TRUE), W_til=NULL, scale=TRUE){
+lrgpr <- function( formula, decomp, rank=max(ncol(decomp$u), ncol(decomp$vectors)), delta=NULL, nthreads=4, W_til=NULL, scale=TRUE, diagnostic=FALSE){
 
 	#chisq=FALSE
 	rdf=FALSE # Was false before
@@ -280,13 +286,13 @@ lrgpr <- function( formula, decomp, rank=max(ncol(decomp$u), ncol(decomp$vectors
 
 	# if decomp is result of eigen()
 	if( is.eigen_decomp(decomp) ){			
-		obj <- .Call("R_lrgpr", y, X, decomp$vectors, decomp$values, delta, nthreads, W_til, package="lrgpr")
+		obj <- .Call("R_lrgpr", y, X, decomp$vectors, decomp$values, delta, nthreads, W_til, diagnostic,  package="lrgpr")
 	}
 
 	# if decomp is result of svd()
 	if( is.svd_decomp(decomp) ){		
 		# if decomp is an svd, then the eigen-values are decomp$d^2
-		obj <- .Call("R_lrgpr", y, X, decomp$u, decomp$d^2, delta, nthreads, W_til, package="lrgpr")
+		obj <- .Call("R_lrgpr", y, X, decomp$u, decomp$d^2, delta, nthreads, W_til, diagnostic, package="lrgpr")
 	}
 
 	gc()	
@@ -305,7 +311,7 @@ lrgpr <- function( formula, decomp, rank=max(ncol(decomp$u), ncol(decomp$vectors
 	obj$y <- y
 	obj$x <- X
 	obj$call <- functionCallString
-	obj$df <- sum( obj$hii)
+	#obj$df <- sum( obj$hii)
 
 	obj$na.action <- attr(mf, "na.action")
 	obj$offset <- offset
@@ -418,9 +424,6 @@ wald <- function(fit, terms){
 
 # remove any terms involving SNP from formula
 #' @export
-
-
-
 .mm_replace_query <- function(form, query){
 
 	form = as.character(form)
@@ -579,6 +582,8 @@ is.svd_decomp_symmetric <- function( decomp ){
 #' @param nthreads number of to use for parallel execution
 #' @param verbose print extra information
 #' @param progress show progress bar 
+#' @param cincl column indeces of features to include for analysis
+#' @param cexcl column indeces of features to exclude for analysis
 #'
 #' @examples 
 #' 
@@ -599,7 +604,7 @@ is.svd_decomp_symmetric <- function( decomp ){
 #' pValues = lrgprApply( y ~ sex + sex:SNP, features=X, decomp, terms=c(3,4), delta=fit$delta)
 #'
 #' @export
-lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(decomp$u), ncol(decomp$vectors)), map=NULL, distance=NULL, dcmp_features=NULL, W_til=NULL, scale=TRUE, delta=NULL, reEstimateDelta=FALSE, nthreads=detectCores(logical = TRUE), verbose=FALSE, progress=TRUE ){
+lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(decomp$u), ncol(decomp$vectors)), map=NULL, distance=NULL, dcmp_features=NULL, W_til=NULL, scale=TRUE, delta=NULL, reEstimateDelta=FALSE, nthreads=detectCores(logical = TRUE), verbose=FALSE, progress=TRUE, cincl=c(), cexcl=c() ){
 
 	env = parent.frame()
 
@@ -627,6 +632,38 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 	if( ! .is_supported_lrgpr(features) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
+
+	if( length(cincl) > 0 && length(cexcl) > 0){
+		stop("Cannot use both cincl and cexcl")
+	}
+
+	if( length(cincl) > 0){
+		if( ! is.numeric(cincl) ) stop("Must be numeric array: cincl")
+
+		minmax = range(cincl)
+
+		if( minmax[1] < 1 || minmax[2] > ncol(features) ){
+			stop("Entries in cincl must be between 1 and ncol(features)")
+		}
+	}
+
+	if( length(cexcl) > 0){
+		if( ! is.numeric(cexcl) ) stop("Must be numeric array: cexcl")
+
+		minmax = range(cexcl)
+
+		if( minmax[1] < 1 || minmax[2] > ncol(features) ){
+			stop("Entries in cexcl must be between 1 and ncol(features)")
+		}
+	}
+
+	if( length(cincl) == 0 && length(cexcl) == 0){
+		cincl = 1:ncol(features)
+	}
+
+	if( length(cincl) == 0 ){
+		cincl = (1:ncol(features))[-cexcl]
+	}
 
 	##############
 	# check data #
@@ -780,10 +817,10 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 
 	# if decomp is result of eigen()
 	if( is.svd_decomp(decomp) ){
-		pValues	<- .Call("R_lrgprApply", as.character(form_mod), features, ptr, env, terms-1, decomp$u, decomp$d^2, W_til, as.integer(rank), chrom, location, as.double(distance), dcmp_features-1, scale, as.numeric(delta), as.integer(reEstimateDelta), as.integer(nthreads), ! progress, package="lrgpr")
+		pValues	<- .Call("R_lrgprApply", as.character(form_mod), features, ptr, env, terms-1, decomp$u, decomp$d^2, W_til, as.integer(rank), chrom, location, as.double(distance), dcmp_features-1, scale, as.numeric(delta), as.integer(reEstimateDelta), as.integer(nthreads), ! progress, as.integer(cincl-1), package="lrgpr")
 	}else{
 		# if decomp is result of eigen()
-		pValues	<- .Call("R_lrgprApply", as.character(form_mod), features, ptr, env, terms-1, decomp$vectors, decomp$values, W_til, as.integer(rank), chrom, location, as.double(distance), dcmp_features-1, scale, as.numeric(delta), as.integer(reEstimateDelta), as.integer(nthreads), ! progress, package="lrgpr")
+		pValues	<- .Call("R_lrgprApply", as.character(form_mod), features, ptr, env, terms-1, decomp$vectors, decomp$values, W_til, as.integer(rank), chrom, location, as.double(distance), dcmp_features-1, scale, as.numeric(delta), as.integer(reEstimateDelta), as.integer(nthreads), ! progress, as.integer(cincl-1), package="lrgpr")
 	}
 
 	gc()	
@@ -818,6 +855,8 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 #' @param multivariateTest perform multivariate hypothesis test for each response (if more than one) for each feature.  Note that the runtime is cubic in the number of response variables
 #' @param verbose print additional information
 #' @param progress show progress bar
+#' @param cincl column indeces of features to include for analysis
+#' @param cexcl column indeces of features to exclude for analysis
 #'
 #' @examples 
 #' 
@@ -861,7 +900,7 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 #' summary(fit, test="Pillai")
 #' 
 #' @export
-glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=TRUE, nthreads=detectCores(logical = TRUE), univariateTest=TRUE, multivariateTest=FALSE, verbose=FALSE, progress=TRUE ){
+glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=TRUE, nthreads=detectCores(logical = TRUE), univariateTest=TRUE, multivariateTest=FALSE, verbose=FALSE, progress=TRUE, cincl=c(), cexcl=c() ){
 
 	env = parent.frame()
 
@@ -893,6 +932,42 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 	if( ! .is_supported_lrgpr(features) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
+
+	if( ! .is_supported_lrgpr(features) ){
+		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
+	}
+
+	if( length(cincl) > 0 && length(cexcl) > 0){
+		stop("Cannot use both cincl and cexcl")
+	}	
+
+	if( length(cincl) > 0){
+		if( ! is.numeric(cincl) ) stop("Must be numeric array: cincl")
+
+		minmax = range(cincl)
+
+		if( minmax[1] < 1 || minmax[2] > ncol(features) ){
+			stop("Entries in cincl must be between 1 and ncol(features)")
+		}
+	}
+
+	if( length(cexcl) > 0){
+		if( ! is.numeric(cexcl) ) stop("Must be numeric array: cexcl")
+
+		minmax = range(cexcl)
+
+		if( minmax[1] < 1 || minmax[2] > ncol(features) ){
+			stop("Entries in cexcl must be between 1 and ncol(features)")
+		}
+	}
+
+	if( length(cincl) == 0 && length(cexcl) == 0){
+		cincl = 1:ncol(features)
+	}
+
+	if( length(cincl) == 0 ){
+		cincl = (1:ncol(features))[-cexcl]
+	}
 
 	result = tryCatch({
 		# save status from current state
@@ -958,7 +1033,8 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 	}
 
 	# run regressions
-	pValList <- .Call("R_glmApply", as.character(form_mod), features, ptr, env, terms-1, as.integer(nthreads), useMean, sum(family[2]$link == "identity"), univariateTest, multivariateTest, ! progress, package="lrgpr")
+	# cincl: subtract 1 to convert to C-indexing
+	pValList <- .Call("R_glmApply", as.character(form_mod), features, ptr, env, terms-1, as.integer(nthreads), useMean, sum(family[2]$link == "identity"), univariateTest, multivariateTest, ! progress, as.integer(cincl-1), package="lrgpr")
 
 	gc()
 
@@ -983,6 +1059,7 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 			rownames(pValList$pValues_mv) = colnames(features)
 			colnames(pValList$pValues_mv) = c("Hotelling", "Pillai");
 		}else{
+			if( multivariateTest) warning("Insufficient degrees of freedom remaining for multivariate test")
 			pValList$pValues_mv = NULL
 		}
 
@@ -992,7 +1069,7 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 
 #' Like glmApply, by linear instead of quadratic as a function of the number of covariates
 #' @export
-glmApply2 <- function( formula, features, terms=NULL, family=gaussian(), useMean=TRUE, nthreads=detectCores(logical = TRUE), univariateTest=TRUE, multivariateTest=FALSE, verbose=FALSE, progress=TRUE ){
+glmApply2 <- function( formula, features, terms=NULL, family=gaussian(), useMean=TRUE, nthreads=detectCores(logical = TRUE), univariateTest=TRUE, multivariateTest=FALSE, verbose=FALSE, progress=TRUE, cincl=c(), cexcl=c() ){
 
 	env = parent.frame()
 
@@ -1024,6 +1101,38 @@ glmApply2 <- function( formula, features, terms=NULL, family=gaussian(), useMean
 	if( ! .is_supported_lrgpr(features) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
+
+	if( length(cincl) > 0 && length(cexcl) > 0){
+		stop("Cannot use both cincl and cexcl")
+	}
+
+	if( length(cincl) > 0){
+		if( ! is.numeric(cincl) ) stop("Must be numeric array: cincl")
+
+		minmax = range(cincl)
+
+		if( minmax[1] < 1 || minmax[2] > ncol(features) ){
+			stop("Entries in cincl must be between 1 and ncol(features)")
+		}
+	}
+
+	if( length(cexcl) > 0){
+		if( ! is.numeric(cexcl) ) stop("Must be numeric array: cexcl")
+
+		minmax = range(cexcl)
+
+		if( minmax[1] < 1 || minmax[2] > ncol(features) ){
+			stop("Entries in cexcl must be between 1 and ncol(features)")
+		}
+	}
+
+	if( length(cincl) == 0 && length(cexcl) == 0){
+		cincl = 1:ncol(features)
+	}
+
+	if( length(cincl) == 0 ){
+		cincl = (1:ncol(features))[-cexcl]
+	}
 
 	result = tryCatch({
 		# save status from current state
@@ -1089,7 +1198,8 @@ glmApply2 <- function( formula, features, terms=NULL, family=gaussian(), useMean
 	}
 
 	# run regressions
-	pValList <- .Call("R_glmApply2", as.character(form_mod), features, ptr, env, terms-1, as.integer(nthreads), useMean, sum(family[2]$link == "identity"), univariateTest, multivariateTest, ! progress, package="lrgpr")
+	# cincl: subtract 1 to convert to C-indexing
+	pValList <- .Call("R_glmApply2", as.character(form_mod), features, ptr, env, terms-1, as.integer(nthreads), useMean, sum(family[2]$link == "identity"), univariateTest, multivariateTest, ! progress, as.integer(cincl-1), package="lrgpr")
 
 	gc()
 
@@ -1153,7 +1263,7 @@ glmApply2 <- function( formula, features, terms=NULL, family=gaussian(), useMean
 #' # Fit AIC / BIC / GCV based on degrees of freedom
 #' fit = criterion.lrgpr( y ~ 1, features=X, order=i)
 #' 
-#' plot.criterion.lrgpr(fit)
+#' plot(fit)
 #' 
 #' @export
 criterion.lrgpr = function( formula, features, order, rank = c(seq(1, 10), seq(20, 100, by=10), seq(200, 1000, by=100)) ){
@@ -1171,15 +1281,18 @@ criterion.lrgpr = function( formula, features, order, rank = c(seq(1, 10), seq(2
 	}	
 
 	# sort
-	rank = sort(rank)
+	rank = unique(sort(rank))
 
 	# discard numbers that are larger than the number of features in the confounder matrix
 	rank = rank[which( rank <= ncol(features) )]
 
 	crit_fxn = function( ncon ){
-		dcmp = svd( scale(set_missing_to_mean(features[,order[1:ncon]])) )
+		cat("\rrank: ", ncon)
+		dcmp = svd( scale(set_missing_to_mean(features[,order[1:ncon]])), nv=1 )
 
-		fit = lrgpr( formula, dcmp)
+		#gc()
+
+		fit = lrgpr( formula, dcmp, nthreads=4)
 
 		return( c(fit$AIC, fit$BIC, fit$GCV, fit$logLik, fit$df) )
 	}
@@ -1205,7 +1318,11 @@ criterion.lrgpr = function( formula, features, order, rank = c(seq(1, 10), seq(2
 
 	result$rank = as.numeric(rownames(result))
 
-	return( list(criteria=result[,1:3], best=best, df = result$df, logLik = result$logLik, rank=result$rank ) )
+	obj =  list(criteria=result[,1:3], best=best, df = result$df, logLik = result$logLik, rank=result$rank )
+
+	class(obj) = "criterion.lrgpr"
+
+	return( obj )
 }
 
 
@@ -1315,7 +1432,7 @@ loss.lrgpr <- function(y, yhat, family){
 #' # Fit cross-validation
 #' fit = cv.lrgpr( y ~ 1, features=X, order=i)
 #' 
-#' plot.cv.lrgpr(fit)
+#' plot(fit)
 #' 
 #' 
 #' @export
@@ -1368,7 +1485,7 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 
 			# decomp of X of training set for first ncon markers
 			# dcmp = svd(X_confounders_sorted[i_train,1:ncon])
-			dcmp = svd( set_missing_to_mean(features[i_train,1:ncon]) ) 
+			dcmp = svd( set_missing_to_mean(features[i_train,1:ncon]), nv=1 ) 
 			
 			# RRM of samples in the test set
 			# K_test = tcrossprod(X_confounders_sorted[i_test,1:ncon], X_confounders_sorted[i_train,1:ncon])
@@ -1381,6 +1498,8 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 			# cbind(predict(fit.i), predict.lrgpr(fit.i, X[i_train,,drop=FALSE], RRM[i_train,i_train]))
 			yhat <- predict.lrgpr(fit.i, X[i_test,,drop=FALSE], K_test)
 		}
+
+		gc()
 
 		# return the MSE between observed and prediected response
 		return( loss.lrgpr(y[i_test], yhat, family="gaussian") )
@@ -1416,7 +1535,11 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 	cvse <- apply(E, 2, sd) / sqrt(n)
 	min <- which.min(cve)
 	
-	structure(list(cve=cve, cvse=cvse, rank=rank, min=min, best=min, class="cv.lrgpr"))
+	obj = structure(list(cve=cve, cvse=cvse, rank=rank, min=min, best=min))
+
+	class(obj) = "cv.lrgpr"
+
+	return( obj)
 }
 
 #' Convert ASCII to binary file

@@ -325,10 +325,7 @@ double penalty(const gsl_vector * __restrict__ beta, const double hyper_param1, 
 	return result;
 }
 
-double GLM_penalized_regression(const gsl_vector *Y, const gsl_matrix *t_X, const gsl_matrix *X_cov, gsl_vector *beta, gsl_vector *beta_cov,
-		regressionType regress_enum, penaltyType penalty_enum, const double hyper_param1, const double hyper_param2,
-		const gsl_vector *feature_scales, const gsl_vector *covariate_scales, const gsl_vector *feature_weights, GLM_workspace *workspace,
-		const gsl_permutation *permutation, const int maxit, const double thresh, GLM_penRegInfo *info, const bool initialized){
+double GLM_penalized_regression(const gsl_vector *Y, const gsl_matrix *t_X, const gsl_matrix *X_cov, gsl_vector *beta, gsl_vector *beta_cov, regressionType regress_enum, penaltyType penalty_enum, const double hyper_param1, const double hyper_param2, const gsl_vector *feature_scales, const gsl_vector *covariate_scales, const gsl_vector *feature_weights, GLM_workspace *workspace, const gsl_permutation *permutation, const int maxit, const double thresh, GLM_penRegInfo *info, const bool initialized){
 
 	// check validity of hyperparameter values for the penality selected
 	check_hyperparameter_values( penalty_enum, hyper_param1, hyper_param2 );

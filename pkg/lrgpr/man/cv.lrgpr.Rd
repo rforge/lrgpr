@@ -45,6 +45,6 @@ i = order(cor(y, X)^2, decreasing=TRUE)
 # Fit cross-validation
 fit = cv.lrgpr( y ~ 1, features=X, order=i)
 
-plot.cv.lrgpr(fit)
+plot(fit)
 }
 
