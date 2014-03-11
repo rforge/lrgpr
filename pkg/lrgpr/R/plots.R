@@ -36,7 +36,7 @@ QQ_plot = function(p_values, col=rainbow(min(length(p_values), ncol(p_values))),
 	}
 
 	# convert array, vector or matrix into list
-	if( ! is.list(p_values)){
+	if( ! is.list(p_values) ){
 
 		names(p_values) = c()
 
@@ -79,6 +79,8 @@ QQ_plot = function(p_values, col=rainbow(min(length(p_values), ncol(p_values))),
 	if( length(pch) == 1){
 		pch = rep(pch, length(p_values))
 	}
+
+	p_values = as.list(p_values)
 
 	# Set the x and y ranges of the plot to the largest such values 
 	#	encountered in the data 
