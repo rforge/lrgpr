@@ -1658,35 +1658,6 @@ getAlleleFreq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 	return( allelefreq )
 }	
 
-#' @export 
-getAlleleFreq2 = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
-
-	if( ! is.matrix(X) && ! is.big.matrix(X) ){
-		X = as.matrix(X)
-	}
-
-	if( ! .is_supported_lrgpr(X) ){
-		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
-	}	
-
-	if( is.big.matrix(X) ){ 
-		ptr = X@address 
-	}else{
-		ptr = 0
-	}
-
-	# run allele frequency calculations
-	allelefreq <- .Call("R_getAlleleFreq2", X, ptr, as.integer(nthreads), !progress, package="lrgpr")
-
-	gc()
-
-	return( allelefreq )
-}	
-
-
-
-
-
 #' Count missing values
 #' 
 #' @param X matrix where each column is a marker
