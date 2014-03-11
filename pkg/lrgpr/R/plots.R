@@ -2,7 +2,7 @@
 
 #' QQ plot
 #' 
-#' QQ plot and lambda_GC optimizd for large datasets.
+#' QQ plot and lambda_GC optimized for large datasets.
 #'
 #' @param p_values vector, matrix or list of p-values
 #' @param col colors corresponding to the number of columns in matrix, or entries in the list

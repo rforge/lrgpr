@@ -1,4 +1,4 @@
-## lrgpr.R: 'lrgpr' is used to fit LRGPR/LMM models that account for covariance in response values
+## lrgpr.R: `lrgpr' is used to fit LRGPR/LMM models that account for covariance in response values
 ##
 ## Copyright (C) 2013 Gabriel E. Hoffman
 ##
@@ -81,12 +81,12 @@ set_missing_to_mean = function(A){
 
 #' Fit a Low Rank Gaussian Process Regression (LRGPR) / Linear Mixed Model (LMM)
 #'
-#' `lrgpr' is used to fit LRGPR/LMM models that account for covariance in response values, but where the scale of the covariance is unknown.  Standard linear modeling syntax is used for the model specification in addition to a covariance matrix or its eigen-decomposition.
+#' Fit LRGPR/LMM models that account for covariance in response values, but where the scale of the covariance is unknown.  Standard linear modeling syntax is used for the model specification in addition to a covariance matrix or its eigen-decomposition.
 #'
-#' @param formula standard linear modeling syntax as used in 'lm'
+#' @param formula standard linear modeling syntax as used in `lm'
 #' @param decomp eigen-decomposition produced from eigen(K), where K is the covariance matrix.  Or singular value decomposition svd(X[,1:100]) based on a subset of markers
 #' @param rank decomposition is truncated to the first rank eigen-vectors
-#' @param delta ratio of variance components governing the fit of the model.  This should be estimated from a previous evaluation of 'lm' on the same response and eigen-decomposition  
+#' @param delta ratio of variance components governing the fit of the model.  This should be estimated from a previous evaluation of `lm' on the same response and eigen-decomposition  
 #' @param nthreads number of threads to use for parallel execution
 #' @param W_til markers used to construct decomp that should now be removed from costruction of decomp.  This is the proximal contamination term of Listgarten, et al. (2012)
 #' @param scale should W_til be scaled and centered
@@ -116,11 +116,11 @@ set_missing_to_mean = function(A){
 #' \item{df.residual}{n - ncol(X)}
 #' \item{rank}{rank of decomposition used, where only non-negative eigen/singular values are considered}
 #' @section Details:
-#' `lrgpr' fits the model:
+#' \code{\link{lrgpr}} fits the model:
 #
-#' \deqn{ y =  X \beta + \alpha +  \epsilon}
+#' \deqn{ y = X \beta + \alpha + \epsilon}
 #'
-#' \deqn{\alpha \sim N(0,  K \sigma^2_a)}
+#' \deqn{\alpha \sim N(0, K \sigma^2_a)}
 #'
 #' \deqn{\epsilon \sim N(0, \sigma^2_e)}
 #'
@@ -132,11 +132,11 @@ set_missing_to_mean = function(A){
 #' 
 #' Note that likelihood ratio tests with linear mixed models do not perform well and the resulting p-values often do not follow a uniform distribution under the null (Pinheiro and Bates, 2000).  We strongly advise against using it with this model.
 #'
-#' `lrgpr' uses the algorithm of Lippert, et al. (2011). 
+#' \code{\link{lrgpr}} uses the algorithm of Lippert, et al. (2011). 
 #'
 #' See Hoffman (2013) for an interpretation of the linear mixed model.
 #'
-#' @seealso 'wald', 'lrgprApply'
+#' @seealso \code{\link{wald}}, \code{\link{lrgprApply}}
 #' @references
 #'
 #' Kang, H. M., et al. (2010) Variance component model to account for sample structure in genome-wide association studies. _Nature Genetics_ 42, 348-54
@@ -177,7 +177,7 @@ set_missing_to_mean = function(A){
 #' # P-values for each covariate
 #' fit$p.values
 #'
-#' # Visualize fit of the model like for 'lm'
+#' # Visualize fit of the model like for `lm'
 #' par(mfrow=c(2,2))
 #' plot(fit)
 #'
@@ -355,16 +355,16 @@ setClass("lrgpr")
 
 #' Composite hypothesis test of multiple coefficients 
 #'
-#' `wald' performs a multi-dimensional Wald test against H0: beta_i...beta_j = 0 using the estimated coefficients and their variance-covariance matrix
+#' Performs a multi-dimensional Wald test against H0: beta_i...beta_j = 0 using the estimated coefficients and their variance-covariance matrix
 #'
-#' @param fit result of fitting with 'lrgpr'
+#' @param fit result of fitting with \code{\link{lrgpr}}
 #' @param terms indices of the coefficients to be tested
 #'
 #' @section Details:
 #' The Wald statistic is \deqn{\beta_h^T \Sigma_h^{-1} \beta_h \sim \chi^2_{|h|}}
 #' where \deqn{h} specifies the coefficients being tested and \deqn{h} is the number of entries
 #'
-#' @seealso 'lrgpr'
+#' @seealso \code{\link{lrgpr}}
 #' @export
 wald <- function(fit, terms){
 
@@ -565,9 +565,9 @@ is.svd_decomp_symmetric <- function( decomp ){
 
 #' Fit a Low Rank Gaussian Process Regression (LRGPR) / Linear Mixed Model (LMM) for many markers
 #'
-#' `lrgprApply' is used to fit LRGPR/LMM models that account for covariance in response values, but where the scale of the covariance is unknown.  It returns p-values equivalent to the results of lrgpr() and wald(), but is designed to analyze thousands of markers in a single function call.
+#' Fit LRGPR/LMM models that account for covariance in response values, but where the scale of the covariance is unknown.  It returns p-values equivalent to the results of \code{\link{lrgpr}} and \code{\link{lrgpr}}, but is designed to analyze thousands of markers in a single function call.
 #'
-#' @param formula standard linear modeling syntax as used in 'lm'.  SNP is a place holder for the each successive column of features
+#' @param formula standard linear modeling syntax as used in `lm'.  SNP is a place holder for the each successive column of features
 #' @param features a matrix where the statistical model is evaluated with SNP if formula replace by each column successively
 #' @param decomp eigen-decomposition produced from eigen(K), where K is the covariance matrix.  Or singular value decomposition svd(features[,1:100]) based on a subset of markers
 #' @param terms indices of the coefficients to be tested. The indices corresponding to SNP are used if terms is not specified
@@ -577,7 +577,7 @@ is.svd_decomp_symmetric <- function( decomp ){
 #' @param dcmp_features the indices in features of the markers used to construct dcmp
 #' @param W_til markers used to construct decomp that should now be removed from costruction of decomp.  This is the proximal contamination term of Listgarten, et al. (2012)
 #' @param scale should W_til be scaled and centered 
-#' @param delta ratio of variance components governing the fit of the model.  This should be estimated from a previous evaluation of 'lm' on the same response and eigen-decomposition  
+#' @param delta ratio of variance components governing the fit of the model.  This should be estimated from a previous evaluation of `lm' on the same response and eigen-decomposition  
 #' @param reEstimateDelta should delta be re-estimated for every marker. Note: reEstimateDelta=TRUE is much slower
 #' @param nthreads number of to use for parallel execution
 #' @param verbose print extra information
@@ -843,9 +843,9 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 
 #' Fit standard linear or logistic model for many markers
 #'
-#' `glmApply' is analogous to 'lrgprApply', but fits standard linear or logistic models for many markers
+#' Analogous to \code{\link{lrgprApply}}, but fits standard linear or logistic models for many markers
 
-#' @param formula standard linear modeling syntax as used in 'lm'.  SNP is a place holder for the each successive column of features
+#' @param formula standard linear modeling syntax as used in `lm'.  SNP is a place holder for the each successive column of features
 #' @param features a matrix where the statistical model is evaluated with SNP if formula replace by each column successively
 #' @param terms indices of the coefficients to be tested.  The indices corresponding to SNP are used if terms is not specified
 #' @param family gaussian() for a continuous response, and binomial() to fit a logit model for a binary response 
@@ -1233,18 +1233,18 @@ glmApply2 <- function( formula, features, terms=NULL, family=gaussian(), useMean
 
 
 
-#' Compute AIC/BIC/GCV for lrgpr() model as rank changes
+#' Compute AIC/BIC/GCV for \code{\link{lrgpr}} model as rank changes
 #'
-#' `criterion.lrgpr' evaluate information criteria to select an optimal rank
+#' Evaluate information criteria to select an optimal rank for model fit by \code{\link{lrgpr}}
 #'
-#' @param formula standard linear modeling syntax as used in 'lm'
+#' @param formula standard linear modeling syntax as used in `lm'
 #' @param features matrix from which the SVD is performed
 #' @param order sorted indices of features.  When rank is 10, decomp = svd(X[,order[1:10]]) 
 #' @param rank array with elements indicating the number of confounding covariates to be used in the random effect.
 #'
 #' @seealso plot.criterion.lrgpr, cv.lrgpr
 #' 
-#'#' @examples
+#' @examples
 #' n = 300
 #' p = 5000
 #' X = matrix(sample(0:2, n*p, replace=TRUE), nrow=n)
@@ -1328,13 +1328,13 @@ criterion.lrgpr = function( formula, features, order, rank = c(seq(1, 10), seq(2
 
 #' Plot AIC/BIC/GCV values for lrgpr() model as rank changes
 #'
-#' `plot.criterion.lrgpr' plots the criteria returned by 'criterion.lrgpr' 
+#' Plots the criteria metrics returned by \code{\link{criterion.lrgpr}} 
 #'
-#' @param x list returned by 'criterion.lrgpr'
+#' @param x list returned by \code{\link{criterion.lrgpr}}
 #' @param col array of 3 colors 
 #' @param ... other arguments 
 #'
-#' @seealso criterion.lrgpr
+#' @seealso \code{\link{criterion.lrgpr}}
 #'
 #' @export
 plot.criterion.lrgpr = function( x, col=rainbow(3),...){
@@ -1360,7 +1360,7 @@ plot.criterion.lrgpr = function( x, col=rainbow(3),...){
 
 #' Plot Results of Cross-validation
 #'
-#' Plot results of 'cv.lrgpr', which fits cross-validation for multiple ranks of the LRGPR
+#' Plot results of \code{\link{cv.lrgpr}}, which fits cross-validation for multiple ranks of the LRGPR
 #'
 #' @param x result of cv.lrgpr
 #' @param ylim limits of y-axis
@@ -1401,11 +1401,11 @@ loss.lrgpr <- function(y, yhat, family){
 	val
 }
 
-#' Cross-validation for LRGPR
+#' Cross-validation for \code{\link{lrgpr}}
 #'
-#' `cv.lrgpr' fits cross-validation for multiple ranks of the LRGPR
+#' Fit cross-validation for multiple ranks of \code{\link{lrgpr}}
 #'
-#' @param formula standard linear modeling syntax as used in 'lm'
+#' @param formula standard linear modeling syntax as used in `lm'
 #' @param features matrix from which the SVD is performed
 #' @param order sorted indices of features.  When rank is 10, decomp = svd(X[,order[1:10]]) 
 #' @param nfolds number of training sets
@@ -1544,11 +1544,11 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 
 #' Convert ASCII to binary file
 #'
-#' `convertToBinary' converts TPED/DOSAGE/GEN files to binary format
+#' Converts TPED/DOSAGE/GEN files to binary format
 #'
 #' @param filename file to be converted
 #' @param filenameOut name of binary file produced
-#' @param format specify 'TPED', 'DOSAGE' or 'GEN'
+#' @param format specify `TPED', `DOSAGE' or `GEN'
 #'
 #' @details
 #' \itemize{
@@ -1567,7 +1567,7 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 #' where the F* values correspond to the dosage values
 #'
 #' \itemize{
-#' \item{GEN:	}{file follow OXFORD format}
+#' \item{GEN:	}{file follows OXFORD format}
 #' }
 #'
 #' @export

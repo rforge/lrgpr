@@ -11,7 +11,7 @@
 }
 \arguments{
   \item{formula}{standard linear modeling syntax as used in
-  'lm'.  SNP is a place holder for the each successive
+  `lm'.  SNP is a place holder for the each successive
   column of features}
 
   \item{features}{a matrix where the statistical model is
@@ -50,8 +50,8 @@
   analysis}
 }
 \description{
-  `glmApply' is analogous to 'lrgprApply', but fits
-  standard linear or logistic models for many markers
+  Analogous to \code{\link{lrgprApply}}, but fits standard
+  linear or logistic models for many markers
 }
 \examples{
 # Generate data

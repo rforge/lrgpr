@@ -1,13 +1,13 @@
 \name{criterion.lrgpr}
 \alias{criterion.lrgpr}
-\title{Compute AIC/BIC/GCV for lrgpr() model as rank changes}
+\title{Compute AIC/BIC/GCV for \code{\link{lrgpr}} model as rank changes}
 \usage{
   criterion.lrgpr(formula, features, order,
     rank = c(seq(1, 10), seq(20, 100, by = 10), seq(200, 1000, by = 100)))
 }
 \arguments{
   \item{formula}{standard linear modeling syntax as used in
-  'lm'}
+  `lm'}
 
   \item{features}{matrix from which the SVD is performed}
 
@@ -18,8 +18,8 @@
   confounding covariates to be used in the random effect.}
 }
 \description{
-  `criterion.lrgpr' evaluate information criteria to select
-  an optimal rank
+  Evaluate information criteria to select an optimal rank
+  for model fit by \code{\link{lrgpr}}
 }
 \examples{
 n = 300
@@ -44,7 +44,5 @@ plot(fit)
 }
 \seealso{
   plot.criterion.lrgpr, cv.lrgpr
-
-  #'
 }
 

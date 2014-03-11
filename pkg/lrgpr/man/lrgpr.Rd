@@ -9,7 +9,7 @@
 }
 \arguments{
   \item{formula}{standard linear modeling syntax as used in
-  'lm'}
+  `lm'}
 
   \item{decomp}{eigen-decomposition produced from eigen(K),
   where K is the covariance matrix.  Or singular value
@@ -21,7 +21,7 @@
 
   \item{delta}{ratio of variance components governing the
   fit of the model.  This should be estimated from a
-  previous evaluation of 'lm' on the same response and
+  previous evaluation of `lm' on the same response and
   eigen-decomposition}
 
   \item{nthreads}{number of threads to use for parallel
@@ -64,15 +64,15 @@
   eigen/singular values are considered}
 }
 \description{
-  `lrgpr' is used to fit LRGPR/LMM models that account for
-  covariance in response values, but where the scale of the
-  covariance is unknown.  Standard linear modeling syntax
-  is used for the model specification in addition to a
-  covariance matrix or its eigen-decomposition.
+  Fit LRGPR/LMM models that account for covariance in
+  response values, but where the scale of the covariance is
+  unknown.  Standard linear modeling syntax is used for the
+  model specification in addition to a covariance matrix or
+  its eigen-decomposition.
 }
 \section{Details}{
-  `lrgpr' fits the model: \deqn{ y = X \beta + \alpha +
-  \epsilon}
+  \code{\link{lrgpr}} fits the model: \deqn{ y = X \beta +
+  \alpha + \epsilon}
 
   \deqn{\alpha \sim N(0, K \sigma^2_a)}
 
@@ -95,7 +95,8 @@
   (Pinheiro and Bates, 2000).  We strongly advise against
   using it with this model.
 
-  `lrgpr' uses the algorithm of Lippert, et al. (2011).
+  \code{\link{lrgpr}} uses the algorithm of Lippert, et al.
+  (2011).
 
   See Hoffman (2013) for an interpretation of the linear
   mixed model.
@@ -122,7 +123,7 @@ summary(fit)
 # P-values for each covariate
 fit$p.values
 
-# Visualize fit of the model like for 'lm'
+# Visualize fit of the model like for `lm'
 par(mfrow=c(2,2))
 plot(fit)
 
@@ -157,6 +158,6 @@ wald( fit, terms=2:3)
   are not currently calculated when W_til is specified.
 }
 \seealso{
-  'wald', 'lrgprApply'
+  \code{\link{wald}}, \code{\link{lrgprApply}}
 }
 

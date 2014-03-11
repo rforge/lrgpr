@@ -1,7 +1,7 @@
 Package: lrgpr
 Title: lrgpr
-Version: 0.0.4
-Date: February 6, 2014
+Version: 0.0.5
+Date: March 11, 2014
 Author: Gabriel E. Hoffman
 Maintainer: Gabriel E. Hoffman <gabriel.hoffman@mssm.edu>
 Description: Fit a Low Rank Gaussian Process Regression (LRGPR) / Linear Mixed

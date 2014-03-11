@@ -13,7 +13,7 @@
 }
 \arguments{
   \item{formula}{standard linear modeling syntax as used in
-  'lm'.  SNP is a place holder for the each successive
+  `lm'.  SNP is a place holder for the each successive
   column of features}
 
   \item{features}{a matrix where the statistical model is
@@ -50,7 +50,7 @@
 
   \item{delta}{ratio of variance components governing the
   fit of the model.  This should be estimated from a
-  previous evaluation of 'lm' on the same response and
+  previous evaluation of `lm' on the same response and
   eigen-decomposition}
 
   \item{reEstimateDelta}{should delta be re-estimated for
@@ -69,10 +69,10 @@
   analysis}
 }
 \description{
-  `lrgprApply' is used to fit LRGPR/LMM models that account
-  for covariance in response values, but where the scale of
-  the covariance is unknown.  It returns p-values
-  equivalent to the results of lrgpr() and wald(), but is
+  Fit LRGPR/LMM models that account for covariance in
+  response values, but where the scale of the covariance is
+  unknown.  It returns p-values equivalent to the results
+  of \code{\link{lrgpr}} and \code{\link{lrgpr}}, but is
   designed to analyze thousands of markers in a single
   function call.
 }

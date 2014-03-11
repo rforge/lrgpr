@@ -10,11 +10,10 @@
 
   \item{filenameOut}{name of binary file produced}
 
-  \item{format}{specify 'TPED', 'DOSAGE' or 'GEN'}
+  \item{format}{specify `TPED', `DOSAGE' or `GEN'}
 }
 \description{
-  `convertToBinary' converts TPED/DOSAGE/GEN files to
-  binary format
+  Converts TPED/DOSAGE/GEN files to binary format
 }
 \details{
   \itemize{ \item{TPED: }{plink file can be in either
@@ -33,6 +32,6 @@
 
   where the F* values correspond to the dosage values
 
-  \itemize{ \item{GEN: }{file follow OXFORD format} }
+  \itemize{ \item{GEN: }{file follows OXFORD format} }
 }
 

@@ -1,6 +1,6 @@
 \name{cv.lrgpr}
 \alias{cv.lrgpr}
-\title{Cross-validation for LRGPR}
+\title{Cross-validation for \code{\link{lrgpr}}}
 \usage{
   cv.lrgpr(formula, features, order, nfolds = 10,
     rank = c(seq(0, 10), seq(20, 100, by = 10), seq(200, 1000, by = 100)),
@@ -8,7 +8,7 @@
 }
 \arguments{
   \item{formula}{standard linear modeling syntax as used in
-  'lm'}
+  `lm'}
 
   \item{features}{matrix from which the SVD is performed}
 
@@ -23,8 +23,8 @@
   \item{nthreads}{number of threads to be used}
 }
 \description{
-  `cv.lrgpr' fits cross-validation for multiple ranks of
-  the LRGPR
+  Fit cross-validation for multiple ranks of
+  \code{\link{lrgpr}}
 }
 \examples{
 n = 300

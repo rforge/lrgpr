@@ -28,7 +28,7 @@
   \item{...}{other parameters fed to plot()}
 }
 \description{
-  Plot results of 'cv.lrgpr', which fits cross-validation
-  for multiple ranks of the LRGPR
+  Plot results of \code{\link{cv.lrgpr}}, which fits
+  cross-validation for multiple ranks of the LRGPR
 }
 

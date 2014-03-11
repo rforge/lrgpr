@@ -5,12 +5,12 @@
   wald(fit, terms)
 }
 \arguments{
-  \item{fit}{result of fitting with 'lrgpr'}
+  \item{fit}{result of fitting with \code{\link{lrgpr}}}
 
   \item{terms}{indices of the coefficients to be tested}
 }
 \description{
-  `wald' performs a multi-dimensional Wald test against H0:
+  Performs a multi-dimensional Wald test against H0:
   beta_i...beta_j = 0 using the estimated coefficients and
   their variance-covariance matrix
 }
@@ -21,6 +21,6 @@
   entries
 }
 \seealso{
-  'lrgpr'
+  \code{\link{lrgpr}}
 }
 

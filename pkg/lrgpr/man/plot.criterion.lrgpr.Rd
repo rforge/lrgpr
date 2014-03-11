@@ -5,17 +5,17 @@
   plot.criterion.lrgpr(x, col = rainbow(3), ...)
 }
 \arguments{
-  \item{x}{list returned by 'criterion.lrgpr'}
+  \item{x}{list returned by \code{\link{criterion.lrgpr}}}
 
   \item{col}{array of 3 colors}
 
   \item{...}{other arguments}
 }
 \description{
-  `plot.criterion.lrgpr' plots the criteria returned by
-  'criterion.lrgpr'
+  Plots the criteria metrics returned by
+  \code{\link{criterion.lrgpr}}
 }
 \seealso{
-  criterion.lrgpr
+  \code{\link{criterion.lrgpr}}
 }
 

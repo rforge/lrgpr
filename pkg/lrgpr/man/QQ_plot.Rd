@@ -49,7 +49,7 @@
   \item{...}{other arguments}
 }
 \description{
-  QQ plot and lambda_GC optimizd for large datasets.
+  QQ plot and lambda_GC optimized for large datasets.
 }
 \examples{
 p = runif(1e6)
