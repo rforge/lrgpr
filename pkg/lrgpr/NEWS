@@ -1,6 +1,7 @@
 
 v 0.0.5 
   - Update documentation
+  - Fix error in getAlleleFreq, getAlleleVariance that made all returned values 1
 
 v 0.0.4
   - specify columns of features to include/exclude from analysis glmApply() and lrgprApply()
