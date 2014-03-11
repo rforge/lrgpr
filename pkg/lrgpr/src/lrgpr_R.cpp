@@ -917,7 +917,7 @@ BEGIN_RCPP
 
 				fbatch.getFeautureInChunk( j, marker_j );	
 
-				if( useMean ) 	isMissing = gsl_vector_set_missing_mean( marker_j );					
+				if( useMean ) 	isMissing = gsl_vector_set_missing_mean( marker_j );		
 				else 			isMissing = any_is_na( marker_j->data, marker_j->size );
 
 				// Check if X has an NA value 
@@ -1250,6 +1250,107 @@ BEGIN_RCPP
 	if( ! quiet ) Rcpp::Rcout << endl;
 
 	return( wrap(colVariance) );
+
+END_RCPP
+}
+
+
+RcppExport SEXP R_getMACHrsq( SEXP data_, SEXP pBigMat_, SEXP nthreads_, SEXP quiet_){
+
+BEGIN_RCPP
+
+	int nthreads = as<int>( nthreads_ );
+	bool quiet = as<int>( quiet_ );
+	
+	featureBatcher fbatch( data_, pBigMat_, 10000);
+
+	// Set threads to 1
+	omp_set_num_threads( nthreads );
+	// Intel paralellism
+	#ifdef INTEL
+	mkl_set_num_threads( 1 );
+	#endif
+	// disable nested OpenMP parallelism
+	omp_set_nested(0);
+
+	long batch_size = MAX( 1, fbatch.getBatchSize()/100.0 ); 
+
+	long tests_completed = 0;
+	Progress p(0, false);
+
+	time_t start_time;
+	time(&start_time);
+
+	vector<double> info( fbatch.get_N_features() );
+
+	for(int i_set=0; i_set<fbatch.get_N_features(); i_set+=fbatch.getBatchSize()){
+
+		// Load data from binary matrix (or do noting if NumericMatrix is used)
+		fbatch.loadNextChunk();
+
+		#pragma omp parallel
+		{		
+			gsl_vector *marker_j = gsl_vector_alloc( fbatch.get_N_indivs() ); 
+
+			#pragma omp for schedule(static, batch_size)			
+			for(int j=0; j<fbatch.getBatchSize(); j++){			
+
+				#pragma omp critical
+				tests_completed++;
+
+				fbatch.getFeautureInChunk( j, marker_j );	
+
+				// Compute varaince for non-missing entries
+				gsl_vector *v = gsl_vector_get_nonmissing( marker_j );
+
+				// See http://www.nature.com/nrg/journal/v11/n7/extref/nrg2796-s3.pdf
+
+				double N = v->size;
+
+				double v_sum = gsl_vector_sum_elements(v);
+
+				//theta = sum(e) / (2*N) 
+				double theta = v_sum / (2*N);
+
+				if( theta == 0 || theta == 1){
+					info[j+i_set] = 1;
+				}else{
+					double value1 = 0, value2 = 0;
+
+					for(unsigned int i=0; i<N; i++){
+						// v1 = sum(e^2) / N
+						value1 += pow(gsl_vector_get(v, i),2);
+					}
+					value1 /= N;
+
+					// v2 = (sum(e)/N)^2 
+					value2 += pow(v_sum / N, 2);
+
+					//cout << "value1: " << value1 << endl;
+					//cout << "value2: " << value2 << endl;
+					//cout << "theta: " << theta << endl;
+
+					info[j+i_set] = (value1 - value2) / (2*theta*(1-theta));
+				}				
+
+				gsl_vector_free(v);
+
+			} // END for
+
+			gsl_vector_free(marker_j);
+
+		} // End parallel
+
+		if( ! quiet )  Rcpp::Rcout << print_progress( tests_completed, fbatch.get_N_features(), 25, start_time);
+
+		if( Progress::check_abort() ){
+			return wrap(0);
+		}
+	} // End set loop
+
+	if( ! quiet ) Rcpp::Rcout << endl;
+
+	return( wrap(info) );
 
 END_RCPP
 }

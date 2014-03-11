@@ -1,6 +1,6 @@
 \name{getAlleleVariance}
 \alias{getAlleleVariance}
-\title{EValuate variance for each column}
+\title{Evaluate variance for each column}
 \usage{
   getAlleleVariance(X,
     nthreads = detectCores(logical = TRUE),
@@ -14,6 +14,6 @@
   \item{progress}{show progress bar}
 }
 \description{
-  EValuate variance for each column
+  Evaluate variance for each column
 }
 

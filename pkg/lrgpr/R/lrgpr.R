@@ -362,7 +362,7 @@ setClass("lrgpr")
 #'
 #' @section Details:
 #' The Wald statistic is \deqn{\beta_h^T \Sigma_h^{-1} \beta_h \sim \chi^2_{|h|}}
-#' where \deqn{h} specifies the coefficients being tested and \deqn{h} is the number of entries
+#' where \deqn{h} specifies the coefficients being tested and \deqn{|h|} is the number of entries
 #'
 #' @seealso \code{\link{lrgpr}}
 #' @export
@@ -1717,7 +1717,7 @@ getMissingCount = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE
 	return( missingCount )
 }	
 
-#' EValuate variance for each column
+#' Evaluate variance for each column
 #' 
 #' @param X matrix where each column is a marker
 #' @param nthreads number of threads to use
@@ -1745,4 +1745,41 @@ getAlleleVariance = function( X, nthreads=detectCores(logical=TRUE), progress=TR
 	gc()
 	
 	return( alleleVar )
+}	
+
+
+#' Evaluate MACH r^2 information metric for each column
+#' 
+#' @param X matrix where each column is a marker
+#' @param nthreads number of threads to use
+#' @param progress show progress bar 
+#'
+#' See definition in Supplementary information S3 for Marchini and Howie (2010): \url{http://www.nature.com/nrg/journal/v11/n7/extref/nrg2796-s3.pdf}.
+#'
+#' #' @references
+#'  Marchini, J. and B. Howie. (2010) Genotype imputation for genome-wide association studies. _Nature Reviews Genetics_ 11, 499-511
+#''
+#' @export 
+getMACHrsq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
+
+	if( ! is.matrix(X) && ! is.big.matrix(X) ){
+		X = as.matrix(X)
+	}
+
+	if( ! .is_supported_lrgpr(X) ){
+		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
+	}	
+
+	if( is.big.matrix(X) ){ 
+		ptr = X@address 
+	}else{
+		ptr = 0
+	}
+
+	# count missing entries for each column
+	info <- .Call("R_getMACHrsq", X, ptr, as.integer(nthreads), !progress, package="lrgpr")
+
+	gc()
+	
+	return( info )
 }	

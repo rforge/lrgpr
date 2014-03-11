@@ -17,7 +17,7 @@
 \section{Details}{
   The Wald statistic is \deqn{\beta_h^T \Sigma_h^{-1}
   \beta_h \sim \chi^2_{|h|}} where \deqn{h} specifies the
-  coefficients being tested and \deqn{h} is the number of
+  coefficients being tested and \deqn{|h|} is the number of
   entries
 }
 \seealso{

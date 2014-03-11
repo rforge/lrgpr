@@ -146,7 +146,8 @@ bool featureBatcher::loadNextChunk(){
 		//cout << "start: " << runningTotal << endl;
 		//cout << "end: " << runningTotal + batchSize - 1 << endl << endl;
 
-		if( contains_element( runningTotal, runningTotal + batchSize - 1  ) ){
+		// If include list is empty, or index is in include list
+		if( idxObj.size() == 0 || contains_element( runningTotal, runningTotal + batchSize - 1  ) ){
 
 			//cout << "Contains..." <<endl;
 			// Read data and advance file pointer, fd
