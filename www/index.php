@@ -88,17 +88,16 @@ The package also provides simple interfaces for standard linear and logistic reg
 </font>
 
 <hr />
-
 <font size="1">
-<p>
-Gabriel E. Hoffman.  Updated March 11, 2014. 
-<?
+<div id="textbox">
+  <p class="alignleft">Gabriel E. Hoffman.  Updated March 17, 2014</p>
+  <p class="alignright">
+  	<?
 	echo "UPV: ";
 	include_once "counter.php"
-?>
-</p>
+	?></p>
+</div>
 </font>
-
 
 </body>
 </html>
