@@ -93,5 +93,10 @@ Gabriel E. Hoffman.  Updated March 11, 2014
 </p>
 </font>
 
+<?
+	echo "<hr><div align=\"center\">";
+	include_once "counter.php"
+?>
+
 </body>
 </html>
