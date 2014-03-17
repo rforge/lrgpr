@@ -10,6 +10,7 @@ $themeroot='r-forge.r-project.org/themes/rforge/';
 
 echo '<?xml version="1.0" encoding="UTF-8"?>';
 ?>
+
 <!DOCTYPE html
 	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -25,9 +26,11 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
 <body>
 
 <!-- R-Forge Logo -->
-<table border="0" width="60%" cellspacing="0" cellpadding="0">
+<table border="0" width="100%" cellspacing="0" cellpadding="0">
 <tr><td>
-<a href="http://r-forge.r-project.org/"><img src="http://<?php echo $themeroot; ?>/imagesrf/logo.png" border="0" alt="R-Forge Logo" width="20%" /> </a> </td> </tr>
+<a href="http://r-forge.r-project.org/"><img src="http://<?php echo $themeroot; ?>/imagesrf/logo.png" border="0" alt="R-Forge Logo" height=30 /> </a> 
+<a href="http://icahn.mssm.edu/departments-and-institutes/genomics"> <img src="MSSMLogo.png" height=30 align="right" /> </a> 
+</td> </tr>
 </table>
 
 
@@ -80,7 +83,6 @@ The package also provides simple interfaces for standard linear and logistic reg
 
 <br>
 <br>
-
 <font size=1>
 <p> Contact: gabriel [dot] hoffman [at] mssm.edu </p>
 </font>
@@ -96,6 +98,7 @@ Gabriel E. Hoffman.  Updated March 11, 2014.
 ?>
 </p>
 </font>
+
 
 </body>
 </html>
