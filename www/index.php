@@ -66,7 +66,7 @@ The package also provides simple interfaces for standard linear and logistic reg
 
 <li> <a href="./docs/lrgpr-manual.pdf"><strong>Manual</strong></a>: details about available functions</li>
 
-<li> <a href="./docs/lrgpr_0.0.5.tar.gz"><strong>Download package</strong></a>: v0.0.5 </li>
+<li> <a href="./docs/lrgpr_0.0.6.tar.gz"><strong>Download package</strong></a>: v0.0.6 </li>
 
 <li> <a href="http://<?php echo $domain; ?>/projects/<?php echo $group_name; ?>/"><strong>Project summary page</strong></a> </li>
 
