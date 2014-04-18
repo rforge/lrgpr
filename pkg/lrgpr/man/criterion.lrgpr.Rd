@@ -2,8 +2,8 @@
 \alias{criterion.lrgpr}
 \title{Compute AIC/BIC/GCV for \code{\link{lrgpr}} model as rank changes}
 \usage{
-  criterion.lrgpr(formula, features, order,
-    rank = c(seq(1, 10), seq(20, 100, by = 10), seq(200, 1000, by = 100)))
+criterion.lrgpr(formula, features, order, rank = c(seq(1, 10), seq(20, 100, by
+  = 10), seq(200, 1000, by = 100)))
 }
 \arguments{
   \item{formula}{standard linear modeling syntax as used in
@@ -18,8 +18,8 @@
   confounding covariates to be used in the random effect.}
 }
 \description{
-  Evaluate information criteria to select an optimal rank
-  for model fit by \code{\link{lrgpr}}
+Evaluate information criteria to select an optimal rank for
+model fit by \code{\link{lrgpr}}
 }
 \examples{
 n = 300
@@ -43,6 +43,6 @@ fit = criterion.lrgpr( y ~ 1, features=X, order=i)
 plot(fit)
 }
 \seealso{
-  plot.criterion.lrgpr, cv.lrgpr
+plot.criterion.lrgpr, cv.lrgpr
 }
 

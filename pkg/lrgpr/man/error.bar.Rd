@@ -2,7 +2,7 @@
 \alias{error.bar}
 \title{Plot Error Bars}
 \usage{
-  error.bar(x, y, upper, lower = upper, length = 0.1, ...)
+error.bar(x, y, upper, lower = upper, length = 0.1, ...)
 }
 \arguments{
   \item{x}{x-axis position}
@@ -18,6 +18,6 @@
   \item{...}{arguments for arrows(...)}
 }
 \description{
-  Plot error bars for a confidence interval
+Plot error bars for a confidence interval
 }
 

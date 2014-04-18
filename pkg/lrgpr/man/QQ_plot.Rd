@@ -2,12 +2,10 @@
 \alias{QQ_plot}
 \title{QQ plot}
 \usage{
-  QQ_plot(p_values,
-    col = rainbow(min(length(p_values), ncol(p_values))),
-    main = "", pch = 20, errors = TRUE, lambda = TRUE,
-    p_thresh = 1e-06, showNames = FALSE, ylim = NULL,
-    xlim = NULL, plot = TRUE, new = TRUE,
-    box.lty = par("lty"), collapse = FALSE, ...)
+QQ_plot(p_values, col = rainbow(min(length(p_values), ncol(p_values))),
+  main = "", pch = 20, errors = TRUE, lambda = TRUE, p_thresh = 1e-06,
+  showNames = FALSE, ylim = NULL, xlim = NULL, plot = TRUE,
+  new = TRUE, box.lty = par("lty"), collapse = FALSE, ...)
 }
 \arguments{
   \item{p_values}{vector, matrix or list of p-values}
@@ -49,7 +47,7 @@
   \item{...}{other arguments}
 }
 \description{
-  QQ plot and lambda_GC optimized for large datasets.
+QQ plot and lambda_GC optimized for large datasets.
 }
 \examples{
 p = runif(1e6)

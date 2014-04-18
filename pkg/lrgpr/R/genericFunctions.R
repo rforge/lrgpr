@@ -6,7 +6,7 @@
 #' 
 #' @param x model fit from \code{\link{lrgpr}}
 #' @param ... other arguments
-#@method print lrgpr
+#' @rdname print
 #' @export
 print.lrgpr <- function( x,...){
 	
@@ -26,7 +26,8 @@ print.lrgpr <- function( x,...){
 #' 
 #' @param x model fit from \code{\link{lrgpr}}
 #' @param ... other arguments
-#@method print.summary lrgpr
+#'
+#' @rdname print.summary
 #' @export
 print.summary.lrgpr <- function( x,... ){
 
@@ -85,7 +86,7 @@ print.summary.lrgpr <- function( x,... ){
 #' 
 #' @param object model fit from \code{\link{lrgpr}}
 #' @param ... other arguments
-#@method summary lrgpr
+#' @rdname summary
 #' @export
 summary.lrgpr <- function( object,... ){
 
@@ -152,7 +153,7 @@ summary.lrgpr <- function( object,... ){
 #' @param X_test design matrix of covariates for test samples
 #' @param K_test covariance matrix between samples in the test set and training set
 #' @param ... other arguments
-#@method predict lrgpr
+#' @rdname predict
 #' @export
 predict.lrgpr <- function( object, X_test=NULL, K_test=NULL,... ){
 
@@ -166,15 +167,12 @@ predict.lrgpr <- function( object, X_test=NULL, K_test=NULL,... ){
 
         y_hat <- K_test_U %*% diag(1/(object$eigenValues+object$delta), length(object$eigenValues)) %*% ru + X_test %*% object$coefficients #+ (K_test %*% resid - K_test_U %*% ru)/ obj$delta
 
+          # ( K_test %*% ( diag(1, nrow(X_test)) - tcrossprod(obj$eigenVectors) ) %*% resid )  / obj$delta 
 
-      # ( K_test %*% ( diag(1, nrow(X_test)) - tcrossprod(obj$eigenVectors) ) %*% resid )  / obj$delta 
+          # I = diag(1, nrow(X_test)) 
+          # G = I - tcrossprod(obj$eigenVectors)  
 
-      # I = diag(1, nrow(X_test)) 
-      # G = I - tcrossprod(obj$eigenVectors)  
-
-      #  crossprod(G %*% K_test, G %*% resid) / obj$delta 
-
-	
+          #  crossprod(G %*% K_test, G %*% resid) / obj$delta 	
 	}
 	
 	return( y_hat)
@@ -187,7 +185,7 @@ predict.lrgpr <- function( object, X_test=NULL, K_test=NULL,... ){
 #' @param object model fit with \code{\link{lrgpr}}
 #' @param type the type of residual, but there is only one option here
 #' @param ... other arguments
-#@method residuals lrgpr
+#' @rdname residuals
 #' @export
 residuals.lrgpr <- function( object, type="working",...){
 	object$residuals
@@ -199,7 +197,7 @@ residuals.lrgpr <- function( object, type="working",...){
 #' 
 #' @param object model fit with \code{\link{lrgpr}}
 #' @param ... other arguments
-#@method coefficients lrgpr
+#' @rdname coefficients
 #' @export
 coefficients.lrgpr <- function( object ){
 	object$coefficients
@@ -211,7 +209,7 @@ coefficients.lrgpr <- function( object ){
 #' 
 #' @param object model fit with \code{\link{lrgpr}}
 #' @param ... other arguments
-#@method df.residual lrgpr
+#' @rdname df.residual
 #' @export
 df.residual.lrgpr <- function( object,... ){
 	# OLS
@@ -227,7 +225,7 @@ df.residual.lrgpr <- function( object,... ){
 #' 
 #' @param object model fit with \code{\link{lrgpr}}
 #' @param ... other arguments
-#@method lm.influence lrgpr
+#' @rdname lm.influence
 #' @export
 lm.influence.lrgpr <- function( object,...){
 	list(hat=object$hii)
@@ -239,7 +237,8 @@ lm.influence.lrgpr <- function( object,...){
 #' 
 #' @param model model fit with \code{\link{lrgpr}}
 #' @param ... other arguments
-#@method influence lrgpr
+#' @rdname influence
+# @S3method influence lrgpr
 #' @export
 influence.lrgpr <- function( model,... ){
 	list(hat=model$hii)
@@ -254,7 +253,7 @@ influence.lrgpr <- function( model,... ){
 #' 
 #' @param model model fit with \code{\link{lrgpr}}
 #' @param ... other arguments
-#@method rstandard lrgpr
+#' @rdname rstandard
 #' @export
 rstandard.lrgpr <- function( model,... ){
 	
@@ -271,7 +270,7 @@ rstandard.lrgpr <- function( model,... ){
 #' Basic quantities for regression diagnostics from fit of \code{\link{lrgpr}}
 #' 
 #' @param object model fit with \code{\link{lrgpr}}
-#@method leverage lrgpr
+#' @rdname leverage
 #' @export
 leverage.lrgpr <- function( object ){
 	object$hii
@@ -289,7 +288,7 @@ leverage.lrgpr <- function( object ){
 #' @param sd standard deviation to use
 #' @param hat hat values
 #' @param ... other arguments
-#@method cooks.distance lrgpr
+#' @rdname cooks.distance
 # @export
 cooks.distance.lrgpr <- function( model, infl = lm.influence(model, do.coef = FALSE), res=weighted.residuals(model), sd=sqrt(deviance(model)/df.residual(model)), hat = infl$hat,... ){	
 		
@@ -304,7 +303,7 @@ cooks.distance.lrgpr <- function( model, infl = lm.influence(model, do.coef = FA
 #' 
 #' @param object model fit with \code{\link{lrgpr}}
 #' @param ... other arguments
-#@method vcov lrgpr
+#' @rdname vcov
 #' @export
 vcov.lrgpr <- function( object,...){
 	object$Sigma
@@ -317,6 +316,8 @@ vcov.lrgpr <- function( object,...){
 #' @param object model fit with \code{\link{lrgpr}}
 #' @param ... other arguments
 #' @param k for compotability, not used
+#' @rdname AIC
+# @S3method AIC lrgpr
 #' @export
 AIC.lrgpr = function(object, ..., k = 2){
     object$AIC
@@ -328,7 +329,7 @@ AIC.lrgpr = function(object, ..., k = 2){
 #' 
 #' @param object model fit with \code{\link{lrgpr}}
 #' @param ... other arguments
-#' @export
+#' @rdname BIC
 BIC.lrgpr = function(object, ...){
     object$BIC
  }
@@ -374,7 +375,7 @@ plot.lrgpr_Test <- function( obj,...){
 	mtext( obj$call, 1, line=4, cex=.7)
 	
 	ylab <- "Standardized residuals"
-	plot( leverage.lrgpr(obj), residuals_standardized, xlab='', main="Residuals vs Leverage", ylab=ylab, xlim=c(0, max(leverage.lrgpr(obj))) )
+	#plot( leverage(obj), residuals_standardized, xlab='', main="Residuals vs Leverage", ylab=ylab, xlim=c(0, max(leverage.lrgpr(obj))) )
 	mtext( "Leverage", 1, line=2.5, cex=cex)
 	mtext( obj$call, 1, line=4, cex=cex)	
 	abline( h=0, lty=3, col="gray50")
@@ -406,7 +407,7 @@ plot.lrgpr_Test <- function( obj,...){
 #'
 #' @seealso \code{plot.lm}
 #'
-#@method plot lrgpr
+#' @rdname plot
 #' @export
 plot.lrgpr <- function (x, which=c(1L:3L, 5L), caption=list("Residuals vs Fitted", 
     "Normal Q-Q", "Scale-Location", "Cook's distance", "Residuals vs Leverage", 

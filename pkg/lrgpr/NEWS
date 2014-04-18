@@ -1,7 +1,11 @@
 
+v 0.0.6
+  - in criterion.lrgpr() and cv.lrgpr(), restrict rank to be less than ncol(features) and length(ord)
+
 v 0.0.5 
   - Update documentation
   - Fix error in getAlleleFreq, getAlleleVariance that made all returned values 1
+  - Add getMACHrsq to evaluate imputational quality using MACH's r^2 metric 
 
 v 0.0.4
   - specify columns of features to include/exclude from analysis glmApply() and lrgprApply()

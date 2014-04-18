@@ -2,9 +2,8 @@
 \alias{getAlleleVariance}
 \title{Evaluate variance for each column}
 \usage{
-  getAlleleVariance(X,
-    nthreads = detectCores(logical = TRUE),
-    progress = TRUE)
+getAlleleVariance(X, nthreads = detectCores(logical = TRUE),
+  progress = TRUE)
 }
 \arguments{
   \item{X}{matrix where each column is a marker}
@@ -14,6 +13,6 @@
   \item{progress}{show progress bar}
 }
 \description{
-  Evaluate variance for each column
+Evaluate variance for each column
 }
 

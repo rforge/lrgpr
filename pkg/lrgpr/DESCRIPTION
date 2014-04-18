@@ -1,6 +1,6 @@
 Package: lrgpr
 Title: lrgpr
-Version: 0.0.5
+Version: 0.0.6
 Date: March 11, 2014
 Author: Gabriel E. Hoffman
 Maintainer: Gabriel E. Hoffman <gabriel.hoffman@mssm.edu>
@@ -25,8 +25,3 @@ Depends:
 LinkingTo: Rcpp, RcppGSL
 URL: http://lrgpr.r-forge.r-project.org/
 License: GPL (>= 2)
-Collate:
-    'genericFunctions.R'
-    'lrgpr.R'
-    'plink.R'
-    'plots.R'

@@ -1285,6 +1285,7 @@ criterion.lrgpr = function( formula, features, order, rank = c(seq(1, 10), seq(2
 
 	# discard numbers that are larger than the number of features in the confounder matrix
 	rank = rank[which( rank <= ncol(features) )]
+	rank = rank[which( rank <= length(order) )]
 
 	crit_fxn = function( ncon ){
 		cat("\rrank: ", ncon)
@@ -1302,6 +1303,7 @@ criterion.lrgpr = function( formula, features, order, rank = c(seq(1, 10), seq(2
 	for(i in 1:length(rank)){
 		result[i,] = crit_fxn( rank[i] )
 	}
+	cat("\n")
 
 	#registerDoParallel(cores=nthreads)
 	#result = foreach( ncon=rank, .combine='cbind') %do% crit_fxn( ncon )
@@ -1468,6 +1470,7 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 
 	# discard numbers that are larger than the number of features in the confounder matrix
 	rank = rank[which( rank <= ncol(features) )]
+	rank = rank[which( rank <= length(order) )]
 
 	features = scale(features[,order[1:max(rank)]])
 
@@ -1522,7 +1525,7 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 		#E[cv.ind==i,] = unlistfn( mclapply( rank, cv_fxn, mc.cores=nthreads) )	
 
 		# foreach parallelization seems to be faster than mclapply
-		E[cv.ind==i,] = foreach(ncon=rank, .combine='cbind') %do% cv_fxn( ncon )
+		E[cv.ind==i,] = foreach(ncon_i=rank, .combine='cbind') %do% {cv_fxn( ncon_i )}
 	}
  
  	cat("\n")
@@ -1549,6 +1552,7 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 #' @param filename file to be converted
 #' @param filenameOut name of binary file produced
 #' @param format specify `TPED', `DOSAGE' or `GEN'
+#' @param nthreads number of threads to use
 #'
 #' @details
 #' \itemize{

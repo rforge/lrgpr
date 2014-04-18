@@ -2,10 +2,9 @@
 \alias{lrgpr}
 \title{Fit a Low Rank Gaussian Process Regression (LRGPR) / Linear Mixed Model (LMM)}
 \usage{
-  lrgpr(formula, decomp,
-    rank = max(ncol(decomp$u), ncol(decomp$vectors)),
-    delta = NULL, nthreads = 4, W_til = NULL, scale = TRUE,
-    diagnostic = FALSE)
+lrgpr(formula, decomp, rank = max(ncol(decomp$u), ncol(decomp$vectors)),
+  delta = NULL, nthreads = 4, W_til = NULL, scale = TRUE,
+  diagnostic = FALSE)
 }
 \arguments{
   \item{formula}{standard linear modeling syntax as used in
@@ -37,38 +36,38 @@
   used with plot()}
 }
 \value{
-  \item{coefficients}{regression coefficients for each
-  covariate} \item{p.values}{p-values from Wald test of
-  each coefficient} \item{sd}{standard deviation of each
-  coefficient estimate} \item{sigSq_e}{variance component
-  \deqn{\sigma^2_e} corresponding to the residual error}
-  \item{sigSq_a}{variance component \deqn{\sigma^2_a}
-  corresponding the scale of the covariance, K}
-  \item{delta}{ratio of variance components:
-  \deqn{\sigma^2_e / \sigma^2_a}} \item{rank}{the rank of
-  the random effect} \item{logLik}{log-likelihood of the
-  model fit} \item{fitted.values}{estimated response
-  values: y_hat} \item{alpha}{BLUP of the random effect}
-  \item{Sigma}{variance-covariate matrix of estimate of
-  beta} \item{hii}{diagonals of the matrix H such that
-  y_hat = Hy} \item{y}{responses} \item{x}{design matrix}
-  \item{df}{effective degrees of freedom: trace(H) based on
-  Hoffman (2013)} \item{residuals}{residuals of model fit:
-  y - y_hat} \item{AIC}{Akaike information criterion}
-  \item{BIC}{Bayesian information criterion}
-  \item{GCV}{generalized cross-validation}
-  \item{eigenVectors}{eigen-vectors in decomp}
-  \item{eigenValues}{eigen-values in decomp}
-  \item{df.residual}{n - ncol(X)} \item{rank}{rank of
-  decomposition used, where only non-negative
-  eigen/singular values are considered}
+\item{coefficients}{regression coefficients for each
+covariate} \item{p.values}{p-values from Wald test of each
+coefficient} \item{sd}{standard deviation of each
+coefficient estimate} \item{sigSq_e}{variance component
+\deqn{\sigma^2_e} corresponding to the residual error}
+\item{sigSq_a}{variance component \deqn{\sigma^2_a}
+corresponding the scale of the covariance, K}
+\item{delta}{ratio of variance components: \deqn{\sigma^2_e
+/ \sigma^2_a}} \item{rank}{the rank of the random effect}
+\item{logLik}{log-likelihood of the model fit}
+\item{fitted.values}{estimated response values: y_hat}
+\item{alpha}{BLUP of the random effect}
+\item{Sigma}{variance-covariate matrix of estimate of beta}
+\item{hii}{diagonals of the matrix H such that y_hat = Hy}
+\item{y}{responses} \item{x}{design matrix}
+\item{df}{effective degrees of freedom: trace(H) based on
+Hoffman (2013)} \item{residuals}{residuals of model fit: y
+- y_hat} \item{AIC}{Akaike information criterion}
+\item{BIC}{Bayesian information criterion}
+\item{GCV}{generalized cross-validation}
+\item{eigenVectors}{eigen-vectors in decomp}
+\item{eigenValues}{eigen-values in decomp}
+\item{df.residual}{n - ncol(X)} \item{rank}{rank of
+decomposition used, where only non-negative eigen/singular
+values are considered}
 }
 \description{
-  Fit LRGPR/LMM models that account for covariance in
-  response values, but where the scale of the covariance is
-  unknown.  Standard linear modeling syntax is used for the
-  model specification in addition to a covariance matrix or
-  its eigen-decomposition.
+Fit LRGPR/LMM models that account for covariance in
+response values, but where the scale of the covariance is
+unknown.  Standard linear modeling syntax is used for the
+model specification in addition to a covariance matrix or
+its eigen-decomposition.
 }
 \section{Details}{
   \code{\link{lrgpr}} fits the model: \deqn{ y = X \beta +
@@ -132,32 +131,31 @@ plot(fit)
 wald( fit, terms=2:3)
 }
 \references{
-  Kang, H. M., et al. (2010) Variance component model to
-  account for sample structure in genome-wide association
-  studies. _Nature Genetics_ 42, 348-54
+Kang, H. M., et al. (2010) Variance component model to
+account for sample structure in genome-wide association
+studies. _Nature Genetics_ 42, 348-54
 
-  Lippert, C., et al. (2011) FaST linear mixed models for
-  genome-wide association studies. _Nature Methods_ 9,
-  525-26
+Lippert, C., et al. (2011) FaST linear mixed models for
+genome-wide association studies. _Nature Methods_ 9, 525-26
 
-  Listgarten, J., et al. (2012) Improved linear mixed
-  models for genome-wide association studies. _Nature
-  Methods_ 8, 833-5
+Listgarten, J., et al. (2012) Improved linear mixed models
+for genome-wide association studies. _Nature Methods_ 8,
+833-5
 
-  Rasmussen, C. E. and Williams, C. K. I. (2006) Gaussian
-  processes for machine learning. MIT Press
+Rasmussen, C. E. and Williams, C. K. I. (2006) Gaussian
+processes for machine learning. MIT Press
 
-  Pinheiro, J. C. and Bates, D. M. (2000) Mixed-Effects
-  Models in S and S-PLUS. Springer, New York
+Pinheiro, J. C. and Bates, D. M. (2000) Mixed-Effects
+Models in S and S-PLUS. Springer, New York
 
-  Hoffman, G. E. (2013) Correcting for Population Structure
-  and Kinship Using the Linear Mixed Model: Theory and
-  Extensions. _PLoS ONE_ 8(10):e75707
+Hoffman, G. E. (2013) Correcting for Population Structure
+and Kinship Using the Linear Mixed Model: Theory and
+Extensions. _PLoS ONE_ 8(10):e75707
 
-  Note that degrees freedom and some diagnostic statistics
-  are not currently calculated when W_til is specified.
+Note that degrees freedom and some diagnostic statistics
+are not currently calculated when W_til is specified.
 }
 \seealso{
-  \code{\link{wald}}, \code{\link{lrgprApply}}
+\code{\link{wald}}, \code{\link{lrgprApply}}
 }
 

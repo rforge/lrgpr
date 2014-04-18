@@ -2,8 +2,7 @@
 \alias{getAlleleFreq}
 \title{Calculate allele frequency}
 \usage{
-  getAlleleFreq(X, nthreads = detectCores(logical = TRUE),
-    progress = TRUE)
+getAlleleFreq(X, nthreads = detectCores(logical = TRUE), progress = TRUE)
 }
 \arguments{
   \item{X}{matrix where each column is a marker coded 0,1,2
@@ -14,6 +13,6 @@
   \item{progress}{show progress bar}
 }
 \description{
-  Calculate allele frequency
+Calculate allele frequency
 }
 

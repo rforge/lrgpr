@@ -234,11 +234,16 @@ void LRGPR::estimate_beta( const double delta ){
 	//gsl_vector_print( params->Q_Xy_value );
 
 	// Note: Invert multiply can be done faster with DSYSV or DSYSVX
-	gsl_lapack_chol_invert( params->Q_XX_value );
-
-	gsl_blas_dsymv(CblasLower, 1.0, params->Q_XX_value, params->Q_Xy_value, 0.0, params->beta);
+	int status = gsl_lapack_chol_invert( params->Q_XX_value );
 
 	//gsl_matrix_print( params->Q_XX_value );
+
+	if( status == GSL_SUCCESS){
+		gsl_blas_dsymv(CblasLower, 1.0, params->Q_XX_value, params->Q_Xy_value, 0.0, params->beta);
+	}else{
+		gsl_vector_set_all(params->beta, NAN);
+	}
+
 	//gsl_vector_print( params->Q_Xy_value );
 	//gsl_vector_print( params->beta );
 }

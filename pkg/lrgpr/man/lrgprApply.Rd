@@ -2,14 +2,11 @@
 \alias{lrgprApply}
 \title{Fit a Low Rank Gaussian Process Regression (LRGPR) / Linear Mixed Model (LMM) for many markers}
 \usage{
-  lrgprApply(formula, features, decomp, terms = NULL,
-    rank = max(ncol(decomp$u), ncol(decomp$vectors)),
-    map = NULL, distance = NULL, dcmp_features = NULL,
-    W_til = NULL, scale = TRUE, delta = NULL,
-    reEstimateDelta = FALSE,
-    nthreads = detectCores(logical = TRUE),
-    verbose = FALSE, progress = TRUE, cincl = c(),
-    cexcl = c())
+lrgprApply(formula, features, decomp, terms = NULL,
+  rank = max(ncol(decomp$u), ncol(decomp$vectors)), map = NULL,
+  distance = NULL, dcmp_features = NULL, W_til = NULL, scale = TRUE,
+  delta = NULL, reEstimateDelta = FALSE, nthreads = detectCores(logical =
+  TRUE), verbose = FALSE, progress = TRUE, cincl = c(), cexcl = c())
 }
 \arguments{
   \item{formula}{standard linear modeling syntax as used in
@@ -69,12 +66,12 @@
   analysis}
 }
 \description{
-  Fit LRGPR/LMM models that account for covariance in
-  response values, but where the scale of the covariance is
-  unknown.  It returns p-values equivalent to the results
-  of \code{\link{lrgpr}} and \code{\link{lrgpr}}, but is
-  designed to analyze thousands of markers in a single
-  function call.
+Fit LRGPR/LMM models that account for covariance in
+response values, but where the scale of the covariance is
+unknown.  It returns p-values equivalent to the results of
+\code{\link{lrgpr}} and \code{\link{lrgpr}}, but is
+designed to analyze thousands of markers in a single
+function call.
 }
 \examples{
 # Generate data

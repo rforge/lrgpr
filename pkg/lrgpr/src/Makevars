@@ -1,6 +1,6 @@
 
 # set by configure
-GSL_CFLAGS = -I/usr/local/include -DHAVE_INLINE -DGSL_RANGE_CHECK_OFF #-DPRINT_TO_CONSOLE -g 
+GSL_CFLAGS = -I/usr/local/include -DHAVE_INLINE #-DGSL_RANGE_CHECK_ON -DPRINT_TO_CONSOLE -g 
 GSL_LIBS   = -L/usr/local/lib -lgsl -lgslcblas -lm
 RCPP_LDFLAGS =  
 BIGMEMORY_IFLAGS = -I/usr/local/lib/R/library/bigmemory/include

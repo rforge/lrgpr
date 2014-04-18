@@ -297,7 +297,7 @@ BEGIN_RCPP
 
 			bool isMissing;
 
-			#pragma omp for schedule(static, batch_size)		
+			#pragma omp for //schedule(static, batch_size)		
 			for(int j=0; j<fbatch.getBatchSize(); j++){	
 
 				// If element j+i_set is not include include list, than skip
@@ -591,7 +591,7 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 			// Initialize with meaningless data
 			exclude_prev.push_back(-10);
 
-			#pragma omp for schedule(static, batch_size)		
+			#pragma omp for //schedule(static, batch_size)		
 			for(int j=0; j<fbatch.getBatchSize(); j++){		
 
 				// If element j+i_set is not include include list, than skip
@@ -904,7 +904,7 @@ BEGIN_RCPP
 
 			bool isMissing;
 
-			#pragma omp for schedule(static, batch_size)			
+			#pragma omp for //schedule(static, batch_size)			
 			for(int j=0; j<fbatch.getBatchSize(); j++){	
 
 				// If element j+i_set is not include include list, than skip
@@ -1077,7 +1077,7 @@ BEGIN_RCPP
 
 			double N_present; 
 
-			#pragma omp for schedule(static, batch_size)
+			#pragma omp for //schedule(static, batch_size)
 			for(int j=0; j<fbatch.getBatchSize(); j++){		
 
 				#pragma omp critical
@@ -1148,7 +1148,7 @@ BEGIN_RCPP
 		{		
 			gsl_vector *marker_j = gsl_vector_alloc( fbatch.get_N_indivs() ); 
 
-			#pragma omp for schedule(static, batch_size)
+			#pragma omp for //schedule(static, batch_size)
 			for(int j=0; j<fbatch.getBatchSize(); j++){		
 
 				#pragma omp critical
@@ -1216,7 +1216,7 @@ BEGIN_RCPP
 		{		
 			gsl_vector *marker_j = gsl_vector_alloc( fbatch.get_N_indivs() ); 
 
-			#pragma omp for schedule(static, batch_size)			
+			#pragma omp for //schedule(static, batch_size)			
 			for(int j=0; j<fbatch.getBatchSize(); j++){			
 
 				#pragma omp critical
@@ -1292,7 +1292,7 @@ BEGIN_RCPP
 		{		
 			gsl_vector *marker_j = gsl_vector_alloc( fbatch.get_N_indivs() ); 
 
-			#pragma omp for schedule(static, batch_size)			
+			#pragma omp for //schedule(static, batch_size)			
 			for(int j=0; j<fbatch.getBatchSize(); j++){			
 
 				#pragma omp critical
@@ -1325,10 +1325,6 @@ BEGIN_RCPP
 
 					// v2 = (sum(e)/N)^2 
 					value2 += pow(v_sum / N, 2);
-
-					//cout << "value1: " << value1 << endl;
-					//cout << "value2: " << value2 << endl;
-					//cout << "theta: " << theta << endl;
 
 					info[j+i_set] = (value1 - value2) / (2*theta*(1-theta));
 				}				

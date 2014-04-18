@@ -223,7 +223,9 @@ bool parse_TPED( Rcpp::NumericMatrix *X, const long line_number, const string &l
 		markerInfo->position_physical[line_number] = ( atof( pch ) );
 		
 		char *alleleArray = (char *) malloc( *n_tokens * sizeof(char));
-		if( alleleArray == NULL){	cout << "Err 1" << endl;
+		if( alleleArray == NULL){	
+			
+			Rcpp::Rcout << "Err 1" << endl;
 			return false; 
 		}
 
@@ -237,7 +239,9 @@ bool parse_TPED( Rcpp::NumericMatrix *X, const long line_number, const string &l
 			pch = strtok_r (NULL, delimiters, &saveptr);
 
 			// Parsing Error type 2
-			if( pch == NULL ){ cout << "Err 2" << endl;
+			if( pch == NULL ){ 
+
+				Rcpp::Rcout << "Err 2" << endl;
 				return false;
 			}
 			alleleArray[i] = pch[0]; // Since pch will be a single character
@@ -246,7 +250,8 @@ bool parse_TPED( Rcpp::NumericMatrix *X, const long line_number, const string &l
 		// if there are remaining tokens on this line
 		// Parsing Error type 3
 		if( strtok_r (NULL, delimiters, &saveptr) != NULL ){	
-			free( alleleArray );	cout << "Err 3" << endl;	
+			free( alleleArray );	
+			Rcpp::Rcout << "Err 3" << endl;	
 			return false;
 		}
 

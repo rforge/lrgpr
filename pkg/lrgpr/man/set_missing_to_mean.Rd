@@ -2,12 +2,12 @@
 \alias{set_missing_to_mean}
 \title{Replace Missing Values with Mean}
 \usage{
-  set_missing_to_mean(A)
+set_missing_to_mean(A)
 }
 \arguments{
   \item{A}{matrix}
 }
 \description{
-  For each column, replace NA values with the column mean
+For each column, replace NA values with the column mean
 }
 

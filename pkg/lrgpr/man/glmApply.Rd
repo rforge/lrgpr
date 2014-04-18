@@ -2,12 +2,10 @@
 \alias{glmApply}
 \title{Fit standard linear or logistic model for many markers}
 \usage{
-  glmApply(formula, features, terms = NULL,
-    family = gaussian(), useMean = TRUE,
-    nthreads = detectCores(logical = TRUE),
-    univariateTest = TRUE, multivariateTest = FALSE,
-    verbose = FALSE, progress = TRUE, cincl = c(),
-    cexcl = c())
+glmApply(formula, features, terms = NULL, family = gaussian(),
+  useMean = TRUE, nthreads = detectCores(logical = TRUE),
+  univariateTest = TRUE, multivariateTest = FALSE, verbose = FALSE,
+  progress = TRUE, cincl = c(), cexcl = c())
 }
 \arguments{
   \item{formula}{standard linear modeling syntax as used in
@@ -50,8 +48,8 @@
   analysis}
 }
 \description{
-  Analogous to \code{\link{lrgprApply}}, but fits standard
-  linear or logistic models for many markers
+Analogous to \code{\link{lrgprApply}}, but fits standard
+linear or logistic models for many markers
 }
 \examples{
 # Generate data

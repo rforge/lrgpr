@@ -2,9 +2,8 @@
 \alias{cv.lrgpr}
 \title{Cross-validation for \code{\link{lrgpr}}}
 \usage{
-  cv.lrgpr(formula, features, order, nfolds = 10,
-    rank = c(seq(0, 10), seq(20, 100, by = 10), seq(200, 1000, by = 100)),
-    nthreads = 1)
+cv.lrgpr(formula, features, order, nfolds = 10, rank = c(seq(0, 10), seq(20,
+  100, by = 10), seq(200, 1000, by = 100)), nthreads = 1)
 }
 \arguments{
   \item{formula}{standard linear modeling syntax as used in
@@ -23,8 +22,8 @@
   \item{nthreads}{number of threads to be used}
 }
 \description{
-  Fit cross-validation for multiple ranks of
-  \code{\link{lrgpr}}
+Fit cross-validation for multiple ranks of
+\code{\link{lrgpr}}
 }
 \examples{
 n = 300

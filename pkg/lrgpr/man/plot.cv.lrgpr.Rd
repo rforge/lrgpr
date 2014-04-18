@@ -2,11 +2,10 @@
 \alias{plot.cv.lrgpr}
 \title{Plot Results of Cross-validation}
 \usage{
-  plot.cv.lrgpr(x,
-    ylim = c(min(x$cve - x$cvse), max(x$cve + x$cvse)),
-    xlim = range(x$rank), pch = 20, col = "red",
-    main = "Cross validation", xlab = "# of markers used",
-    ylab = "Cross validation error", ...)
+\method{plot}{cv.lrgpr}(x, ylim = c(min(x$cve - x$cvse), max(x$cve + x$cvse)),
+  xlim = range(x$rank), pch = 20, col = "red",
+  main = "Cross validation", xlab = "# of markers used",
+  ylab = "Cross validation error", ...)
 }
 \arguments{
   \item{x}{result of cv.lrgpr}
@@ -28,7 +27,7 @@
   \item{...}{other parameters fed to plot()}
 }
 \description{
-  Plot results of \code{\link{cv.lrgpr}}, which fits
-  cross-validation for multiple ranks of the LRGPR
+Plot results of \code{\link{cv.lrgpr}}, which fits
+cross-validation for multiple ranks of the LRGPR
 }
 

@@ -2,8 +2,8 @@
 \alias{convertToBinary}
 \title{Convert ASCII to binary file}
 \usage{
-  convertToBinary(filename, filenameOut, format,
-    nthreads = detectCores(logical = TRUE))
+convertToBinary(filename, filenameOut, format, nthreads = detectCores(logical
+  = TRUE))
 }
 \arguments{
   \item{filename}{file to be converted}
@@ -11,27 +11,28 @@
   \item{filenameOut}{name of binary file produced}
 
   \item{format}{specify `TPED', `DOSAGE' or `GEN'}
+
+  \item{nthreads}{number of threads to use}
 }
 \description{
-  Converts TPED/DOSAGE/GEN files to binary format
+Converts TPED/DOSAGE/GEN files to binary format
 }
 \details{
-  \itemize{ \item{TPED: }{plink file can be in either
-  --recode or --recode12 format} \item{DOSAGE: }{file
-  follows plink format:
-  http://pngu.mgh.harvard.edu/~purcell/plink/dosage.shtml}
-  }
+\itemize{ \item{TPED: }{plink file can be in either
+--recode or --recode12 format} \item{DOSAGE: }{file follows
+plink format:
+http://pngu.mgh.harvard.edu/~purcell/plink/dosage.shtml} }
 
-  Example:
+Example:
 
-  SNP A1 A2 F1 I1 F2 I2 F3 I3
+SNP A1 A2 F1 I1 F2 I2 F3 I3
 
-  rs0001 A C 0.98 0.02 1.00 0.00 0.00 0.01
+rs0001 A C 0.98 0.02 1.00 0.00 0.00 0.01
 
-  rs0002 G A 0.00 1.00 0.00 0.00 0.99 0.01
+rs0002 G A 0.00 1.00 0.00 0.00 0.99 0.01
 
-  where the F* values correspond to the dosage values
+where the F* values correspond to the dosage values
 
-  \itemize{ \item{GEN: }{file follows OXFORD format} }
+\itemize{ \item{GEN: }{file follows OXFORD format} }
 }
 
