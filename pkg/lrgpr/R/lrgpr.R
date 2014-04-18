@@ -1067,7 +1067,7 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 	}		
 } 
 
-#' Like glmApply, by linear instead of quadratic as a function of the number of covariates
+#' Like glmApply, by linear instead of quadratic as a function of the number of covariates.  This is still experimental
 #' @export
 glmApply2 <- function( formula, features, terms=NULL, family=gaussian(), useMean=TRUE, nthreads=detectCores(logical = TRUE), univariateTest=TRUE, multivariateTest=FALSE, verbose=FALSE, progress=TRUE, cincl=c(), cexcl=c() ){
 

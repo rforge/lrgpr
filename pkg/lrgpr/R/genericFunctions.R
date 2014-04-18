@@ -147,7 +147,7 @@ summary.lrgpr <- function( object,... ){
 
 #' Predict response
 #'
-#' Predict response values after training with \code{\link{lrgpr}}.  Leaving X_test amd K_test as NULL returns the fitted values on the training set
+#' Predict response values after training with \code{\link{lrgpr}}.  Leaving X_test and K_test as NULL returns the fitted values on the training set
 #' 
 #' @param object model fit from \code{\link{lrgpr}} on training samples
 #' @param X_test design matrix of covariates for test samples
@@ -238,7 +238,6 @@ lm.influence.lrgpr <- function( object,...){
 #' @param model model fit with \code{\link{lrgpr}}
 #' @param ... other arguments
 #' @rdname influence
-# @S3method influence lrgpr
 #' @export
 influence.lrgpr <- function( model,... ){
 	list(hat=model$hii)
