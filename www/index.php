@@ -90,7 +90,7 @@ The package also provides simple interfaces for standard linear and logistic reg
 <hr />
 <font size="1">
 <div id="textbox">
-  <p class="alignleft">Gabriel E. Hoffman.  Updated March 17, 2014</p>
+  <p class="alignleft">Gabriel E. Hoffman.  Updated April 18, 2014</p>
   <!--<p class="alignright">
   	<?
 	echo "UPV: ";
