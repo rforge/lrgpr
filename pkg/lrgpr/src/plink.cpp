@@ -780,6 +780,7 @@ RcppExport SEXP R_convertToBinary( SEXP fileName_, SEXP fileNameOut_, SEXP forma
 	bool isZipFile = (bool) as<int>( isZipFile_ );	
 	int nthreads = as<int>( nthreads_ );
 
+	int n_threads_original = omp_get_max_threads();
 	omp_set_num_threads( nthreads );
 
 	string line;	
@@ -981,7 +982,8 @@ RcppExport SEXP R_convertToBinary( SEXP fileName_, SEXP fileNameOut_, SEXP forma
 		free(chunk);
 	}
 
-	
+	omp_set_num_threads( n_threads_original );
+
 	Rcpp::Rcout << print_progress( n_lines, n_lines, 25, start_time);
 	Rcpp::Rcout << endl;	
 

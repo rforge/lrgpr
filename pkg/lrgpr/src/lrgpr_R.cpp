@@ -54,7 +54,11 @@ RcppExport SEXP R_lrgpr( SEXP Y_, SEXP X_, SEXP eigenVectors_, SEXP eigenValues_
 	double delta = Rcpp::as<double>( delta_ );
 	double nthreads = Rcpp::as<double>( nthreads_ );
 
+	// Get original number of threads
+	int n_threads_original = omp_get_max_threads();
+
 	if( ! R_IsNA( nthreads ) ){
+
 		omp_set_num_threads( nthreads ); 
 		// Intel paralellism
 		#ifdef INTEL
@@ -107,6 +111,9 @@ RcppExport SEXP R_lrgpr( SEXP Y_, SEXP X_, SEXP eigenVectors_, SEXP eigenValues_
 		if( ! useProxCon )	df = lrgpr->get_effective_df();
 		else df = NAN;
 	}
+
+	// Restore original number of threads
+	omp_set_num_threads( n_threads_original );
 
 	RcppGSL::vector<double> alpha = gsl_vector_alloc( y->size );
 	RcppGSL::vector<double> Y_hat = lrgpr->get_fitted_response( alpha );
@@ -166,6 +173,9 @@ BEGIN_RCPP
 	regressionType regressType = useIdentityLink ? LINEAR : LOGISTIC;
 
 	featureBatcher fbatch( data_, pBigMat_, 10000, cincl);
+
+	// Get original number of threads
+	int n_threads_original = omp_get_max_threads();
 
 	// Set threads to 1
 	omp_set_num_threads( nthreads );
@@ -399,6 +409,9 @@ BEGIN_RCPP
 		}
 	} // End set loop
 
+	// Restore original number of threads
+	omp_set_num_threads( n_threads_original );
+
 	if( ! quiet ) Rcpp::Rcout << endl;
 
 	Y.free();
@@ -473,6 +486,9 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 	}
 	
 	featureBatcher fbatch( data_, pBigMat_, 10000, cincl);
+
+	// Get original number of threads
+	int n_threads_original = omp_get_max_threads();
 
 	// Set threads to 1
 	omp_set_num_threads( nthreads );
@@ -736,6 +752,9 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 
 	} // End set loop
 
+	// Restore original number of threads
+	omp_set_num_threads( n_threads_original );
+
 	if( ! quiet ) Rcpp::Rcout << endl;
 
 	y.free();
@@ -769,6 +788,9 @@ BEGIN_RCPP
 	regressionType regressType = useIdentityLink ? LINEAR : LOGISTIC;
 
 	featureBatcher fbatch( data_, pBigMat_, 10000, cincl);
+
+	// Get original number of threads
+	int n_threads_original = omp_get_max_threads();
 
 	// Set threads to 1
 	omp_set_num_threads( nthreads );
@@ -1022,6 +1044,9 @@ BEGIN_RCPP
 		}
 	} // End set loop
 
+	// Restore original number of threads
+	omp_set_num_threads( n_threads_original );
+
 	if( ! quiet ) Rcpp::Rcout << endl;
 
 	Y.free();
@@ -1046,6 +1071,9 @@ BEGIN_RCPP
 	bool quiet = as<int>( quiet_ );
 	
 	featureBatcher fbatch( data_, pBigMat_, 10000);
+
+	// Get original number of threads
+	int n_threads_original = omp_get_max_threads();
 
 	// Set threads to 1
 	omp_set_num_threads( nthreads );
@@ -1103,6 +1131,9 @@ BEGIN_RCPP
 
 	} // End set loop
 
+	// Restore original number of threads
+	omp_set_num_threads( n_threads_original );
+
 	if( ! quiet ) Rcpp::Rcout << endl;
 
 	return( wrap(alleleFreq) );
@@ -1119,6 +1150,9 @@ BEGIN_RCPP
 	bool quiet = as<int>( quiet_ );
 	
 	featureBatcher fbatch( data_, pBigMat_, 10000);
+
+	// Get original number of threads
+	int n_threads_original = omp_get_max_threads();
 
 	// Set threads to 1
 	omp_set_num_threads( nthreads );
@@ -1172,6 +1206,9 @@ BEGIN_RCPP
 
 	} // End set loop
 
+	// Restore original number of threads
+	omp_set_num_threads( n_threads_original );
+
 	if( ! quiet ) Rcpp::Rcout << endl;
 
 	return( wrap(missingCount) );
@@ -1187,6 +1224,9 @@ BEGIN_RCPP
 	bool quiet = as<int>( quiet_ );
 	
 	featureBatcher fbatch( data_, pBigMat_, 10000);
+
+	// Get original number of threads
+	int n_threads_original = omp_get_max_threads();
 
 	// Set threads to 1
 	omp_set_num_threads( nthreads );
@@ -1247,6 +1287,9 @@ BEGIN_RCPP
 		}
 	} // End set loop
 
+	// Restore original number of threads
+	omp_set_num_threads( n_threads_original );
+
 	if( ! quiet ) Rcpp::Rcout << endl;
 
 	return( wrap(colVariance) );
@@ -1263,6 +1306,9 @@ BEGIN_RCPP
 	bool quiet = as<int>( quiet_ );
 	
 	featureBatcher fbatch( data_, pBigMat_, 10000);
+
+	// Get original number of threads
+	int n_threads_original = omp_get_max_threads();
 
 	// Set threads to 1
 	omp_set_num_threads( nthreads );
@@ -1343,6 +1389,9 @@ BEGIN_RCPP
 			return wrap(0);
 		}
 	} // End set loop
+
+	// Restore original number of threads
+	omp_set_num_threads( n_threads_original );
 
 	if( ! quiet ) Rcpp::Rcout << endl;
 
