@@ -222,12 +222,14 @@ bool parse_TPED( Rcpp::NumericMatrix *X, const long line_number, const string &l
 
 		markerInfo->position_physical[line_number] = ( atof( pch ) );
 		
-		char *alleleArray = (char *) malloc( *n_tokens * sizeof(char));
+		/*char *alleleArray = (char *) malloc( *n_tokens * sizeof(char));
 		if( alleleArray == NULL){	
 			
 			Rcpp::Rcout << "Err 1" << endl;
 			return false; 
-		}
+		}*/
+
+		vector<string> alleleVector(*n_tokens);
 
 		///////////////////////////////////
 		// Tokenize until end is reached //
@@ -244,30 +246,33 @@ bool parse_TPED( Rcpp::NumericMatrix *X, const long line_number, const string &l
 				Rcpp::Rcout << "Err 2" << endl;
 				return false;
 			}
-			alleleArray[i] = pch[0]; // Since pch will be a single character
+			//alleleArray[i] = pch[0]; // Since pch will be a single character
+
+			// Store whole allele
+			alleleVector[i] = pch; 
 		}
 
 		// if there are remaining tokens on this line
 		// Parsing Error type 3
 		if( strtok_r (NULL, delimiters, &saveptr) != NULL ){	
-			free( alleleArray );	
+			//free( alleleArray );	
 			Rcpp::Rcout << "Err 3" << endl;	
 			return false;
 		}
 
 		// Identify first and second alleles
-		char allele1 = '0';
-		char allele2 = '0';
+		string allele1 = "0";
+		string allele2 = "0";
 
 		for(int j=0; j<*n_tokens; j++){
 			// If first allele has not been found
-			if( allele1 == '0' && alleleArray[j] != '0' ){
-				allele1 = alleleArray[j];
+			if( allele1 == "0" && alleleVector[j] != "0" ){
+				allele1 = alleleVector[j];
 				continue;
 			}
 			// If second allele has not been found
-			if( allele1 != '0' && allele2 == '0' && alleleArray[j] != '0' && alleleArray[j] != allele1){
-				allele2 = alleleArray[j];
+			if( allele1 != "0" && allele2 == "0" && alleleVector[j] != "0" && alleleVector[j] != allele1){
+				allele2 = alleleVector[j];
 				break;
 			}
 		}
@@ -279,15 +284,15 @@ bool parse_TPED( Rcpp::NumericMatrix *X, const long line_number, const string &l
 		int j=0;
 		for(int i=0; i<n_indivs; i++){
 			// 1 1
-			if( alleleArray[j] == allele1 && alleleArray[j+1] == allele1){
+			if( alleleVector[j] == allele1 && alleleVector[j+1] == allele1){
 				value = 1;
 
 			// 2 2
-			}else if( alleleArray[j] == allele2 && alleleArray[j+1] == allele2){
+			}else if( alleleVector[j] == allele2 && alleleVector[j+1] == allele2){
 				value = -1;
 
 			// 	either is zero
-			}else if( alleleArray[j] == '0' || alleleArray[j+1] == '0'){
+			}else if( alleleVector[j] == "0" || alleleVector[j+1] == "0"){
 				value = NA_REAL;				
 				*foundMissingData = true;
 			// 1 2	
@@ -298,7 +303,7 @@ bool parse_TPED( Rcpp::NumericMatrix *X, const long line_number, const string &l
 			j = j + 2;
 		}	
 
-		free( alleleArray );
+		//free( alleleArray );
 		
 	}else{
 		// send pch the end of the current line
