@@ -62,7 +62,7 @@ echo $contents; } ?> -->
 <b>lrgpr</b> is a high-peformance, user-friendly R interface for evaluating linear mixed models.  This package is designed for interactive, exploratory analysis of large genome-wide assocation studies (GWAS) using linear mixed models to account for the confounding effects of kinship and population structure. 
 </p> 
 <p>
-The package also provides simple interfaces for standard linear and logistic regression models. It allows fitting millions of regression models on a desktop computer by using an efficient implementation, parallelization and out-of-core computing for datasets that are too large to fit in main memory.  
+The package also provides simple interfaces for standard (i.e. fixed effects) linear and logistic regression models. It allows fitting millions of regression models on a desktop computer by using an efficient implementation, parallelization and out-of-core computing for datasets that are too large to fit in main memory.  
 </p>
 
 <ul>
