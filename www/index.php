@@ -1,4 +1,8 @@
 
+<!-- php5 index.php > test.html 
+	google-chrome test.html &
+-->
+
 <!-- This is the project specific website template -->
 <!-- It can be changed as liked or replaced by other content -->
 
@@ -62,11 +66,16 @@ The package also provides simple interfaces for standard linear and logistic reg
 </p>
 
 <ul>
+
+<li> <a href="./docs/INSTALL.pdf"><strong>Installation instructions</strong></a>: how to install dependencies	(essential)</li>
+
+<li> <a href="./docs/lrgpr_0.0.7.tar.gz"><strong>Download package</strong></a>: v0.0.7 </li>
+
+<br>
+
 <li> <a href="./docs/lrgpr.pdf"><strong>Tutorial</strong></a>: thorough demonstration of the functionality and applications of <b>lrgpr</b>	</li>
 
 <li> <a href="./docs/lrgpr-manual.pdf"><strong>Manual</strong></a>: details about available functions</li>
-
-<li> <a href="./docs/lrgpr_0.0.7.tar.gz"><strong>Download package</strong></a>: v0.0.7 </li>
 
 <li> <a href="http://<?php echo $domain; ?>/projects/<?php echo $group_name; ?>/"><strong>Project summary page</strong></a> </li>
 
@@ -90,7 +99,7 @@ The package also provides simple interfaces for standard linear and logistic reg
 <hr />
 <font size="1">
 <div id="textbox">
-  <p class="alignleft">Gabriel E. Hoffman.  Updated April 18, 2014</p>
+  <p class="alignleft">Gabriel E. Hoffman.  Updated May 14, 2014</p>
   <!--<p class="alignright">
   	<?
 	echo "UPV: ";
