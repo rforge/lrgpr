@@ -69,7 +69,7 @@ The package also provides simple interfaces for standard (i.e. fixed effects) li
 
 <li> <a href="./docs/INSTALL.pdf"><strong>Installation instructions</strong></a>: how to install dependencies	(essential)</li>
 
-<li> <a href="./docs/lrgpr_0.0.7.tar.gz"><strong>Download package</strong></a>: v0.0.7 </li>
+<li> <a href="./docs/lrgpr_0.0.8.tar.gz"><strong>Download package</strong></a>: v0.0.8 </li>
 
 <br>
 
@@ -99,7 +99,7 @@ The package also provides simple interfaces for standard (i.e. fixed effects) li
 <hr />
 <font size="1">
 <div id="textbox">
-  <p class="alignleft">Gabriel E. Hoffman.  Updated May 14, 2014</p>
+  <p class="alignleft">Gabriel E. Hoffman.  Updated May 15, 2014</p>
   <!--<p class="alignright">
   	<?
 	echo "UPV: ";
