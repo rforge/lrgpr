@@ -467,8 +467,8 @@ RcppExport SEXP R_lrgprApply( SEXP expression_, SEXP data_, SEXP pBigMat_, SEXP 
 	RcppGSL::matrix<double> eigenVectors = EigenVectors_;
 	RcppGSL::vector<double> eigenValues = EigenValues_; 
 	RcppGSL::matrix<double> Wtilde = Wtilde_; 
-	int rank = as<int>( rank_ );
-	std::vector<string> chromosome = as<std::vector<string> >(chromosome_);
+	int rank = as<int>( rank_ )
+;	std::vector<string> chromosome = as<std::vector<string> >(chromosome_);
 	std::vector<double> location = as<std::vector<double> >(location_);
 	double distance = as<double>( distance_ );
 	std::vector<int> dcmp_features = as<std::vector<int> >( dcmp_features_ );

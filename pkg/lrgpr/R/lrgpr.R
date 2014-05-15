@@ -565,7 +565,7 @@ is.svd_decomp_symmetric <- function( decomp ){
 
 #' Fit a Low Rank Gaussian Process Regression (LRGPR) / Linear Mixed Model (LMM) for many markers
 #'
-#' Fit LRGPR/LMM models that account for covariance in response values, but where the scale of the covariance is unknown.  It returns p-values equivalent to the results of \code{\link{lrgpr}} and \code{\link{lrgpr}}, but is designed to analyze thousands of markers in a single function call.
+#' Fit LRGPR/LMM models that account for covariance in response values, but where the scale of the covariance is unknown.  It returns p-values from a Wald test equivalent to the results of using \code{\link{lrgpr}} and \code{\link{wald}}, but is designed to analyze thousands of markers in a single function call.
 #'
 #' @param formula standard linear modeling syntax as used in `lm'.  SNP is a place holder for the each successive column of features
 #' @param features a matrix where the statistical model is evaluated with SNP if formula replace by each column successively
@@ -841,9 +841,9 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 
 
 
-#' Fit standard linear or logistic model for many markers
+#' Fit standard (i.e. fixed effects) linear or logistic model for many markers
 #'
-#' Analogous to \code{\link{lrgprApply}}, but fits standard linear or logistic models for many markers
+#' Analogous to \code{\link{lrgprApply}}, but fits standard (i.e. fixed effects) linear or logistic models for many markers
 
 #' @param formula standard linear modeling syntax as used in `lm'.  SNP is a place holder for the each successive column of features
 #' @param features a matrix where the statistical model is evaluated with SNP if formula replace by each column successively
@@ -852,7 +852,7 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 #' @param useMean if TRUE, replace missing entries with column mean.  Otherwise, do not evaluate the model for that column
 #' @param nthreads number of to use for parallel execution
 #' @param univariateTest perform univariate hypothesis test for each response for each feature in the loop variable
-#' @param multivariateTest perform multivariate hypothesis test for each response (if more than one) for each feature.  Note that the runtime is cubic in the number of response variables
+# @param multivariateTest perform multivariate hypothesis test for each response (if more than one) for each feature.  Note that the runtime is cubic in the number of response variables
 #' @param verbose print additional information
 #' @param progress show progress bar
 #' @param cincl column indeces of features to include for analysis
@@ -871,37 +871,39 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 #' pValues = glmApply( y ~ sex + sex:SNP, features=X, terms=c(3,4))
 #'
 #'
-#' # Multivariate model
-#' n = 100
-#' p = 1000
-#' m = 10
-#' 
-#' Y = matrix(rnorm(n*m), nrow=n, ncol=m)
-#' X = matrix(rnorm(n*p), nrow=n, ncol=p)
-#' 
-#' res = glmApply( Y ~ SNP, features = X, terms=2, multivariateTest=TRUE)
-#' 
-#' # p-values for univariate hypothesis test of each feature against 
-#' # 	each response
-#' res$pValues
-#' 
-#' # p-values for multivariate hypothesis test of each feature against 
-#' # 	all responses are the same time
-#' # returns the results of the Hotelling and Pillai tests
-#' res$pValues_mv
-#' 
-#' # The multivariate test for X[,1]
-#' res$pValues_mv[1,]
-#' 
-#' # The result is the same as the standard tests in R
-#' fit = manova( Y ~ X[,1])
-#' 
-#' summary(fit, test="Hotelling-Lawley")
-#' summary(fit, test="Pillai")
-#' 
+# # Multivariate model
+# n = 100
+# p = 1000
+# m = 10
+# 
+# Y = matrix(rnorm(n*m), nrow=n, ncol=m)
+# X = matrix(rnorm(n*p), nrow=n, ncol=p)
+# 
+# res = glmApply( Y ~ SNP, features = X, terms=2, multivariateTest=TRUE)
+# 
+# # p-values for univariate hypothesis test of each feature against 
+# # 	each response
+# res$pValues
+# 
+# # p-values for multivariate hypothesis test of each feature against 
+# # 	all responses are the same time
+# # returns the results of the Hotelling and Pillai tests
+# res$pValues_mv
+# 
+# # The multivariate test for X[,1]
+# res$pValues_mv[1,]
+# 
+# # The result is the same as the standard tests in R
+# fit = manova( Y ~ X[,1])
+# 
+# summary(fit, test="Hotelling-Lawley")
+# summary(fit, test="Pillai")
+# 
 #' @export
-glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=TRUE, nthreads=detectCores(logical = TRUE), univariateTest=TRUE, multivariateTest=FALSE, verbose=FALSE, progress=TRUE, cincl=c(), cexcl=c() ){
+glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=TRUE, nthreads=detectCores(logical = TRUE), univariateTest=TRUE, verbose=FALSE, progress=TRUE, cincl=c(), cexcl=c() ){
 
+	multivariateTest=FALSE
+	
 	env = parent.frame()
 
 	formula = as.formula(formula)
