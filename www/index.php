@@ -77,6 +77,10 @@ The package also provides simple interfaces for standard (i.e. fixed effects) li
 
 <li> <a href="./docs/lrgpr-manual.pdf"><strong>Manual</strong></a>: details about available functions</li>
 
+<br>
+
+<li> <a href="./docs/NEWS"><strong>Version information</strong></a>: details of updates in the current version</li>
+
 <li> <a href="http://<?php echo $domain; ?>/projects/<?php echo $group_name; ?>/"><strong>Project summary page</strong></a> </li>
 
 <br>
