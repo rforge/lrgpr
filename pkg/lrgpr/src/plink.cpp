@@ -116,6 +116,21 @@ public:
 	void append( const SNPinfo *info ){
 		chromosome.insert(chromosome.end(), info->chromosome.begin(), info->chromosome.end());
 		name.insert(name.end(), info->name.begin(), info->name.end());
+
+		if( info->position_genetic.size() > 0)
+		position_genetic.insert(position_genetic.end(), info->position_genetic.begin(), info->position_genetic.end());
+
+		if( info->position_physical.size() > 0)
+		position_physical.insert(position_physical.end(), info->position_physical.begin(), info->position_physical.end());
+
+		if( info->allele1.size() > 0)
+		allele1.insert(allele1.end(), info->allele1.begin(), info->allele1.end());
+
+		if( info->allele2.size() > 0)
+		allele2.insert(allele2.end(), info->allele2.begin(), info->allele2.end());
+
+		if( info->imputed.size() > 0)
+		imputed.insert(imputed.end(), info->imputed.begin(), info->imputed.end());
 	}
 
 	void clear(){
@@ -777,7 +792,7 @@ bool is_dosage_header( const string &line){
 
 RcppExport SEXP R_convertToBinary( SEXP fileName_, SEXP fileNameOut_, SEXP format_, SEXP isZipFile_, SEXP nthreads_){
 
-//BEGIN_RCPP
+BEGIN_RCPP
 
 	string fileName = Rcpp::as<string>( fileName_ );
 	string fileNameOut = Rcpp::as<string>( fileNameOut_ );
@@ -987,6 +1002,8 @@ RcppExport SEXP R_convertToBinary( SEXP fileName_, SEXP fileNameOut_, SEXP forma
 		free(chunk);
 	}
 
+
+
 	omp_set_num_threads( n_threads_original );
 
 	Rcpp::Rcout << print_progress( n_lines, n_lines, 25, start_time);
@@ -999,11 +1016,13 @@ RcppExport SEXP R_convertToBinary( SEXP fileName_, SEXP fileNameOut_, SEXP forma
 				Rcpp::Named("success")  	= is_success, 
 				Rcpp::Named("nrow")  		= n_indivs, 
 				Rcpp::Named("ncol")  		= n_lines, 
-				Rcpp::Named("colNames") 	= wrap(markerInfo.name) );
+				Rcpp::Named("colNames") 	= wrap(markerInfo.name),
+				Rcpp::Named("allele1") 		= wrap(markerInfo.allele1),				
+				Rcpp::Named("allele2") 		= wrap(markerInfo.allele2) );
 
 	return( ret );
 
-//END_RCPP 
+END_RCPP 
 
 }
 

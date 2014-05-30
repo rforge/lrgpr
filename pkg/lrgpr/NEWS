@@ -1,10 +1,11 @@
 
 v 0.0.8
   - Improve documentation
+  - convertToBinary() writes file with coding of alleles
 
 v 0.0.7
   - Fixed issue in convertToBinary() so that indels in TPED's are treated correctly
-  - Fixed a bug where setting the number of threads to k for lrgprApply() or other functions incidentally restricted the number of threads by all subsequent functional calls to k.   
+  - Fixed a bug where setting the number of threads to k for lrgprApply() or other functions incidentally restricted the number of threads by all subsequent functional calls
 
 v 0.0.6
   - in criterion.lrgpr() and cv.lrgpr(), restrict rank to be less than ncol(features) and length(ord)

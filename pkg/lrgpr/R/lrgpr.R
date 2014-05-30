@@ -871,19 +871,19 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 #' pValues = glmApply( y ~ sex + sex:SNP, features=X, terms=c(3,4))
 #'
 #'
-# # Multivariate model
-# n = 100
-# p = 1000
-# m = 10
-# 
-# Y = matrix(rnorm(n*m), nrow=n, ncol=m)
-# X = matrix(rnorm(n*p), nrow=n, ncol=p)
-# 
-# res = glmApply( Y ~ SNP, features = X, terms=2, multivariateTest=TRUE)
-# 
-# # p-values for univariate hypothesis test of each feature against 
-# # 	each response
-# res$pValues
+#' # Multivariate model
+#' n = 100
+#' p = 1000
+#' m = 10
+#' 
+#' Y = matrix(rnorm(n*m), nrow=n, ncol=m)
+#' X = matrix(rnorm(n*p), nrow=n, ncol=p)
+#' 
+#' res = glmApply( Y ~ SNP, features = X, terms=2, multivariateTest=TRUE)
+#' 
+#' # p-values for univariate hypothesis test of each feature against 
+#' # 	each response
+#' res$pValues
 # 
 # # p-values for multivariate hypothesis test of each feature against 
 # # 	all responses are the same time
@@ -1606,6 +1606,12 @@ convertToBinary = function( filename, filenameOut, format, nthreads=detectCores(
 	if( ! is.list(res) ){
 		stop("File is not correctly formatted")
 	}
+
+	res$allele2 = gsub("^$", "-", res$allele2)
+	alleleCoding = cbind(res$colNames, res$allele1, res$allele2)
+	colnames(alleleCoding) = c("id", "allele1", "allele2")
+
+	write.table(alleleCoding, paste(filenameOut, "_alleles", sep=''), row.names=F, quote=FALSE)
 
 	ret = list(sharedType	= 'FileBacked',
                filename 	= basename( filenameOut ),
