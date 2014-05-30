@@ -103,7 +103,7 @@ The package also provides simple interfaces for standard (i.e. fixed effects) li
 <hr />
 <font size="1">
 <div id="textbox">
-  <p class="alignleft">Gabriel E. Hoffman.  Updated May 15, 2014</p>
+  <p class="alignleft">Gabriel E. Hoffman.  Updated May 30, 2014</p>
   <!--<p class="alignright">
   	<?
 	echo "UPV: ";
