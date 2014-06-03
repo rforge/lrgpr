@@ -17,7 +17,7 @@ Depends:
     formula.tools,
     BH,
     bigmemory (>= 4.4.7),
-    bigmemory.sri
+    bigmemory.sri,
     aod
 LinkingTo: Rcpp, RcppGSL
 URL: http://lrgpr.r-forge.r-project.org/
