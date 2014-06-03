@@ -16,6 +16,7 @@ Depends:
     MASS,
     formula.tools,
     BH,
+    doParallel,    
     bigmemory (>= 4.4.7),
     bigmemory.sri,
     aod
