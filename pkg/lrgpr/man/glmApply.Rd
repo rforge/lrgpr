@@ -4,9 +4,8 @@
 \title{Fit standard (i.e. fixed effects) linear or logistic model for many markers}
 \usage{
 glmApply(formula, features, terms = NULL, family = gaussian(),
-  useMean = TRUE, nthreads = detectCores(logical = TRUE),
-  univariateTest = TRUE, verbose = FALSE, progress = TRUE, cincl = c(),
-  cexcl = c())
+  useMean = TRUE, nthreads = detectCores(logical = TRUE), verbose = FALSE,
+  progress = TRUE, cincl = c(), cexcl = c())
 }
 \arguments{
 \item{formula}{standard linear modeling syntax as used in `lm'.  SNP is a place holder for the each successive column of features}
@@ -20,8 +19,6 @@ glmApply(formula, features, terms = NULL, family = gaussian(),
 \item{useMean}{if TRUE, replace missing entries with column mean.  Otherwise, do not evaluate the model for that column}
 
 \item{nthreads}{number of to use for parallel execution}
-
-\item{univariateTest}{perform univariate hypothesis test for each response for each feature in the loop variable}
 
 \item{verbose}{print additional information}
 
@@ -54,7 +51,7 @@ m = 10
 Y = matrix(rnorm(n*m), nrow=n, ncol=m)
 X = matrix(rnorm(n*p), nrow=n, ncol=p)
 
-res = glmApply( Y ~ SNP, features = X, terms=2, multivariateTest=TRUE)
+res = glmApply( Y ~ SNP, features = X, terms=2)
 
 # p-values for univariate hypothesis test of each feature against
 # 	each response

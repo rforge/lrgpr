@@ -851,7 +851,7 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 #' @param family gaussian() for a continuous response, and binomial() to fit a logit model for a binary response 
 #' @param useMean if TRUE, replace missing entries with column mean.  Otherwise, do not evaluate the model for that column
 #' @param nthreads number of to use for parallel execution
-#' @param univariateTest perform univariate hypothesis test for each response for each feature in the loop variable
+# @param univariateTest perform univariate hypothesis test for each response for each feature in the loop variable
 # @param multivariateTest perform multivariate hypothesis test for each response (if more than one) for each feature.  Note that the runtime is cubic in the number of response variables
 #' @param verbose print additional information
 #' @param progress show progress bar
@@ -879,7 +879,7 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 #' Y = matrix(rnorm(n*m), nrow=n, ncol=m)
 #' X = matrix(rnorm(n*p), nrow=n, ncol=p)
 #' 
-#' res = glmApply( Y ~ SNP, features = X, terms=2, multivariateTest=TRUE)
+#' res = glmApply( Y ~ SNP, features = X, terms=2)
 #' 
 #' # p-values for univariate hypothesis test of each feature against 
 #' # 	each response
@@ -900,9 +900,10 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 # summary(fit, test="Pillai")
 # 
 #' @export
-glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=TRUE, nthreads=detectCores(logical = TRUE), univariateTest=TRUE, verbose=FALSE, progress=TRUE, cincl=c(), cexcl=c() ){
+glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=TRUE, nthreads=detectCores(logical = TRUE), verbose=FALSE, progress=TRUE, cincl=c(), cexcl=c() ){
 
 	multivariateTest=FALSE
+	univariateTest=TRUE
 	
 	env = parent.frame()
 
@@ -1071,7 +1072,10 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 
 #' Like glmApply, by linear instead of quadratic as a function of the number of covariates.  This is still experimental
 #' @export
-glmApply2 <- function( formula, features, terms=NULL, family=gaussian(), useMean=TRUE, nthreads=detectCores(logical = TRUE), univariateTest=TRUE, multivariateTest=FALSE, verbose=FALSE, progress=TRUE, cincl=c(), cexcl=c() ){
+glmApply2 <- function( formula, features, terms=NULL, family=gaussian(), useMean=TRUE, nthreads=detectCores(logical = TRUE), verbose=FALSE, progress=TRUE, cincl=c(), cexcl=c() ){
+
+	univariateTest=TRUE
+	multivariateTest=FALSE
 
 	env = parent.frame()
 
