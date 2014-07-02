@@ -1,3 +1,8 @@
+
+v 0.1.1
+  - Update error message for plot() of lrgpr() object
+  - Update documentation say that a big.matrix must be re-attached in each R session
+
 v 0.1.0
   - Update documentation for glmApply2()
 
