@@ -425,6 +425,10 @@ plot.lrgpr <- function (x, which=c(1L:3L, 5L), caption=list("Residuals vs Fitted
         }
         x
     }
+    if( any(is.nan(x$hii)) ){
+        stop("plot() can only be used when lrgpr() was fit with diagnostic=TRUE")
+    }
+
     if (!inherits(x, "lm")) 
         stop("use only with \"lm\" objects")
     if (!is.numeric(which) || any(which < 1) || any(which > 6)) 
