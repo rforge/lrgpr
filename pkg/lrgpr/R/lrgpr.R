@@ -1561,6 +1561,7 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 #' @param filenameOut name of binary file produced
 #' @param format specify `TPED', `DOSAGE' or `GEN'
 #' @param nthreads number of threads to use
+#' @param onlyCheckFormat only check the format of the input file and don't perform conversion
 #'
 #' @details
 #' \itemize{
@@ -1583,7 +1584,7 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 #' }
 #'
 #' @export
-convertToBinary = function( filename, filenameOut, format, nthreads=detectCores(logical=TRUE) ){
+convertToBinary = function( filename, filenameOut, format, nthreads=detectCores(logical=TRUE), onlyCheckFormat=FALSE ){
 
 	if( path.expand(filename) == path.expand(filenameOut) ){
 		stop("Cannot read and write to the same file")
@@ -1603,7 +1604,7 @@ convertToBinary = function( filename, filenameOut, format, nthreads=detectCores(
 		stop("Invalid format: ", format)
 	}
 
-	res = .Call("R_convertToBinary", filename, filenameOut, format, isZipFile, nthreads, package="lrgpr")
+	res = .Call("R_convertToBinary", filename, filenameOut, format, isZipFile, nthreads, onlyCheckFormat, package="lrgpr")
 
 	if( ! res$success ){
 		stop("File is not properly formatted as ", format)
@@ -1613,30 +1614,33 @@ convertToBinary = function( filename, filenameOut, format, nthreads=detectCores(
 		stop("File is not correctly formatted")
 	}
 
-	res$allele2 = gsub("^$", "-", res$allele2)
-	alleleCoding = cbind(res$colNames, res$allele1, res$allele2)
-	colnames(alleleCoding) = c("id", "allele1", "allele2")
+	if( ! onlyCheckFormat ){
 
-	write.table(alleleCoding, paste(filenameOut, "_alleles", sep=''), row.names=F, quote=FALSE)
+		res$allele2 = gsub("^$", "-", res$allele2)
+		alleleCoding = cbind(res$colNames, res$allele1, res$allele2)
+		colnames(alleleCoding) = c("id", "allele1", "allele2")
 
-	ret = list(sharedType	= 'FileBacked',
-               filename 	= basename( filenameOut ),
-               totalRows	= res$nrow,
-               totalCols 	= res$ncol,
-               rowOffset 	= c(0, res$nrow),
-               colOffset 	= c(0, res$ncol),
-               nrow 		= res$nrow,
-               ncol 		= res$ncol,
-               rowNames 	= NULL, 
-               colNames 	= res$colNames, 
-               type			= "double", 
-               separated = FALSE)
+		write.table(alleleCoding, paste(filenameOut, "_alleles", sep=''), row.names=F, quote=FALSE)
 
-	# Save structure in ASCII format
-	#dput( new("big.matrix.descriptor", description = ret ), file=paste(filenameOut, "_text", sep=''))
+		ret = list(sharedType	= 'FileBacked',
+	               filename 	= basename( filenameOut ),
+	               totalRows	= res$nrow,
+	               totalCols 	= res$ncol,
+	               rowOffset 	= c(0, res$nrow),
+	               colOffset 	= c(0, res$ncol),
+	               nrow 		= res$nrow,
+	               ncol 		= res$ncol,
+	               rowNames 	= NULL, 
+	               colNames 	= res$colNames, 
+	               type			= "double", 
+	               separated = FALSE)
 
-	# Save structure in BINARY format
-	saveRDS( new("big.matrix.descriptor", description = ret ), file=paste(filenameOut, "_descr", sep=''))
+		# Save structure in ASCII format
+		#dput( new("big.matrix.descriptor", description = ret ), file=paste(filenameOut, "_text", sep=''))
+
+		# Save structure in BINARY format
+		saveRDS( new("big.matrix.descriptor", description = ret ), file=paste(filenameOut, "_descr", sep=''))
+	}
 }
 
 readBinary = function( filename, N ){

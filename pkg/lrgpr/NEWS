@@ -1,3 +1,5 @@
+v 0.1.2 # July 21, 2014
+  - Update convertToBinary() to give better description of why a files does not fit the specified format
 
 v 0.1.1
   - Update error message for plot() of lrgpr() object

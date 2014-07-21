@@ -199,7 +199,7 @@ residuals.lrgpr <- function( object, type="working",...){
 #' @param ... other arguments
 #' @rdname coefficients
 #' @export
-coefficients.lrgpr <- function( object ){
+coefficients.lrgpr <- function( object,... ){
 	object$coefficients
 }
 

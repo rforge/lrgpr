@@ -4,7 +4,7 @@
 \title{Convert ASCII to binary file}
 \usage{
 convertToBinary(filename, filenameOut, format, nthreads = detectCores(logical
-  = TRUE))
+  = TRUE), onlyCheckFormat = FALSE)
 }
 \arguments{
 \item{filename}{file to be converted}
@@ -14,6 +14,8 @@ convertToBinary(filename, filenameOut, format, nthreads = detectCores(logical
 \item{format}{specify `TPED', `DOSAGE' or `GEN'}
 
 \item{nthreads}{number of threads to use}
+
+\item{onlyCheckFormat}{only check the format of the input file and don't perform conversion}
 }
 \description{
 Converts TPED/DOSAGE/GEN files to binary format

@@ -790,7 +790,7 @@ bool is_dosage_header( const string &line){
 	return result;
 }
 
-RcppExport SEXP R_convertToBinary( SEXP fileName_, SEXP fileNameOut_, SEXP format_, SEXP isZipFile_, SEXP nthreads_){
+RcppExport SEXP R_convertToBinary( SEXP fileName_, SEXP fileNameOut_, SEXP format_, SEXP isZipFile_, SEXP nthreads_, SEXP onlyCheckFormat_){
 
 BEGIN_RCPP
 
@@ -799,6 +799,7 @@ BEGIN_RCPP
 	string format = Rcpp::as<string>( format_ );
 	bool isZipFile = (bool) as<int>( isZipFile_ );	
 	int nthreads = as<int>( nthreads_ );
+	bool onlyCheckFormat = (bool) as<int>( onlyCheckFormat_ );
 
 	int n_threads_original = omp_get_max_threads();
 	omp_set_num_threads( nthreads );
@@ -871,19 +872,23 @@ BEGIN_RCPP
 	// Open file and set it to the proper size 
 	///////////////////////////////////////////
 
-	FILE *fp = fopen( fileNameOut.c_str(), "wb");
+	FILE *fp;
 
-	// If file pointer is NULL 
-	if( fp == NULL ) throw std::runtime_error("File could not be opened:\n" + fileNameOut + "\n");
+	if( ! onlyCheckFormat ){
+		fp = fopen( fileNameOut.c_str(), "wb");
 
-	// int ftruncate(int fd, off_t length);
-	int result = ftruncate( fileno(fp), n_indivs*n_lines*sizeof(double) );
+		// If file pointer is NULL 
+		if( fp == NULL ) throw std::runtime_error("File could not be opened:\n" + fileNameOut + "\n");
 
-	// If ftruncate fails and does not return 0
-	if( result != 0 ){
-		// close file pointer
-		fclose(fp);
-		throw std::runtime_error("File of desired size could not be allocated:\n" + fileNameOut + "\nsize: " + stringify(n_indivs*n_lines*sizeof(double)) + "\n" );
+		// int ftruncate(int fd, off_t length);
+		int result = ftruncate( fileno(fp), n_indivs*n_lines*sizeof(double) );
+
+		// If ftruncate fails and does not return 0
+		if( result != 0 ){
+			// close file pointer
+			fclose(fp);
+			throw std::runtime_error("File of desired size could not be allocated:\n" + fileNameOut + "\nsize: " + stringify(n_indivs*n_lines*sizeof(double)) + "\n" );
+		}
 	}
 
 	// Write entries to binary file
@@ -908,7 +913,7 @@ BEGIN_RCPP
 	time_t start_time;
 	time(&start_time);
 
-	long count=0;
+	long count=0, batchCompleted=0;
 
 	bool isActive = true;
 	bool is_success = true;
@@ -939,7 +944,7 @@ BEGIN_RCPP
 		{
 			bool res;
 
-			#pragma omp for schedule(static, 50)
+			#pragma omp for schedule(static, 500)
 			for(int k=0; k<lineArray.size(); k++){
 				
 				if( format == "TPED" ){				
@@ -962,6 +967,17 @@ BEGIN_RCPP
 				success[k] = res;
 			}
 		}
+
+		for( unsigned int k=0; k<success.size(); k++ ){
+			if( ! success[k] ){
+				throw std::runtime_error("File does not satisfy " + format + " format on line " + stringify( k + batchSize*batchCompleted) );
+			}
+		}
+
+		batchCompleted++;
+
+		// If only checking the format
+		if( onlyCheckFormat ) continue;
 
 		markerInfo.append( markerInfo_loc );
 		delete markerInfo_loc;
@@ -1002,15 +1018,18 @@ BEGIN_RCPP
 		free(chunk);
 	}
 
-
-
 	omp_set_num_threads( n_threads_original );
 
 	Rcpp::Rcout << print_progress( n_lines, n_lines, 25, start_time);
 	Rcpp::Rcout << endl;	
 
+	Rcpp::Rcout << "Closing file handles...." << flush;
+
 	file.close();
-	fclose(fp);
+	
+	if( ! onlyCheckFormat ) fclose(fp);
+
+	Rcpp::Rcout << "Completed" << endl;
 
 	Rcpp::List ret = Rcpp::List::create(				
 				Rcpp::Named("success")  	= is_success, 
