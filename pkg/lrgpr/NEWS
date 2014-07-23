@@ -1,4 +1,5 @@
 v 0.1.2 # July 21, 2014
+  - Fix glmApply() and lrgprApply() so that terms argument is used correctly.  Previously there was a bug where it was ignored
   - Update convertToBinary() to give better description of why a files does not fit the specified format
 
 v 0.1.1
