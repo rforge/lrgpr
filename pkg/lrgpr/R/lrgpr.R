@@ -694,7 +694,9 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 		.y = .mm_get_response( form_mod, env)
 
 		# identify indeces that contain the SNP variable
-		terms = grep(".lrgpr_tmp", colnames(model.matrix(form_mod, env)))
+		if( is.null(terms) ){
+			terms = grep(".lrgpr_tmp", colnames(model.matrix(form_mod, env)))
+		}
 
 		n_indivs = nrow(as.matrix(.y))
 		#.X = model.matrix.default( form_mod )
@@ -792,6 +794,11 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 	if( ! is.matrix(W_til) ) W_til = as.matrix(W_til)
 
 	if( is.big.matrix(features) ){ 
+
+		if( describe(features)@description$sharedType != "FileBacked" || describe(features)@description$type != "double"){
+			stop("features must be a standard R matrix or a big.matrix in FileBacked format storing doubles, typically created with convertToBinary")
+		}
+
 		ptr = features@address 
 	}else{
 		ptr = 0
@@ -1032,6 +1039,10 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 	}
 
 	if( is.big.matrix(features) ){ 
+
+		if( describe(features)@description$sharedType != "FileBacked" || describe(features)@description$type != "double"){
+			stop("features must be a standard R matrix or a big.matrix in FileBacked format storing doubles, typically created with convertToBinary")
+		}
 		ptr = features@address 
 	}else{
 		ptr = 0
@@ -1204,6 +1215,11 @@ glmApply2 <- function( formula, features, terms=NULL, family=gaussian(), useMean
 	}
 
 	if( is.big.matrix(features) ){ 
+
+		if( describe(features)@description$sharedType != "FileBacked" || describe(features)@description$type != "double"){
+			stop("features must be a standard R matrix or a big.matrix in FileBacked format storing doubles, typically created with convertToBinary")
+		}
+
 		ptr = features@address 
 	}else{
 		ptr = 0
