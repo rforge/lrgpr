@@ -1,10 +1,13 @@
+v 0.1.3 # July 23, 2014
+  - Improve error message in glmApply() and lrgprApply() when features is not a standard R matrix or a FileBacked big.matrix stored as doubles
+
 v 0.1.2 # July 21, 2014
   - Fix glmApply() and lrgprApply() so that terms argument is used correctly.  Previously there was a bug where it was ignored
   - Update convertToBinary() to give better description of why a files does not fit the specified format
 
 v 0.1.1
   - Update error message for plot() of lrgpr() object
-  - Update documentation say that a big.matrix must be re-attached in each R session
+  - Update documentation to say that a big.matrix must be re-attached in each R session
 
 v 0.1.0
   - Update documentation for glmApply2()
