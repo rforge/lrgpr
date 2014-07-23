@@ -997,8 +997,10 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 		.y = .mm_get_response( form_mod, env)
 		#.X = model.matrix.default( form_mod )
 
-		# identify indeces that contain the SNP variable
-		terms = grep(".lrgpr_tmp", colnames(model.matrix(form_mod, env)))
+		if( is.null(terms) ){
+			# identify indeces that contain the SNP variable
+			terms = grep(".lrgpr_tmp", colnames(model.matrix(form_mod, env)))
+		}
 
 		#if( ! is.numeric(.y) && ! is.factor(.y)){
 		#	stop("Response is not numeric")
@@ -1167,8 +1169,10 @@ glmApply2 <- function( formula, features, terms=NULL, family=gaussian(), useMean
 		.y = .mm_get_response( form_mod, env)
 		#.X = model.matrix.default( form_mod )
 
-		# identify indeces that contain the SNP variable
-		terms = grep(".lrgpr_tmp", colnames(model.matrix(form_mod, env)))
+		if( is.null(terms) ){
+			# identify indeces that contain the SNP variable
+			terms = grep(".lrgpr_tmp", colnames(model.matrix(form_mod, env)))
+		}
 
 		#if( ! is.numeric(.y) && ! is.factor(.y)){
 		#	stop("Response is not numeric")
