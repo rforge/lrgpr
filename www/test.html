@@ -6,15 +6,7 @@
 <!-- This is the project specific website template -->
 <!-- It can be changed as liked or replaced by other content -->
 
-<?php
-
-$domain=ereg_replace('[^\.]*\.(.*)$','\1',$_SERVER['HTTP_HOST']);
-$group_name=ereg_replace('([^\.]*)\..*$','\1',$_SERVER['HTTP_HOST']);
-$themeroot='r-forge.r-project.org/themes/rforge/';
-
-echo '<?xml version="1.0" encoding="UTF-8"?>';
-?>
-
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html
 	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -22,8 +14,8 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
 
   <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title><?php echo $group_name; ?></title>
-	<!--<link href="http://<?php echo $themeroot; ?>styles/estilo1.css" rel="stylesheet" type="text/css" /> -->
+	<title></title>
+	<!--<link href="http://r-forge.r-project.org/themes/rforge/styles/estilo1.css" rel="stylesheet" type="text/css" /> -->
 	<link href="vegan.css" rel="stylesheet" type="text/css" />
   </head>
 
@@ -32,7 +24,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
 <!-- R-Forge Logo -->
 <table border="0" width="100%" cellspacing="0" cellpadding="0">
 <tr><td>
-<a href="http://r-forge.r-project.org/"><img src="http://<?php echo $themeroot; ?>/imagesrf/logo.png" border="0" alt="R-Forge Logo" height=30 /> </a> 
+<a href="http://r-forge.r-project.org/"><img src="http://r-forge.r-project.org/themes/rforge//imagesrf/logo.png" border="0" alt="R-Forge Logo" height=30 /> </a> 
 <a href="http://icahn.mssm.edu/departments-and-institutes/genomics"> <img src="MSSMLogo.png" height=30 align="right" /> </a> 
 </td> </tr>
 </table>
@@ -41,13 +33,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>';
 <!-- get project title  -->
 <!-- own website starts here, the following may be changed as you like -->
 
-<!--<?php if ($handle=fopen('http://'.$domain.'/export/projtitl.php?group_name='.$group_name,'r')){
-$contents = '';
-while (!feof($handle)) {
-	$contents .= fread($handle, 8192);
-}
-fclose($handle);
-echo $contents; } ?> -->
+<!-- -->
 
 <!-- end of project description -->
 
@@ -81,7 +67,7 @@ The package also provides simple interfaces for standard (i.e. fixed effects) li
 
 <li> <a href="./docs/NEWS"><strong>Version information</strong></a>: details of updates in the current version</li>
 
-<li> <a href="http://<?php echo $domain; ?>/projects/<?php echo $group_name; ?>/"><strong>Project summary page</strong></a> </li>
+<li> <a href="http:///projects//"><strong>Project summary page</strong></a> </li>
 
 <br>
 <li> <strong>Citation</strong>:</li>
@@ -105,10 +91,8 @@ The package also provides simple interfaces for standard (i.e. fixed effects) li
 <div id="textbox">
   <p class="alignleft">Gabriel E. Hoffman.  Updated July 17, 2014</p>
   <!--<p class="alignright">
-  	<?
-	echo "UPV: ";
-	include_once "counter.php"
-	?></p>-->
+  	UPV: 
+1</p>-->
 </div>
 </font>
 
