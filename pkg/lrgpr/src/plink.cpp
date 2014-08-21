@@ -1037,7 +1037,11 @@ BEGIN_RCPP
 				Rcpp::Named("ncol")  		= n_lines, 
 				Rcpp::Named("colNames") 	= wrap(markerInfo.name),
 				Rcpp::Named("allele1") 		= wrap(markerInfo.allele1),				
-				Rcpp::Named("allele2") 		= wrap(markerInfo.allele2) );
+				Rcpp::Named("allele2") 		= wrap(markerInfo.allele2),
+				Rcpp::Named("chrom") 		= wrap(markerInfo.chromosome),	
+				Rcpp::Named("genetic_position") 		= wrap(markerInfo.position_genetic),	
+				Rcpp::Named("position") 		= wrap(markerInfo.position_physical)
+				 );
 
 	return( ret );
 
