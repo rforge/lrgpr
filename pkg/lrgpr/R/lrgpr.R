@@ -51,7 +51,7 @@ set_missing_to_mean = function(A){
 
 	cm = colMeans( A, na.rm=TRUE )
 
-	idx = sapply( 1:ncol(A), function(i){which(is.na(A[,i]))})
+	idx = foreach(i=1:ncol(A)) %do% { which(is.na(A[,i])) }
 
 	if( ! is.list(idx) ){
 		idx = data.frame(idx)
@@ -629,6 +629,10 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 		features = as.matrix(features)
 	}
 
+	if( is.nil(features@address) ){
+		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
+	}
+
 	if( ! .is_supported_lrgpr(features) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
@@ -939,6 +943,10 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 		features = as.matrix(features)
 	}
 
+	if( is.nil(features@address) ){
+		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
+	}
+
 	if( ! .is_supported_lrgpr(features) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
@@ -1117,6 +1125,10 @@ glmApply2 <- function( formula, features, terms=NULL, family=gaussian(), useMean
 
 	if( ! is.matrix(features) && ! is.big.matrix(features) ){
 		features = as.matrix(features)
+	}
+
+	if( is.nil(features@address) ){
+		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
 	if( ! .is_supported_lrgpr(features) ){
@@ -1304,6 +1316,10 @@ criterion.lrgpr = function( formula, features, order, rank = c(seq(1, 10), seq(2
 		features = as.matrix(features)
 	}
 
+	if( is.nil(features@address) ){
+		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
+	}
+
 	if( ! .is_supported_lrgpr(features) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
@@ -1472,6 +1488,10 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 		features = as.matrix(features)
 	}
 
+	if( is.nil(features@address) ){
+		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
+	}
+
 	if( ! .is_supported_lrgpr(features) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
@@ -1582,6 +1602,8 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 #' @param format specify `TPED', `DOSAGE' or `GEN'
 #' @param nthreads number of threads to use
 #' @param onlyCheckFormat only check the format of the input file and don't perform conversion
+#' @param rowNames Define custom rowNames
+#' @param simpleAnnotation write FILE_alleles with name, allele1, allele2.  If FALSE, write chrom id genetic_position position allele1 allele2
 #'
 #' @details
 #' \itemize{
@@ -1604,7 +1626,7 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 #' }
 #'
 #' @export
-convertToBinary = function( filename, filenameOut, format, nthreads=detectCores(logical=TRUE), onlyCheckFormat=FALSE ){
+convertToBinary = function( filename, filenameOut, format, nthreads=detectCores(logical=TRUE), onlyCheckFormat=FALSE, rowNames=NULL, simpleAnnotation=TRUE ){
 
 	if( path.expand(filename) == path.expand(filenameOut) ){
 		stop("Cannot read and write to the same file")
@@ -1636,11 +1658,23 @@ convertToBinary = function( filename, filenameOut, format, nthreads=detectCores(
 
 	if( ! onlyCheckFormat ){
 
-		res$allele2 = gsub("^$", "-", res$allele2)
-		alleleCoding = cbind(res$colNames, res$allele1, res$allele2)
-		colnames(alleleCoding) = c("id", "allele1", "allele2")
+		if( simpleAnnotation ){			
+			res$allele2 = gsub("^$", "-", res$allele2)
+			alleleCoding = cbind(res$colNames, res$allele1, res$allele2)
+			colnames(alleleCoding) = c("id", "allele1", "allele2")
+		}else{
+			res$allele2 = gsub("^$", "-", res$allele2)
+			alleleCoding = cbind(res$chrom, res$colNames, res$genetic_position, res$position, res$allele1, res$allele2)
+			colnames(alleleCoding) = c("chrom", "id", "genetic_position", "position", "allele1", "allele2")
+		}
 
 		write.table(alleleCoding, paste(filenameOut, "_alleles", sep=''), row.names=F, quote=FALSE)
+
+		if( ! is.null(rowNames) && length(rowNames) != res$nrow){
+			warning(paste("rowNames is not the currect length\n
+			length of rowNames: ", length(rowNames), "\n",
+			"rows in matrix: ", res$nrow, sep=''))
+		}
 
 		ret = list(sharedType	= 'FileBacked',
 	               filename 	= basename( filenameOut ),
@@ -1650,7 +1684,7 @@ convertToBinary = function( filename, filenameOut, format, nthreads=detectCores(
 	               colOffset 	= c(0, res$ncol),
 	               nrow 		= res$nrow,
 	               ncol 		= res$ncol,
-	               rowNames 	= NULL, 
+	               rowNames 	= rowNames, 
 	               colNames 	= res$colNames, 
 	               type			= "double", 
 	               separated = FALSE)
@@ -1682,6 +1716,10 @@ getAlleleFreq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 		X = as.matrix(X)
 	}
 
+	if( is.nil(features@address) ){
+		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
+	}
+
 	if( ! .is_supported_lrgpr(X) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
@@ -1694,6 +1732,8 @@ getAlleleFreq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 
 	# run allele frequency calculations
 	allelefreq <- .Call("R_getAlleleFreq", X, ptr, as.integer(nthreads), !progress, package="lrgpr")
+
+	names(allelefreq) = colnames(X)
 
 	gc()
 
@@ -1712,6 +1752,10 @@ getMissingCount = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE
 		X = as.matrix(X)
 	}
 
+	if( is.nil(features@address) ){
+		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
+	}
+
 	if( ! .is_supported_lrgpr(X) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
@@ -1724,6 +1768,8 @@ getMissingCount = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE
 
 	# count missing entries for each column
 	missingCount <- .Call("R_getMissingCount", X, ptr, as.integer(nthreads), !progress, package="lrgpr")
+
+	names(missingCount) = colnames(X)
 
 	gc()
 	
@@ -1742,6 +1788,10 @@ getAlleleVariance = function( X, nthreads=detectCores(logical=TRUE), progress=TR
 		X = as.matrix(X)
 	}
 
+	if( is.nil(features@address) ){
+		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
+	}
+
 	if( ! .is_supported_lrgpr(X) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
@@ -1754,6 +1804,8 @@ getAlleleVariance = function( X, nthreads=detectCores(logical=TRUE), progress=TR
 
 	# count missing entries for each column
 	alleleVar <- .Call("R_getAlleleVariance", X, ptr, as.integer(nthreads), !progress, package="lrgpr")
+
+	names(alleleVar) = colnames(X)
 
 	gc()
 	
@@ -1779,6 +1831,10 @@ getMACHrsq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 		X = as.matrix(X)
 	}
 
+	if( is.nil(features@address) ){
+		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
+	}
+
 	if( ! .is_supported_lrgpr(X) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
@@ -1791,6 +1847,8 @@ getMACHrsq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 
 	# count missing entries for each column
 	info <- .Call("R_getMACHrsq", X, ptr, as.integer(nthreads), !progress, package="lrgpr")
+
+	names(info) = colnames(X)
 
 	gc()
 	

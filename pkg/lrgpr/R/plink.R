@@ -5,14 +5,15 @@
 #' Read FAM/TFAM file into a dataframe.  This function is the same as read.fam
 #' 
 #' @param file location of FAM/TFAM file
+#' @param checkFileExtension If TRUE, throw error if file doesn't end with fam/tfam
 #' @export
-read.tfam = function( file ){
+read.tfam = function( file, checkFileExtension=TRUE){
 
 	if( ! file.exists( file) ){
 		stop("File does not exist: ", file)		
 	}
 
-	if( length(grep(".tfam|.fam", file)) == 0 ){
+	if( length(grep(".tfam|.fam", file)) == 0 && checkFileExtension){
 		stop(paste("File does not have '.fam' or '.tfam' suffix:", file));
 	}
 
@@ -36,6 +37,7 @@ read.tfam = function( file ){
 #' Read FAM/TFAM file into a dataframe.  This function is the same as read.tfam
 #' 
 #' @param file location of FAM/TFAM file
+#' @param checkFileExtension If TRUE, throw error if file doesn't end with fam/tfam
 #' @export
 read.fam = read.tfam
 
