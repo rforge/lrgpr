@@ -629,7 +629,7 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 		features = as.matrix(features)
 	}
 
-	if( is.nil(features@address) ){
+	if( is.big.matrix(features) && is.nil(features@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
@@ -943,7 +943,7 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 		features = as.matrix(features)
 	}
 
-	if( is.nil(features@address) ){
+	if( is.big.matrix(features) && is.nil(features@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
@@ -1127,7 +1127,7 @@ glmApply2 <- function( formula, features, terms=NULL, family=gaussian(), useMean
 		features = as.matrix(features)
 	}
 
-	if( is.nil(features@address) ){
+	if( is.big.matrix(features) && is.nil(features@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
@@ -1316,7 +1316,7 @@ criterion.lrgpr = function( formula, features, order, rank = c(seq(1, 10), seq(2
 		features = as.matrix(features)
 	}
 
-	if( is.nil(features@address) ){
+	if( is.big.matrix(features) && is.nil(features@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
@@ -1488,7 +1488,7 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 		features = as.matrix(features)
 	}
 
-	if( is.nil(features@address) ){
+	if( is.big.matrix(features) && is.nil(features@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
@@ -1716,7 +1716,7 @@ getAlleleFreq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 		X = as.matrix(X)
 	}
 
-	if( is.nil(features@address) ){
+	if( is.nil(X@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
@@ -1752,7 +1752,7 @@ getMissingCount = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE
 		X = as.matrix(X)
 	}
 
-	if( is.nil(features@address) ){
+	if( is.nil(X@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
@@ -1788,7 +1788,7 @@ getAlleleVariance = function( X, nthreads=detectCores(logical=TRUE), progress=TR
 		X = as.matrix(X)
 	}
 
-	if( is.nil(features@address) ){
+	if( is.nil(X@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
@@ -1831,7 +1831,7 @@ getMACHrsq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 		X = as.matrix(X)
 	}
 
-	if( is.nil(features@address) ){
+	if( is.nil(X@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
