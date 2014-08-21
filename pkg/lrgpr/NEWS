@@ -1,3 +1,12 @@
+
+v 0.1.4 # July 31, 2014
+  - In read.fam() / read.tfam(), can now read file with arbitrary extension
+  - convertToBinary() now supports sample names (i.e. row names)
+  - functions getAlleleFreq(), getMissingCount(), getAlleleVariance(), getMACHrsq() now assign names for each entry
+  - Add more information to _alleles file produced by convertToBinary() and simpleAnnotation
+  - Fix issue with set_missing_to_mean() when the number of missing values is 1 for all columns.  Use foreach() instead of sapply()
+  - Functions that use big.matrix now check for nil value
+
 v 0.1.3 # July 23, 2014
   - Improve error message in glmApply() and lrgprApply() when features is not a standard R matrix or a FileBacked big.matrix stored as doubles
 
