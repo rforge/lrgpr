@@ -1,3 +1,5 @@
+v 0.1.5 # September 9, 2014
+  - Fix issue checking is.null for big.matrix for some functions
 
 v 0.1.4 # July 31, 2014
   - In read.fam() / read.tfam(), can now read file with arbitrary extension
