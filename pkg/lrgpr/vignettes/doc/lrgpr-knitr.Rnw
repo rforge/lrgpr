@@ -1,0 +1,624 @@
+%
+% NOTE -- ONLY EDIT THE .Rnw FILE!!!  The .tex file is
+% likely to be overwritten.
+%
+
+% Compile:
+% library( highlight ) 
+% driver <- HighlightWeaveLatex(size='tiny')
+% Sweave('annotate.Rnw', driver = driver ); tools::texi2dvi('annotate.tex', pdf=TRUE)
+
+% Sweave('lrgpr.Rnw'); tools::texi2dvi('lrgpr.tex', pdf=TRUE)
+
+%  file.remove("lrgpr.aux"); Sweave('lrgpr.Rnw');  tools::texi2dvi('lrgpr.tex', pdf=T, clean=F); 
+
+
+%  file.remove("lrgpr.aux"); require(highlight); driver <- HighlightWeaveLatex(boxes = TRUE, bg = rgb( 0.95,0.95,0.95, maxColorValue = 1 ), border=rgb( 0.98,0.98,0.98, maxColorValue = 1)); Sweave( 'lrgpr.Rnw', driver = driver ); tools::texi2dvi('lrgpr.tex', pdf=T, clean=F); 
+
+% tools::texi2dvi('lrgpr.tex', pdf=T, clean=F)
+
+
+% sed 's/ et~al./, et al./g' lrgpr.aux | tail
+
+% sed -i 's/ et~al/, et al/g' *.bbl
+
+% Use knitr
+% R
+% library(knitr); Sweave2knitr('lrgpr.Rnw'); knit('lrgpr-knitr.Rnw');  system("sed -i 's/\\hlopt{~}/\\mytilde/g' lrgpr-knitr.tex"); system("sed -i 's/~/\\\\mytilde/g' lrgpr-knitr.tex"); tools::texi2dvi('lrgpr-knitr.tex', pdf=TRUE, clean=TRUE); q()
+
+% latex lrgpr-knitr
+% bibtex lrgpr-knitr
+% latex lrgpr-knitr
+% latex lrgpr-knitr
+
+% ./compile.sh
+
+
+% Copy docs
+% \cp -f /data/workspace/repos/lrgpr/pkg/lrgpr/inst/doc/lrgpr-knitr.pdf /data/workspace/repos/lrgpr/www/docs/lrgpr.pdf 
+
+% \cp -f /data/workspace/repos/lrgpr/pkg/lrgpr/NEWS /data/workspace/repos/lrgpr/www/docs/
+
+
+\documentclass[11pt]{article}
+
+% How to print chars for copying
+% http://www.monperrus.net/martin/copy-pastable-ascii-characters-with-pdftex-pdflatex
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+
+\usepackage{fullpage}
+\usepackage[colorlinks,linkcolor=black,citecolor=black]{hyperref}
+\usepackage{times}
+\usepackage{verbatim}
+\usepackage{amsmath, amssymb}
+\usepackage[margin=.7in]{geometry}
+
+\newcommand{\proglang}[1]{\textsf{#1}}
+\newcommand{\pkg}[1]{{\fontseries{b}\selectfont #1}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\newcommand{\mytilde}{\texttildelow}
+\newcommand{\mycaret}{\char94}
+
+\usepackage{natbib} %[author,year]
+\bibliographystyle{biom}
+%\bibpunct{(}{)}{;}{a}{,}{,}
+
+\usepackage{enumitem}
+% Define question and answer environment
+\newenvironment{faq}{\begin{description}[style=nextline]}{\end{description}}
+
+\bibcite{Hoffman2013c}{{1}{2013}{{Hoffman}}{{}}}
+\bibcite{Kang2010}{{2}{2010}{{Kang, et al.}}{{Kang, Sul, Service, Zaitlen, Kong, Freimer, Sabatti, and Eskin}}}
+\bibcite{Lippert2011}{{3}{2011}{{Lippert, et al.}}{{Lippert, Listgarten, Liu, Kadie, Davidson, and Heckerman}}}
+\bibcite{Listgarten2012}{{4}{2012}{{Listgarten, et al.}}{{Listgarten, Lippert, Kadie, Davidson, Eskin, and Heckerman}}}
+\bibcite{Yang2011e}{{5}{2011}{{Yang, et al.}}{{Yang, Lee, Goddard, and Visscher}}}
+\bibcite{Zhou2012}{{6}{2012}{{Zhou and Stephens}}{{}}}
+\bibcite{Price2006}{{7}{2006}{{Price, et al.}}{{}}}
+
+<<echo=FALSE>>=
+prettyVersion <- packageDescription("lrgpr")$Version
+prettyDate <- format(Sys.Date(), "%B %e, %Y")
+@
+<<setup, include=FALSE, cache=FALSE, echo=FALSE>>=
+library(knitr)
+# set global chunk options
+opts_chunk$set(fig.path='figure/minimal-', fig.align='center', fig.show='hold', cache=TRUE)
+options(replace.assign=TRUE,width=60)
+hook_source = knit_hooks$get('source')
+knit_hooks$set(source = function(x, options) {
+  txt = hook_source(x, options)
+  # extend the default source hook
+  gsub('~', '\\\\mytilde', txt)
+})
+library(lrgpr)
+@
+
+ \def\Rcolor{\color{black}}
+ \def\Routcolor{\color{green}}
+ \def\Rcommentcolor{\color{red}}
+
+\author{Gabriel E. Hoffman$^{1}$ }
+\title{\pkg{lrgpr}: Low Rank Gaussian Process Regression}
+\date{\pkg{lrgpr} version \Sexpr{prettyVersion} as of \Sexpr{prettyDate} }
+
+\begin{document}
+
+\maketitle{}
+
+\abstract{
+  \noindent
+  The \pkg{lrgpr} package provides an interactive \proglang{R} interface for fitting linear mixed models, also known as Gaussian Process Regression, on very large datasets.  The package provides user-friendly interfaces for the linear mixed model and a computationally efficent extension termed \underline{L}ow \underline{R}ank \underline{G}aussian \underline{P}rocess \underline{R}egression, as well as standard linear and logistic regression models.  \pkg{lrgpr} allows fitting millions of regression models on a desktop computer by using an efficient implementation, parallelization and out-of-core computing for datasets that are too large to fit in main memory.  
+ %The linear model model, also known as Gaussian Process Regression (GPR), is widely used in statistical genetics to account for the confounding effects of kinship and population structure.  .  
+%
+ % Designed to be user-friendly and following the built-in \pkg{glm} interface, 
+}
+
+\tableofcontents
+
+\vfill
+% Footnote
+\noindent
+\rule{1.7in}{0.4pt}\\
+\noindent
+{\footnotesize $^{1}$Icahn Institute for Genomics and Multiscale Biology, Department of Genetics and Genomic Sciences, Icahn School of Medicine at Mount Sinai, New York, New York, USA }
+
+
+
+\pagebreak
+\section{Overview}
+
+% Remove R prompt ">"
+<<echo=F>>=
+options(prompt = "> ")
+options(continue = " ")
+@
+
+Genome-wide association studies (GWAS) are a widely used approach to identify genetic variants that are associated with variation in a phenotype of interest.  Tests of association usually take the form of statistical hypothesis tests in a regression model that accounts for known confounding variables such as sex.  Yet due to the complex nature of GWAS datasets, more sophisticated methods are used in order to maintain power while controling the false positive rate.  The linear mixed model is the state-of-the-art method to account for the confounding effects of kinship and population structure in GWAS analysis, and much recent work as focused on this approach \citep{Hoffman2013c, Listgarten2012, Lippert2011, Kang2010, Zhou2012}.\\
+\\
+To date, most software for GWAS data has been designed for a ``one-size-fits-all" analysis.  Yet as GWAS datasets have become increasing complex and heterogeneous, there is growing potential for interactive, exploratory data analysis.  The \pkg{lrgpr} package privdes a user-friendly, interactive and computationally efficient analysis framework that faciliates custom, exploratory analysis of large GWAS datasets.\\ 
+\\
+The \pkg{lrgpr} package provides:
+\begin{itemize}
+ \item Seamless, interactive \proglang{R} interface to aribtarily large datasets through \pkg{bigmemory}'s \verb|big.matrix|
+ \item Scalable linear or logistic regression for millions of hypothesis tests using \verb|glmApply|
+ \item Fitting a full or low rank linear mixed model with \verb|lrgpr|
+ \item Data-adaptive construction of the genetic similarity matrix for the linear mixed model
+ \item Scalable linear mixed model regression for millions of hypothesis tests using \verb|lrgprApply|
+ \item Ability to define arbitrary interaction models and perform composite hypothesis tests with \verb|glmApply|, \verb|lrgpr| and \verb|lrgprApply|
+\end{itemize}
+\vspace{.4cm}
+\noindent
+Here I demonstrate some applications of the \verb|lrgpr| package.  See the help modules in \proglang{R} like \verb|?lrgpr| and \verb|?lrgprApply| for more detailed documentation.
+
+\section{Integration with the \proglang{R} environment: Using the \texttt{big.matrix} format }
+
+\proglang{R} typically stores all data in memory (i.e. RAM) for fast access.  However, GWAS datasets can easily be too large to store in memory.  For example, a dataset with 10,000 individuals and 1,000,000 SNPs would require $\sim80$ Gb to store in \proglang{R} in its standard format (i.e. as a \texttt{double}), and much larger datasets are now very common.  Instead, \pkg{lrgpr} uses \pkg{bigmemory}'s \texttt{big.matrix} format to store a very large dataset in binary form directly on the hard drive and avoid using RAM while still allowing interactive access to the data.  Thus the \texttt{big.matrix} format allows analysis of arbitrarily large datasets on any machine with sufficient hard drive capacity.
+\\
+\\
+Arbitrary data can be converted to \texttt{big.matrix} format using \pkg{bigmemory}'s \texttt{as.big.matrix}.  Alternatively, large GWAS data can be converted more efficently:\\
+\\
+Start by loading the package:
+
+<<>>=
+library(lrgpr)
+
+# Path to Plink files
+path <- system.file(package = 'lrgpr')
+tped_file <- paste(path, "/extdata/test.tped", sep="")
+fam_file <- paste(path, "/extdata/test.tfam", sep="")
+map_file <- paste(path, "/extdata/test.map", sep="")
+@
+
+<<results='hide', tidy=FALSE>>=
+# Convert TPED file to binary format
+# Create a binary data file: test.binary 
+#     and a binary file describing this data: test.binary_descr
+convertToBinary(tped_file, "./test.binary", "TPED")
+@
+\noindent
+Supported GWAS data formats include TPED, GEN and DOSAGE.\\
+\\
+Data is loaded into \proglang{R} by pointing a variable to the description file:
+
+<<cache=FALSE>>=
+# attach data by reading the description file
+# use readonly=TRUE so values in X can't be accidentally overwritten
+# NOTE: A big.matrix MUST be re-attached in each R session.
+#       It CANNOT be restored from a previous R session using save()/load()
+X <- attach.big.matrix("./test.binary_descr", readonly=TRUE)
+@
+\noindent
+Note that this data is not loaded into memory. Instead \verb|X| points to the location of the data on the hard drive, and the data is loaded into memory only when the user asks for it.  The user can treat \verb|X| as a standard \proglang{R} \verb|matrix| with the caveat that user must be carefull not to load too much data into memory at the same time.  For example, the $10^{th}$ SNP can be accessed seamlessly: 
+
+<<results='hide'>>=
+# data is only loaded into memory when it is accessed
+X[,10]
+@
+\noindent
+and the user can perform abitrary operations on each column individually without loading the whole dataset at the same time:
+
+<<>>=
+# data is only loaded into memory when it is accessed
+column_means <- c()
+
+for(j in 1:ncol(X)){
+	column_means[j] <- mean(X[,j])
+}
+@
+\noindent
+Accessing the data in this way creates a standard \proglang{R} \verb|matrix| that can be passed to any function. Thus the user can process \verb|X| as if it were stored in memory; the complexity of storing the data on the hard drive is completely hidden from the user.\\
+\\
+Processing the entire dataset in \proglang{R} can be costly for large datasets, so \pkg{lrgpr} provides functions to report common statistics more efficiently by performing all computations in \proglang{C/C++}:
+
+<<results='hide'>>=
+# Report allele frequencies using C/C++ backend
+freq <- getAlleleFreq(X)
+@
+
+\subsection{Example: Principal components analysis}
+
+It is simple to apply standard statistical methods to a subset of the data pointed to by \verb|X|.  This example shows an application of principal components analysis common in GWAS analysis \citep{Price2006}.
+
+<<fig.width=4, fig.height=4>>=
+# Extract 200 markers and perform SVD on scaled markers
+# Use round so that indeces are integers
+j <- round(seq(1, ncol(X), length.out=200))
+
+# Note that a minor allele frequency (maf) of 0 will produce an error
+#   since scale() divides by the maf
+# This operation is only valid on markers that vary in this dataset
+# Use getAlleleFreq() (or getAlleleVariance() for dosage data) 
+#   to filter out markers that don't have variation
+dcmp <- svd(scale(X[,j]))
+
+# Make plot
+percentVar <- dcmp$d^2 / sum(dcmp$d^2)
+xlab <- paste("PC1:", format(percentVar[1], digits=3), "%")
+ylab <- paste("PC2:", format(percentVar[2], digits=3), "%")
+plot(dcmp$u[,1:2], xlab=xlab, ylab=ylab)
+@
+
+\section{Regression with \proglang{R}'s \texttt{glm}}
+
+\proglang{R} fits generalized linear models using the \verb|glm| function that provides flexibility in defining the regression model.  I describe \verb|glm| very briefly here so that I can later describe how \pkg{lrgpr} mirrors this functionality.  For example, we can read Plink's FAM file and fit a simple model:
+
+<<>>=
+# Read FAM file
+FAM <- read.fam(fam_file)
+y <- FAM$phenotype
+sex <- FAM$sex
+@
+
+<<>>=
+# Fit a linear model
+fit <- glm( y ~ sex )
+@
+\noindent
+We can see the model coefficients and statistics:
+
+<<>>=
+# Simple view
+fit
+@
+<<>>=
+# Expanded view
+summary(fit)
+@
+\noindent
+and plot model diagnostics:
+
+<<>>=
+# Plot diagnostics
+par(mfrow=c(2,2))
+plot(fit)
+@
+
+\noindent
+The user can also specify and perform hypothesis tests on more complex models involving interactions:
+
+<<>>=
+# Fit a linear model
+fit <- glm( y ~ sex + X[,10]*X[,100])
+@
+
+<<>>=
+library(aod)
+# Composite hypothesis test of additive and interaction terms 
+#	for the two markers
+# Note that wald.test is from the aod package
+wald.test(vcov(fit), coef(fit), Terms=3:5)
+@
+
+\section{Fitting many regressions with \texttt{glmApply}}
+
+Analysis of GWAS data involves fitting a regression model for each SNP individually.  The user could write a simple \verb|for| loop that calls the \verb|glm| function, but the computation can be accelerated by doing the calculation in the \proglang{C/C++} backend and reporting the results.\\
+\\
+A standard analysis can be performed with \pkg{lrgpr}'s \verb|glmApply|:
+
+<<results='hide'>>=
+# Standard GWAS regression analysis
+pValues <- glmApply( y ~ SNP + sex, features=X, terms=2)$pValues
+@
+\noindent
+where the \verb|formula| follows standard \verb|glm| syntax, \verb|features| specifies the \verb|big.matrix| or standard \proglang{R} \verb|matrix| with columns as genetic markers, and \verb|terms| specifies which variables from the \verb|formula| are in the hypothesis test.  Note that \verb|SNP| is a placeholder for each sucessive column in \verb|features|, and if \verb|terms| is omitted the hypothesis test includes all terms corresponding to \verb|SNP|:
+
+<<results='hide'>>=
+# Standard GWAS regression analysis
+pValues <- glmApply( y ~ SNP + sex, features=X)$pValues
+@
+\noindent
+This code is the same as:
+
+<<>>=
+pValuesR <- c()
+
+for(j in 1:ncol(X)){
+  # fit model
+  fit <- glm(y ~ X[,j] + sex)
+
+  # perform hypothesis test
+  pValuesR[j] <- wald.test(vcov(fit), coef(fit), Terms=2)$result$chi2[3]
+}
+@
+\noindent
+but calling \verb|glmApply| is simpler and much faster for large datasets.\\
+\\
+Note that {\it markers} can easily be excluded from the analysis using the cincl or cexcl arguments to \verb|glmApply|.  See \verb|?glmApply| for details.  However, there is currently no simple way to exclude {\it samples} from an analysis with \verb|glmApply| (or \verb|lrgprApply|).  This can be accomplished by regenerating the binary file with \verb|convertToBinary|, or by using the \proglang{R} interface to the data matrix to process \verb|X[i,j]| and using \verb|glm| or \verb|lrgpr|.  But note that you must select a small enough subset of the data with \verb|X[i,j]| for it to fit in memory.\\ 
+\\
+Note that \verb|glmApply| can also efficiently fit multivariate regression models with multiple response variables. See \verb|?glmApply| for details.
+
+\section{Linear mixed models with \texttt{lrgpr}}
+
+The \verb|lrgpr| function fits full and low rank linear mixed models and follows the syntax and behavior of \verb|glm|.\\
+\\
+The linear mixed model has the form:
+\begin{eqnarray*}
+\mathbf y &\sim& \mathcal{N}(\mathbf X \boldsymbol\beta, \mathbf K\sigma^2_a + \mathbf I\sigma^2_e),
+\end{eqnarray*}
+where $\mathbf y \,(n \times 1)$ is the vector of phenotype values, $n$ is the sample size, $\mathbf X \,(n \times c)$ is the design matrix of $c$ fixed effects, $\boldsymbol\beta\,(c \times 1)$ is the vector of coefficients, $\mathbf K \,(n \times n)$ is the genetic similarity matrix (GSM), $\mathbf I \,(n \times n)$ is the identity matrix, $\sigma^2_a$ is the magnitude of the genetic variance, and $\sigma^2_e$ is the magnitude of the residual variance.  The parameters are estimated by maximizing the log-loglihood using the algorithms of \citet{Lippert2011} and \citet{Listgarten2012}.\\
+\\
+When $\mathbf K$ is full rank, the coefficient estimates and their sample variance are, respectively,  
+\begin{eqnarray*}
+\hat{\boldsymbol\beta} &=& (\mathbf X^T \mathbf \Omega \mathbf X)^{-1} \mathbf X^T \mathbf \Omega \mathbf y\\ 
+\hat{\mathbf \Sigma} &=& (\mathbf X^T \mathbf \Omega \mathbf X)^{-1} \sigma^2_a
+\end{eqnarray*}
+where $\mathbf \Omega = (\mathbf K + \mathbf I\frac{\sigma^2_e}{\sigma^2_a})^{-1}$ and the values of $\sigma^2_a$ and $\sigma^2_e$ are already estimated by maximum likelihood.  Following standard likelihood theory, the Wald test is
+\begin{eqnarray*}
+\hat{\boldsymbol\beta}_h^T (\hat{\mathbf \Sigma}_{h})^{-1} \hat{\boldsymbol\beta}_h \sim \chi^2_{|h|}
+\end{eqnarray*}
+where $h$ specifies the fixed effects being tested and $|h|$ is the number of entries.  When $\mathbf K$ is not full rank the estimates and hypothesis tests are analogous and follow directly from \citet{Listgarten2012}.
+
+\subsection{The genetic similarity matrix and its spectral decomposition}
+
+Following the algorithms of \citet{Lippert2011} and \citet{Listgarten2012}, the genetic similarity matrix enters the linear mixed model only through its spectral decomposition.  There are multiple ways to compute $\mathbf K$ or its spectral decomposition. 
+
+\subsubsection{Full rank linear mixed model }
+When the genetic similarity matrix, $\mathbf K$, is based on a genome-wide set of markers, the linear mixed model is full rank.  
+\noindent
+However, only the spectral decomposition of $\mathbf K$ is needed, and this can be computed directly from the genotype matrix in \proglang{R}:    
+
+<<results='hide'>>=
+# Keep only SNPs where there is variation in this dataset
+# With SNP data coded as 0,1,2 screening by the allele 
+#	frequency would be sufficient
+# With continuous dosage data, we need to consider the variance of the SNP
+v <- getAlleleVariance(X)
+
+# get markers that pass filter
+passFilter <- which(v > .01)
+
+# Prune to every 100th marker that passes filter
+index <- passFilter[seq(1, length(passFilter), by=100)]
+
+@
+<<>>=
+# Perform spectral decomposition on the set of SNPs
+# 	after replacing missing values with the per-SNP mean
+# Each SNP is centered and scaled
+dcmp <- svd(scale(set_missing_to_mean(X[,index])))
+@
+\noindent
+We can then fit the linear mixed model using the same syntax as for \verb|glm|:
+
+<<>>=
+fit <- lrgpr(y ~ sex, dcmp)
+@
+\noindent
+Alternatively, the genetic similarity matrix $\mathbf K$ from another program \citep{Yang2011e, Kang2010, Zhou2012} can easily be imported into \proglang{R}:
+<<>>=
+# Read in GSM and perform spectral decomposition
+K <- read.table( paste(path, "/extdata/K.txt", sep="") )
+dcmp <- eigen(K, symmetric=TRUE)
+@ 
+
+
+\vspace{.15cm}
+\noindent
+{\normalsize \bf Features of lrgpr}
+\vspace{.12cm}
+
+\noindent
+Since \verb|lrgpr| behaves like \verb|glm| and we can see the model coefficients and statistics:
+
+<<echo=T>>=
+# Simple view
+fit
+@
+<<echo=T>>=
+# Expanded view
+summary(fit)
+@
+\noindent
+and plot model diagnostics:
+\begin{center}
+<<>>=
+# Evaluate model fit diagnostics
+fitDiag <- lrgpr(y ~ sex, dcmp, diagnostic=TRUE)
+# Plot diagnostics
+# Note that plot() only works when lrgpr() is run with diagnostic=TRUE
+# Producing the diagnostic statistics can be computationally expensive for 
+#   large sample sizes, so it is set to FALSE by default
+par(mfrow=c(2,2), mar=c(4,4.3,2,1));
+plot(fitDiag)
+@
+\end{center}
+
+\noindent
+The user can also specify and perform hypothesis tests on more complex models involving interactions:
+
+<<>>=
+# Fit a linear model
+fit <- lrgpr( y ~ sex + X[,10]*X[,100], dcmp)
+@
+<<>>=
+# Composite hypothesis test of additive and interaction terms 
+#	for the two markers
+wald(fit, terms=3:5)
+@
+\noindent
+This functionality can be used to perform custom, exporatory analysis on arbitrarily large datasets.
+
+\subsubsection{Low rank linear mixed model: (low rank gaussian process regression) }
+
+The full rank linear mixed model can be very computationally expensive for large datasets and a low rank version was proposed to address this issue \citep{Lippert2011,Listgarten2012}.  A low rank GSM, or more precisely its spectral decomposition, can be constructed by using fewer SNPs than the sample size.  Instead of capturing the genome-wide similarity, the GSM can be constructed based on the $k$ SNP's that are most correlated with the phenotype.  Following \citet{Lippert2011} and \citet{Listgarten2012}, we construct the GSM using the most signficant markers from an uncorrected association test:
+
+<<results='hide'>>=
+# Uncorrected single SNP test
+pValues <- glmApply( y ~ SNP + sex, features=X)$pValues
+@
+<<>>=
+# sort markers based on p-value
+ord <- order(pValues, decreasing=FALSE)
+@
+\noindent 
+Now construct the spectral decomposition from the top $k=100$ SNPs and fit the low rank linear mixed model:
+
+<<>>=
+k <- 100
+dcmp <- svd(scale(set_missing_to_mean(X[,ord[1:k]])))
+@
+<<>>=
+# Fit the low rank model
+fit <- lrgpr(y ~ sex, dcmp)
+@
+\vspace{.15cm}
+\noindent
+{\normalsize \bf Learning the optimal rank of the low rank linear mixed model}
+\vspace{.12cm}
+
+\noindent
+We arbitrarily selected the top $k=100$ SNPs above, but following \citet{Listgarten2012} we can use cross-validation to select $k$ based on the data.  Here the cross-validation error is calculated for multiple values of $k$:
+
+<<results='hide'>>=
+# Evaluate cross-validation for multiple rank values
+fitcv <- cv.lrgpr( y ~ sex, features=X, order=ord, nfolds=2)
+@
+\noindent
+Instead of performing computationally expensive cross-validation, we can use model criterion such as Akaike Information Criterion (AIC), Bayesian Information Criterion (BIC) or Generalized Cross-Validation (GCV) to select $k$ based on the degrees of freedom for the linear mixed model described by \citet{Hoffman2013c}:   
+
+<<results='hide'>>=
+# Evaluate model criterion 
+fitcrit <- criterion.lrgpr( y ~ sex, features=X, order=ord )
+@
+\noindent
+We can plot the cross-validation error and model criterion scores:
+%\begin{center}
+<<fig.height=4, fig.width=8>>=
+# Plot the cross-validation and model crition curves
+par(mfrow=c(1,2))
+plot(fitcv)
+plot(fitcrit) 
+@
+%\end{center}
+
+\noindent
+and compute to spectral decomposition of the GSM based on the set of SNPs selected by Generalized Cross-validation:
+
+<<echo=T>>=
+k <- fitcrit$best$GCV
+dcmp <- svd(scale(set_missing_to_mean(X[,ord[1:k]])))
+@
+\noindent
+Note that the GCV score is very good proxy for the cross-validation error and most of the difference between these values are driven primarily by the finite sampling in cross-validation.
+
+\subsection{Proximal contamination}
+
+If the random effect includes the marker to be tested, the correlation between the two can decrease power.  More generally, the inclusion of a marker from the same linkage-disequilibrium (LD) block as the marker being tested can decrease power.  This is termed {\it proximal contamination} and \citet{Listgarten2012} proposed an efficient solution.  Intuitively, we would like to use a random effect that excludes any markers from the same LD block as the one being tested.  This can be used by dropping a set of markers from the GSM and recomputing the spectral decomposition.  However, this can be very computationally expensive and we use the algorithm of \citet{Listgarten2012} which reuses the same spectral decompution but which omits the set of proximal contamination markers by modifing the log-loglikelihood calculations of \verb|lrgpr|.\\
+\\
+Here, \verb|lrgpr| is evaluated by using markers \verb|2:5| in the random effect and testing marker 1.
+
+<<echo=T>>=
+dcmp <- svd(scale(set_missing_to_mean(X[,2:5])))
+fit <- lrgpr(y ~ X[,1], decomp=dcmp)
+summary(fit)$coefficients
+@
+\noindent
+If the spectral decomposition includes marker 1, then proximal contamination is an issue.  We can pass marker 1 into the \verb|W_til| argument to address this.
+
+<<echo=T>>=
+dcmp <- svd(scale(set_missing_to_mean(X[,1:5])))
+fit <- lrgpr(y ~ X[,1], decomp=dcmp, W_til=scale(X[,1]))
+summary(fit)$coefficients
+@
+\noindent
+The results of the two evaluations are exactly the same, with the second having the advantage of avoiding the issue of decreased power due to proximal contamination without having to recompute the spectral decomposition and exclude each marker in turn.
+
+
+\section{Fitting many \texttt{lrgpr} regressions with \texttt{lrgprApply}}
+
+The functionality of \verb|lrgprApply| is the focus of the \pkg{lrgpr} package.  Once the spectral decomposition has been computed, we can perform a genome-wide regression analysis with \verb|lrgprApply| which is analogous to \verb|glmApply|:
+
+
+<<results='hide'>>=
+# Linear mixed model analysis
+pValuesLMM <- lrgprApply( y ~ SNP + sex, features=X, decomp=dcmp)
+@
+\noindent
+Moreover, \verb|lrgprApply| can be used to fit a regression model with interactions and the \verb|terms| can be set to perform the appropriate hypothesis test:
+
+<<results='hide'>>=
+# Test SNP x sex interaction
+pv1 <- lrgprApply( y ~ SNP*sex, features=X, decomp=dcmp, terms=4)
+@
+<<results='hide'>>=
+# Test SNP x SNP interaction
+pv2 <- lrgprApply( y ~ sex + SNP*X[,1], features=X, decomp=dcmp, terms=3:5)
+@
+\noindent
+The user has a lot of flexibilty to design a custom analysis to address the specific question of his or her study.
+
+\subsection{Re-estimating variance components ($\delta$)}
+
+By default, \verb|lrgprApply| estimates the variance components under the null model and then re-uses these parameter estimates for each marker.  This follows \citet{Lippert2011} and greatly decreases computational time.\\ 
+\\
+It possible to re-estimate the variance components for each marker with a substantial increase in computational time:
+
+
+<<results='hide'>>=
+# Test SNP x SNP interaction
+pv3 <- lrgprApply( y ~ sex + SNP, features=X, decomp=dcmp, 
+	reEstimateDelta=TRUE)
+@
+
+\subsection{Proximal contamination}
+
+We can also drop proximal markers in \verb|lrgprApply| using either genetic or physical distance to define the genomic window.  Using the map file from plink:
+
+<<>>=
+MAP <- read.table( map_file )
+@
+\noindent
+we can call perform a genome-wide analysis:
+
+<<results='hide'>>=
+pValuesLMMprox <- lrgprApply( y ~ sex + SNP, features=X, decomp=dcmp,
+	map=MAP[,c(1,3)], distance=2, dcmp_features=ord[1:k])
+@
+\noindent
+where entries in \verb|MAP| correspond to the markers in \verb|X|, \verb|map=MAP[,c(1,3)]| indicates the marker names and their position on the genetic map, \verb|distance| determines the size of the window corresponding to the locations in \verb|MAP[,3]|, and \verb|dcmp_features| indicates the indices of \verb|X| used to construct \verb|dcmp|.  Following the standard format for plink map files, the physical location can be used by specifing \verb|map=MAP[,c(1,4)]| and setting \verb|distance| appropriately.
+
+\subsubsection{Interaction model}
+
+When evaluating an interaction model with the formula \verb|y ~ sex + SNP*X[,1]|, the syntax above addresses the proximal contamination due to \verb|SNP|, but not due to \verb|X[,1]|.  We can include additional markers in the proximal contamination set by also specifying \verb|W_til|:
+
+<<results='hide'>>=
+# Test SNP x SNP interaction
+pv2 <- lrgprApply( y ~ sex + SNP*X[,1], features=X, decomp=dcmp,
+	map=MAP[,c(1,3)], distance=2, dcmp_features=ord[1:k], W_til=X[,1])
+@
+
+\section{Implementation}
+
+The \pkg{lrgpr} package provides an \proglang{R} interface to high performance computational statistics code written in \proglang{C/C++} that builds off the GNU Scientific Library (GSL).  Linear algebra operations are performed by \proglang{BLAS} and \proglang{LAPACK} and the performance is highly dependent on the library installed on the local machine.  Data is passed from \proglang{R} to the \proglang{C++} backend using \pkg{Rcpp} and \pkg{RcppGSL}.  Parallelization is performed by OpenMP.  Out-of-core processing is faciliated by \pkg{bigmemory}, which stores the full dataset on the hard drive instead of in memory and uses \verb mmap  from the GNU C Library for random data access.
+
+\section{Frequently asked questions}
+
+\begin{faq}
+  \item[ Why doesn't \pkg{lrgpr} compile?]
+    Please read the Installation Instructions
+  \item[ Why does \proglang{R} segfault?]
+    Accessing a \verb|big.matrix| that has not been attached correctly will cause \proglang{R} to crash.  {\color{red} A \verb|big.matrix| must be attached with \verb|attach.big.matrix()| in each new \proglang{R} session.  Using \verb|save|/\verb|load| will not work with a \verb|big.matrix| and  will cause \proglang{R} to crash.}  This in an issue with \pkg{bigmemory} and is beyond my control.
+  \item[How do I deal with missing phenotype values?]
+    Dealing with missing data can be problematic with the linear mixed model since fitting the model requires a singular value decomposition based on only individuals with observed phenotypes.\\
+    \\
+    When using \verb|lrgpr()|, you need to recompute the decomposition while dropping individuals with missing phenotype values.\\
+    \\
+    When using \verb|lrgprApply()| it becomes a little more complicated.  You need to regenerate the binary genotype matrix to include only individuals observed for that phenotype, and then proceed as before.\\
+    \\
+    When using \verb|glmApply()|, this should handle missing data gracefully like the standard \verb|glm()| function.
+\end{faq}
+
+% Re-instate R prompt ">"
+<<echo=F>>=
+options(prompt = "> ")
+options(continue = "+ ")
+@
+
+\vspace{1in}
+
+\renewcommand\refname{References}
+ \bibliography{library}{\small}
+
+\end{document}

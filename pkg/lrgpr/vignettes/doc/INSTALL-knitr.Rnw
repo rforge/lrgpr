@@ -1,0 +1,123 @@
+%
+% NOTE -- ONLY EDIT THE .Rnw FILE!!!  The .tex file is
+% likely to be overwritten.
+%
+
+% Compile:
+
+%  require(highlight); driver <- HighlightWeaveLatex(boxes = TRUE, bg = rgb( 0.95,0.95,0.95, maxColorValue = 1 ), border=rgb( 0.98,0.98,0.98, maxColorValue = 1)); Sweave( 'INSTALL.Rnw', driver = driver ); tools::texi2dvi('INSTALL.tex', pdf=T, clean=F); 
+
+% Use knitr
+% library(knitr)
+% Sweave2knitr("INSTALL.Rnw"); knit("INSTALL-knitr.Rnw"); tools::texi2dvi('INSTALL-knitr.tex', pdf=TRUE, clean=TRUE)
+
+% latex INSTALL-knitr
+% bibtex INSTALL-knitr
+% latex INSTALL-knitr
+% latex INSTALL-knitr
+
+% \cp INSTALL-knitr.pdf /data/workspace/repos/lrgpr/www/docs/INSTALL.pdf
+
+
+
+\documentclass[11pt]{article}
+
+\usepackage{fullpage}
+\usepackage[colorlinks,linkcolor=black,citecolor=black]{hyperref}
+\usepackage{times}
+\usepackage{verbatim}
+\usepackage{amsmath, amssymb}
+
+\newcommand{\proglang}[1]{\textsf{#1}}
+\newcommand{\pkg}[1]{{\fontseries{b}\selectfont #1}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+%\usepackage[author,year]{natbib}
+%\bibpunct{(}{)}{;}{a}{,}{,}
+
+<<echo=FALSE>>=
+prettyVersion <- packageDescription("lrgpr")$Version
+prettyDate <- format(Sys.Date(), "%B %e, %Y")
+@
+<<setup, include=FALSE, cache=FALSE, echo=FALSE>>=
+library(knitr)
+# set global chunk options
+opts_chunk$set(fig.path='figure/minimal-', fig.align='center', fig.show='hold')
+options(replace.assign=TRUE)
+options(width=60)
+@
+
+%\SweaveOpts{size=small}
+%\SweaveOpts{cache=true}
+
+\begin{document}
+
+\begin{center}
+{\LARGE Installation instructions for \pkg{lrgpr}}
+\end{center}
+
+\vspace{.3cm}
+
+\section*{Dependencies and installation}
+
+Linux operating systems are supported, but unfortunately the optimizations used by \pkg{lrgpr} are not (easily) available on Windows or Mac OS X. \\ 
+\\
+\pkg{lrgpr} has some dependencies that may not be installed on your system.  Installation requires the GNU Scientific Library (GSL) and Boost C++ libraries.\\ 
+\\
+\noindent
+$\bullet$ \, {\bf Ubuntu / Debian:} these can be automatically installed with \verb|apt-get|:
+\begin{verbatim}
+shell> sudo apt-get install libboost-all-dev libgsl0-dev
+\end{verbatim}
+\vspace{.1cm}
+\noindent
+$\bullet$ \, {\bf Redhat / Fedora / CentOS:} these can be automatically installed with \verb|yum|:
+\begin{verbatim}
+shell> sudo yum install boost-devel gsl-devel
+\end{verbatim}
+\vspace{.1cm}
+\noindent
+Alternatively, you can install them manually from source:
+\begin{itemize}
+ \item GSL: \url{http://www.gnu.org/software/gsl/}
+ \item Boost: \url{http://www.boost.org/users/download/}
+\end{itemize} 
+\vspace{.2cm}
+\noindent
+\pkg{lrgpr} also depends on a number of \proglang{R} packages that can be installed from CRAN:
+
+<<eval=FALSE, tidy=FALSE>>=
+pkgs = c("Rcpp", "RcppGSL", "RcppProgress", "MASS", "formula.tools", 
+	"BH", "doParallel", "bigmemory", "bigmemory.sri", "aod")
+install.packages(pkgs)
+@
+\noindent
+\pkg{lrgpr} requires bigmemory $\ge$ v4.4.7, so  install this from R-Forge:\\ 
+\underline{NOTE}: The v4.4.{\underline 6} from CRAN is not compatible with \pkg{lrgpr} and will throw an error on installation.
+
+<<eval=FALSE>>=
+install.packages("bigmemory", repos="http://R-Forge.R-project.org")
+@
+
+\noindent
+Once the dependencies are installed, you can install \pkg{lrgpr}:
+
+\begin{verbatim}
+shell> R CMD INSTALL lrgpr_\Sexpr{prettyVersion}.tar.gz 
+\end{verbatim}
+
+\subsection*{For very advanced \proglang{R} users}
+
+\subsubsection*{Accelerating linear algebra in \proglang{R}}
+
+Linear algebra operations are the bottleneck for \pkg{lrgpr} and many other packages in \proglang{R}.  Compiling \proglang{R} with a good implementation of the \proglang{BLAS} linear algebra library can speed up some operations by $>10x$, and using a parallel library can further improve performance compared to the standard ``reference \proglang{BLAS}" used by default.  Using the best library for your machine, such as ATLAS (generic), ACML (AMD) or MKL (Intel), is strongly suggested.\\  
+\\
+You can follow the instructions to compile \proglang{R} against one of these libraries: \url{http://cran.r-project.org/doc/manuals/R-admin.html#Linear-algebra}
+
+% Re-instate R prompt ">"
+<<echo=F>>=
+options(prompt = "> ")
+options(continue = "+ ")
+@
+
+\end{document}
