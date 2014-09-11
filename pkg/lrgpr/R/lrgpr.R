@@ -629,13 +629,10 @@ lrgprApply <- function( formula, features, decomp, terms=NULL, rank=max(ncol(dec
 		features = as.matrix(features)
 	}
 
-<<<<<<< HEAD
 	if( is.big.matrix(features) && is.nil(features@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
-=======
->>>>>>> parent of d73f774... Version 0.1.4: Add new functionality and documentation
 	if( ! .is_supported_lrgpr(features) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
@@ -946,13 +943,10 @@ glmApply <- function( formula, features, terms=NULL, family=gaussian(), useMean=
 		features = as.matrix(features)
 	}
 
-<<<<<<< HEAD
 	if( is.big.matrix(features) && is.nil(features@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
-=======
->>>>>>> parent of d73f774... Version 0.1.4: Add new functionality and documentation
 	if( ! .is_supported_lrgpr(features) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
@@ -1133,13 +1127,10 @@ glmApply2 <- function( formula, features, terms=NULL, family=gaussian(), useMean
 		features = as.matrix(features)
 	}
 
-<<<<<<< HEAD
 	if( is.big.matrix(features) && is.nil(features@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
-=======
->>>>>>> parent of d73f774... Version 0.1.4: Add new functionality and documentation
 	if( ! .is_supported_lrgpr(features) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
@@ -1325,13 +1316,10 @@ criterion.lrgpr = function( formula, features, order, rank = c(seq(1, 10), seq(2
 		features = as.matrix(features)
 	}
 
-<<<<<<< HEAD
 	if( is.big.matrix(features) && is.nil(features@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
-=======
->>>>>>> parent of d73f774... Version 0.1.4: Add new functionality and documentation
 	if( ! .is_supported_lrgpr(features) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
@@ -1500,13 +1488,10 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 		features = as.matrix(features)
 	}
 
-<<<<<<< HEAD
 	if( is.big.matrix(features) && is.nil(features@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
-=======
->>>>>>> parent of d73f774... Version 0.1.4: Add new functionality and documentation
 	if( ! .is_supported_lrgpr(features) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
@@ -1731,13 +1716,10 @@ getAlleleFreq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 		X = as.matrix(X)
 	}
 
-<<<<<<< HEAD
 	if( is.big.matrix(X) && is.nil(X@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
-=======
->>>>>>> parent of d73f774... Version 0.1.4: Add new functionality and documentation
 	if( ! .is_supported_lrgpr(X) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
@@ -1770,13 +1752,10 @@ getMissingCount = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE
 		X = as.matrix(X)
 	}
 
-<<<<<<< HEAD
 	if( is.big.matrix(X) && is.nil(X@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
-=======
->>>>>>> parent of d73f774... Version 0.1.4: Add new functionality and documentation
 	if( ! .is_supported_lrgpr(X) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
@@ -1809,13 +1788,10 @@ getAlleleVariance = function( X, nthreads=detectCores(logical=TRUE), progress=TR
 		X = as.matrix(X)
 	}
 
-<<<<<<< HEAD
 	if( is.big.matrix(X) && is.nil(X@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
-=======
->>>>>>> parent of d73f774... Version 0.1.4: Add new functionality and documentation
 	if( ! .is_supported_lrgpr(X) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
@@ -1855,13 +1831,10 @@ getMACHrsq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 		X = as.matrix(X)
 	}
 
-<<<<<<< HEAD
 	if( is.big.matrix(X) && is.nil(X@address) ){
 		stop("Arugment 'features' points to empty dataset.  For big.matrix, you must use attach.big.matrix() in each new R session.  Using load() will not work. ")
 	}
 
-=======
->>>>>>> parent of d73f774... Version 0.1.4: Add new functionality and documentation
 	if( ! .is_supported_lrgpr(X) ){
 		stop("Unsupported data type for features.\nSupported types are matrix and big.matrix.\nNote that sub.big.matrix is not currently supported")
 	}	
