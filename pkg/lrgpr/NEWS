@@ -1,5 +1,8 @@
+v 0.1.6 # January, 29, 2015
+  - Fix issue in convertToBinary() where the function would fail if relative file paths were used
+
 v 0.1.5 # September 9, 2014
-  - Fix issue checking is.null for big.matrix for some functions
+  - Fix issue checking is.nil for big.matrix for some functions
 
 v 0.1.4 # July 31, 2014
   - In read.fam() / read.tfam(), can now read file with arbitrary extension

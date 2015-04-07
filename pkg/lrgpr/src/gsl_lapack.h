@@ -148,6 +148,13 @@ int gsl_lapack_lu_invert_logdet(gsl_matrix *M, double *log_det);
  */
 int gsl_lapack_lu_logdet(gsl_matrix *M, double *log_det);
 
+/*! \brief Invert 2x2 matrix manually from the standard formula
+ * @param M 2x2 matrix. 
+ * @param result the inverse of M
+ */
+inline int gsl_lapack_inverse_2by2(const gsl_matrix *M, gsl_matrix * result, double *det);
+
+
 
 
 /*

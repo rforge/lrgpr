@@ -1628,7 +1628,10 @@ cv.lrgpr <- function( formula, features, order, nfolds=10, rank = c(seq(0, 10), 
 #' @export
 convertToBinary = function( filename, filenameOut, format, nthreads=detectCores(logical=TRUE), onlyCheckFormat=FALSE, rowNames=NULL, simpleAnnotation=TRUE ){
 
-	if( path.expand(filename) == path.expand(filenameOut) ){
+	filename = path.expand( filename )
+	filenameOut = path.expand( filenameOut )
+
+	if( filename == filenameOut ){
 		stop("Cannot read and write to the same file")
 	}
 

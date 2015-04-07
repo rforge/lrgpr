@@ -754,3 +754,29 @@ int gsl_lapack_lu_logdet(gsl_matrix *M, double *log_det){
 
 	return GSL_SUCCESS;
 }
+
+
+int gsl_lapack_inverse_2by2(const gsl_matrix *M, gsl_matrix *result, double *det){
+
+	// If matrix M is not 2x2
+	#ifndef GSL_RANGE_CHECK_OFF
+	if( M->size1 != 2 || M->size2 != 2){
+		return GSL_ERANGE;
+	}
+	if( result->size1 != 2 || result->size2 != 2){
+		return GSL_ERANGE;
+	}
+	#endif
+
+	// Compute inverse from standard formula
+	double inv_det = 1/(M->data[0]*M->data[3] - M->data[1]*M->data[2]);
+
+	result->data[0] = M->data[3] * inv_det;
+	result->data[1] = - M->data[1] * inv_det;
+	result->data[2] = - M->data[2]  * inv_det;
+	result->data[3] = M->data[0]  * inv_det;
+
+	*det = 1 / inv_det;
+
+	return GSL_SUCCESS;
+}

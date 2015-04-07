@@ -35,9 +35,9 @@
 
 
 % Copy docs
-% \cp -f /data/workspace/repos/lrgpr/pkg/lrgpr/inst/doc/lrgpr-knitr.pdf /data/workspace/repos/lrgpr/www/docs/lrgpr.pdf 
+% \cp -f ~/workspace/repos/lrgpr/pkg/lrgpr/vignettes/doc/lrgpr-knitr.pdf ~/workspace/repos/lrgpr/www/docs/lrgpr.pdf 
 
-% \cp -f /data/workspace/repos/lrgpr/pkg/lrgpr/NEWS /data/workspace/repos/lrgpr/www/docs/
+% \cp -f ~/workspace/repos/lrgpr/pkg/lrgpr/NEWS ~/workspace/repos/lrgpr/www/docs/
 
 
 \documentclass[11pt]{article}
