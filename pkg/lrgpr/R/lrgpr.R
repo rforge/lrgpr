@@ -1857,3 +1857,9 @@ getMACHrsq = function( X, nthreads=detectCores(logical=TRUE), progress=TRUE){
 	
 	return( info )
 }	
+
+as.character.formula <- function(x, ...) { 
+  form <- paste( deparse(x), collapse=" " )
+  form <- gsub( "\\s+", " ", form, perl=FALSE ) # remove multiple spaces
+  return(form)
+}

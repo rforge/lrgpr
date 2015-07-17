@@ -1,7 +1,7 @@
 Package: lrgpr
 Title: lrgpr
-Version: 0.1.6
-Date: January 29, 2015
+Version: 0.1.7
+Date: Jul 16, 2015
 Author: Gabriel E. Hoffman
 Maintainer: Gabriel E. Hoffman <gabriel.hoffman@mssm.edu>
 Description: Fit a Low Rank Gaussian Process Regression (LRGPR) / Linear Mixed
@@ -15,7 +15,6 @@ Depends:
     RcppGSL,
     RcppProgress,
     MASS,
-    formula.tools,
     BH,
     doParallel,
     bigmemory (>= 4.4.7),
