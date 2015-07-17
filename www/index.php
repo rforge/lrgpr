@@ -69,7 +69,7 @@ The package also provides simple interfaces for standard (i.e. fixed effects) li
 
 <li> <a href="./docs/INSTALL.pdf"><strong>Installation instructions</strong></a>: how to install dependencies (<i>essential</i>)</li>
 
-<li> <a href="./docs/lrgpr_0.1.6.tar.gz"><strong>Download package</strong></a>: v0.1.6 </li>
+<li> <a href="./docs/lrgpr_0.1.7.tar.gz"><strong>Download package</strong></a>: v0.1.7 </li>
 
 <br>
 
@@ -89,7 +89,7 @@ The package also provides simple interfaces for standard (i.e. fixed effects) li
 
 <li> <strong>Citation</strong>:</li>
 
- Hoffman, G.E., Mezey, J.G., Schadt, E.E. (2014) lrgpr: Interactive linear mixed model analysis of genome-wide association studies with composite hypothesis testing and regression diagnostics in R. Bioinformatics. In press. <a href="http://bioinformatics.oxfordjournals.org/content/early/2014/07/25/bioinformatics.btu435">doi:10.1093/bioinformatics/btu435</a></p>
+ Hoffman, G.E., Mezey, J.G., Schadt, E.E. (2014) lrgpr: Interactive linear mixed model analysis of genome-wide association studies with composite hypothesis testing and regression diagnostics in R. Bioinformatics. 30 (21): 3134-3135. <a href="http://bioinformatics.oxfordjournals.org/content/30/21/3134">doi:10.1093/bioinformatics/btu435</a></p>
 
 <li> <strong>Related work</strong>:</li>
 
@@ -106,7 +106,7 @@ The package also provides simple interfaces for standard (i.e. fixed effects) li
 <hr />
 <font size="1">
 <div id="textbox">
-  <p class="alignleft">Gabriel E. Hoffman.  Updated July 28, 2014</p>
+  <p class="alignleft">Gabriel E. Hoffman.  Updated July 17, 2015</p>
   <!--<p class="alignright">
   	<?
 	echo "UPV: ";
