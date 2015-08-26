@@ -69,7 +69,7 @@ The package also provides simple interfaces for standard (i.e. fixed effects) li
 
 <li> <a href="./docs/INSTALL.pdf"><strong>Installation instructions</strong></a>: how to install dependencies (<i>essential</i>)</li>
 
-<li> <a href="./docs/lrgpr_0.1.7.tar.gz"><strong>Download package</strong></a>: v0.1.7 </li>
+<li> <a href="./docs/lrgpr_0.1.8.tar.gz"><strong>Download package</strong></a>: v0.1.8 </li>
 
 <br>
 
