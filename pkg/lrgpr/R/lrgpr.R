@@ -348,6 +348,14 @@ lrgpr <- function( formula, decomp, rank=max(ncol(decomp$u), ncol(decomp$vectors
 		obj$df = NA
 	}
 
+	# April 5, 2017
+	# make sure Sigma is symmetric since GSL only uses bottom part
+	# In response to bug from Guillaume Ramstein <ramstein@wisc.edu>
+
+	S = obj$Sigma
+	S[upper.tri(S)] = t(S)[upper.tri(S)]
+	obj$Sigma = S
+
 	return( obj )
 }
 

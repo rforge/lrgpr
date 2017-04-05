@@ -589,6 +589,24 @@ gsl_vector *LRGPR::wald_test_all(){
 
 	gsl_matrix_free(Sigma);
 
+	// April 5, 2017
+	// make there results use code from wald_test()
+	// In response to bug from Guillaume Ramstein <ramstein@wisc.edu>
+
+	/*gsl_vector *p_values = gsl_vector_alloc( params->X_ncol );
+
+	for(unsigned i=0; i<params->X_ncol; i++){
+
+		// z = beta / sqrt(Sigma)
+		vector<int> terms(1);
+		terms[0] = i;
+
+		std::cout << "terms: " << i << std::endl;
+
+
+		gsl_vector_set( p_values, i, wald_test( terms ) );
+	}*/
+
 	return p_values;
 }
 
@@ -604,12 +622,22 @@ double LRGPR::wald_test( vector<int> &terms ){
 	gsl_matrix_sub_row_col( Sigma, terms, Sigma_sub);
 	gsl_vector_subset( params->beta, terms, beta_sub );
 
+	// FILE * f = fopen ("/home/ghoffman/Downloads/Sigma_sub.txt", "w");
+ //    gsl_matrix_fprintf (f, Sigma_sub,"%.8g");
+ //    fclose (f);
+
+ //    FILE * f1 = fopen ("/home/ghoffman/Downloads/beta_sub.txt", "w");
+ //    gsl_vector_fprintf (f1, beta_sub,"%.8g");
+ //    fclose (f1);
+
 	// solve(Sigma)
 	int result = gsl_lapack_chol_invert( Sigma_sub );			
 
 	if( result == GSL_SUCCESS ){
 		// tcrossprod(fit$coefficients[terms], solve(fit$Sigma[terms,terms])) %*% fit$coefficients[terms]
 		double stat = gsl_matrix_quadratic_form_sym( Sigma_sub, beta_sub );
+
+		// std::cout << "stat: " << stat << std::endl;
 
 		// pchisq( stat, df, lower.tail=FALSE)
 		pValue = gsl_cdf_chisq_Q( stat, terms.size() );

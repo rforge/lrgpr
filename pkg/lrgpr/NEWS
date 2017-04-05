@@ -1,3 +1,9 @@
+v 0.1.9 # April 5, 2017
+  - Fix small bug in p-values from wald().  Make sure Sigma is symmetric
+
+v 0.1.8 # August 26, 2015
+  - Add documentation that was dropped from the last version
+
 v 0.1.7 # July 10, 2015
   - Remove formula.tools dependency due to error caused by v1.5.4
 
