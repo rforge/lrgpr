@@ -106,13 +106,17 @@ The package also provides simple interfaces for standard (i.e. fixed effects) li
 <hr />
 <font size="1">
 <div id="textbox">
-  <p class="alignleft">Gabriel E. Hoffman.  Updated April 5, 2017</p>
+  <p class="alignleft">Gabriel E. Hoffman.  Updated April 5, 2017 <br>
+  <a href="http://gabrielhoffman.github.io">gabrielhoffman.github.io</a>
+</p>
+  
   <!--<p class="alignright">
   	<?
 	echo "UPV: ";
 	include_once "counter.php"
 	?></p>-->
 </div>
+
 </font>
 
 </body>
