@@ -1,3 +1,6 @@
+v 0.1.10 # June 4, 2019
+  - Make compatible with R 3.6.0
+
 v 0.1.9 # April 5, 2017
   - Fix small bug in p-values from wald().  Make sure Sigma is symmetric
 

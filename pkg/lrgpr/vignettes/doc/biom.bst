@@ -1,1 +1,1 @@
-/home/ghoffman/Documents/formats/biom.bst
+/Users/gabrielhoffman/Dropbox/dream/dream_methods/formats/biometrics/test/biom.bst

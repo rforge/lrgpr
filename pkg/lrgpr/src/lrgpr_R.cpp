@@ -4,7 +4,7 @@
 #include <RcppGSL.h>
 #include <Rcpp.h>
 
-#define error Rf_error
+//#define error Rf_error
 #include <progress.hpp>
 
 #include <gsl/gsl_matrix_double.h>

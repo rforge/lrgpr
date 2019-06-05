@@ -1,12 +1,12 @@
 
 # set by configure
-GSL_CFLAGS = -I/usr/local/include -DHAVE_INLINE -DGSL_RANGE_CHECK_OFF -fopenmp #-DPRINT_TO_CONSOLE -g 
-GSL_LIBS   = -L/usr/local/lib -lgsl -lgslcblas -lm
+GSL_CFLAGS = -I/usr/local/Cellar/gsl/2.5/include -DHAVE_INLINE -DGSL_RANGE_CHECK_OFF #-fopenmp #-DPRINT_TO_CONSOLE -g 
+GSL_LIBS   = -L/usr/local/Cellar/gsl/2.5/lib -lgsl -lgslcblas
 RCPP_LDFLAGS =  
-BIGMEMORY_IFLAGS = -I/home/ghoffman/R/x86_64-pc-linux-gnu-library/3.3/bigmemory/include
-BH_IFLAGS = -I/home/ghoffman/R/x86_64-pc-linux-gnu-library/3.3/BH/include
-RCPPPROGRESS_IFLAGS = -I/home/ghoffman/R/x86_64-pc-linux-gnu-library/3.3/RcppProgress/include
+BIGMEMORY_IFLAGS = -I/Library/Frameworks/R.framework/Versions/3.5/Resources/library/bigmemory/include
+BH_IFLAGS = -I/Library/Frameworks/R.framework/Versions/3.5/Resources/library/BH/include
+RCPPPROGRESS_IFLAGS = -I/Library/Frameworks/R.framework/Versions/3.5/Resources/library/RcppProgress/include
 
 # combine with standard arguments for R
-PKG_CPPFLAGS = $(GSL_CFLAGS) $(BIGMEMORY_IFLAGS) $(BH_IFLAGS) $(RCPPPROGRESS_IFLAGS) $(SHLIB_OPENMP_CXXFLAGS)
-PKG_LIBS = $(GSL_LIBS) $(RCPP_LDFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS) -lboost_iostreams
+PKG_CPPFLAGS = $(GSL_CFLAGS) $(BIGMEMORY_IFLAGS) $(BH_IFLAGS) $(RCPPPROGRESS_IFLAGS) #$(SHLIB_OPENMP_CXXFLAGS)
+PKG_LIBS = $(GSL_LIBS) $(RCPP_LDFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) -lboost_iostreams #$(SHLIB_OPENMP_CXXFLAGS)
