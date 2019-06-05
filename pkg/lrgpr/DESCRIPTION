@@ -1,7 +1,7 @@
 Package: lrgpr
 Title: lrgpr
-Version: 0.1.10
-Date: June 4, 2019
+Version: 0.1.11
+Date: June 5, 2019
 Author: Gabriel E. Hoffman
 Maintainer: Gabriel E. Hoffman <gabriel.hoffman@mssm.edu>
 Description: Fit a Low Rank Gaussian Process Regression (LRGPR) / Linear Mixed
@@ -9,7 +9,7 @@ Description: Fit a Low Rank Gaussian Process Regression (LRGPR) / Linear Mixed
     statistical genetics as a test of association while correcting for the
     confounding effects of kinship and population structure.
 Depends:
-    R (>= 3.0.0),
+    R (>= 3.4.0),
     methods,
     Rcpp,
     RcppGSL,
@@ -21,6 +21,7 @@ Depends:
     bigmemory.sri,
     aod
 LinkingTo: Rcpp, RcppGSL
+SystemRequirements: C++98
 URL: http://lrgpr.r-forge.r-project.org/
 License: GPL (>= 2)
 RoxygenNote: 6.0.1
