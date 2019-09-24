@@ -1,3 +1,8 @@
+v 0.1.12 # September 23, 2019
+  - Add packages to LinkingTo
+  - Fix seg fault error due to int function not returning a value
+  - restore configure files
+
 v 0.1.11 
 v 0.1.10 # June 4, 2019
   - Make compatible with R 3.6.0
