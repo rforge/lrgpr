@@ -69,7 +69,7 @@ The package also provides simple interfaces for standard (i.e. fixed effects) li
 
 <li> <a href="./docs/INSTALL.pdf"><strong>Installation instructions</strong></a>: how to install dependencies (<i>essential</i>)</li>
 
-<li> <a href="./docs/lrgpr_0.1.11.tar.gz"><strong>Download package</strong></a>: v0.1.11 </li>
+<li> <a href="./docs/lrgpr_0.1.12.tar.gz"><strong>Download package</strong></a>: v0.1.12 </li>
 
 <br>
 
@@ -106,7 +106,7 @@ The package also provides simple interfaces for standard (i.e. fixed effects) li
 <hr />
 <font size="1">
 <div id="textbox">
-  <p class="alignleft">Gabriel E. Hoffman.  Updated June 5, 2019 <br>
+  <p class="alignleft">Gabriel E. Hoffman.  Updated September 24, 2019 <br>
   <a href="http://gabrielhoffman.github.io">gabrielhoffman.github.io</a>
 </p>
   
