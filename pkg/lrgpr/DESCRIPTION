@@ -1,7 +1,7 @@
 Package: lrgpr
 Title: lrgpr
-Version: 0.1.11
-Date: June 5, 2019
+Version: 0.1.12
+Date: September 23, 2019
 Author: Gabriel E. Hoffman
 Maintainer: Gabriel E. Hoffman <gabriel.hoffman@mssm.edu>
 Description: Fit a Low Rank Gaussian Process Regression (LRGPR) / Linear Mixed
@@ -20,8 +20,9 @@ Depends:
     bigmemory (>= 4.4.7),
     bigmemory.sri,
     aod
-LinkingTo: Rcpp, RcppGSL
+LinkingTo: Rcpp, RcppGSL, bigmemory, RcppProgress, BH, methods
 SystemRequirements: C++98
 URL: http://lrgpr.r-forge.r-project.org/
 License: GPL (>= 2)
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
+NeedsCompilation: yes

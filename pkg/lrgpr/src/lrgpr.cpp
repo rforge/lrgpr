@@ -8,6 +8,7 @@
 
 #include "lrgpr.h"
 
+#include <Rcpp.h>
 #include <iostream>
 #include <math.h>
 #include <sys/time.h>
@@ -548,7 +549,7 @@ gsl_matrix *LRGPR::coeff_covariance(){
 	//   = Q_XX_value * sig_g
 	gsl_matrix *V = gsl_matrix_alloc( params->Q_XX_value->size1, params->Q_XX_value->size2 );
 
-	coeff_covariance( V );
+	LRGPR::coeff_covariance( V );
 
 	return V;
 }

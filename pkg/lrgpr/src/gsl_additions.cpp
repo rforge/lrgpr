@@ -1923,6 +1923,8 @@ int gsl_matrix_daxpy( double alpha, const gsl_matrix * x, gsl_matrix * y){
 		GSL_ERROR("incompatible dimensions", GSL_EDOM);
 
 	cblas_daxpy( x->size1 * x->size2, alpha, x->data, 1, y->data, 1);
+
+	return 0;
 }
 
 
@@ -1951,7 +1953,7 @@ bool gsl_vector_set_missing_mean(gsl_vector *v){
 
 long gsl_vector_count_missing(gsl_vector *v){
 
-	double count = 0;
+	long count = 0;
 
 	for(unsigned int i=0; i<v->size; i++){
 
